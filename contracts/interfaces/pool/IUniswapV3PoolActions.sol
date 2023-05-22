@@ -4,6 +4,10 @@ pragma solidity >=0.5.0;
 /// @title Permissionless pool actions
 /// @notice Contains pool methods that can be called by anyone
 interface IUniswapV3PoolActions {
+    /// @notice Initialize function used in proxy deployment
+    /// @dev Can be called once only
+    function init() external;
+
     /// @notice Sets the initial price for the pool
     /// @dev Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
     /// @param sqrtPriceX96 the initial sqrt price of the pool as a Q64.96

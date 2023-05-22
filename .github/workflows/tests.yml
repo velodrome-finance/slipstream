@@ -36,3 +36,27 @@ jobs:
 
       - name: Run unit tests
         run: yarn test
+  test:
+    name: Foundry Unit Tests
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v2
+      - name: Install dev dependencies
+        run: yarn install
+
+      # Runs a single command using the runners shell
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install deps
+        run: forge install
+
+      - name: Run tests
+        run: forge test -vvv

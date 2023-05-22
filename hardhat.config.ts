@@ -2,6 +2,16 @@ import 'hardhat-typechain'
 import '@nomiclabs/hardhat-ethers'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
+import "hardhat-preprocessor";
+import fs from "fs"
+
+function getRemappings() {
+  return fs
+    .readFileSync("remappings.txt", "utf8")
+    .split("\n")
+    .filter(Boolean) // remove empty lines
+    .map((line) => line.trim().split("="));
+}
 
 export default {
   networks: {
@@ -55,7 +65,7 @@ export default {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 800,
+        runs: 200, // TODO: update post bytecode size fix, orig: 800
       },
       metadata: {
         // do not include the metadata hash, since this is machine dependent
@@ -64,5 +74,23 @@ export default {
         bytecodeHash: 'none',
       },
     },
+  },
+  preprocess: {
+    eachLine: () => ({
+      transform: (line: string) => {
+        if (line.match(/^\s*import /i)) {
+          getRemappings().forEach(([find, replace]) => {
+            if (line.match(find)) {
+              line = line.replace(find, replace);
+            }
+          });
+        }
+        return line;
+      },
+    }),
+  },
+  paths: {
+    sources: "./contracts",
+    cache: "./cache_hardhat",
   },
 }

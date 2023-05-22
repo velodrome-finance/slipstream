@@ -3,8 +3,6 @@ pragma solidity =0.7.6;
 
 import './interfaces/IUniswapV3Pool.sol';
 
-import './NoDelegateCall.sol';
-
 import './libraries/LowGasSafeMath.sol';
 import './libraries/SafeCast.sol';
 import './libraries/Tick.sol';
@@ -20,14 +18,13 @@ import './libraries/LiquidityMath.sol';
 import './libraries/SqrtPriceMath.sol';
 import './libraries/SwapMath.sol';
 
-import './interfaces/IUniswapV3PoolDeployer.sol';
 import './interfaces/IUniswapV3Factory.sol';
 import './interfaces/IERC20Minimal.sol';
 import './interfaces/callback/IUniswapV3MintCallback.sol';
 import './interfaces/callback/IUniswapV3SwapCallback.sol';
 import './interfaces/callback/IUniswapV3FlashCallback.sol';
 
-contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
+contract UniswapV3Pool is IUniswapV3Pool {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
     using SafeCast for uint256;
@@ -39,19 +36,17 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     using Oracle for Oracle.Observation[65535];
 
     /// @inheritdoc IUniswapV3PoolImmutables
-    address public immutable override factory;
+    address public override factory;
     /// @inheritdoc IUniswapV3PoolImmutables
-    address public immutable override token0;
+    address public override token0;
     /// @inheritdoc IUniswapV3PoolImmutables
-    address public immutable override token1;
-    /// @inheritdoc IUniswapV3PoolImmutables
-    uint24 public immutable override fee;
+    address public override token1;
 
     /// @inheritdoc IUniswapV3PoolImmutables
-    int24 public immutable override tickSpacing;
+    int24 public override tickSpacing;
 
     /// @inheritdoc IUniswapV3PoolImmutables
-    uint128 public immutable override maxLiquidityPerTick;
+    uint128 public override maxLiquidityPerTick;
 
     struct Slot0 {
         // the current price
@@ -114,12 +109,18 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         _;
     }
 
-    constructor() {
+    /// @inheritdoc IUniswapV3PoolActions
+    function init() external override {
+        require(factory == address(0));
         int24 _tickSpacing;
-        (factory, token0, token1, fee, _tickSpacing) = IUniswapV3PoolDeployer(msg.sender).parameters();
+        (factory, token0, token1, _tickSpacing) = IUniswapV3Factory(msg.sender).parameters();
         tickSpacing = _tickSpacing;
 
         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
+    }
+
+    function fee() public view override returns (uint24) {
+        return IUniswapV3Factory(factory).getFee(address(this));
     }
 
     /// @dev Common checks for valid tick inputs.
@@ -159,7 +160,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         external
         view
         override
-        noDelegateCall
         returns (
             int56 tickCumulativeInside,
             uint160 secondsPerLiquidityInsideX128,
@@ -237,7 +237,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         external
         view
         override
-        noDelegateCall
         returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s)
     {
         return
@@ -252,12 +251,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    function increaseObservationCardinalityNext(uint16 observationCardinalityNext)
-        external
-        override
-        lock
-        noDelegateCall
-    {
+    function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external override lock {
         uint16 observationCardinalityNextOld = slot0.observationCardinalityNext; // for the event
         uint16 observationCardinalityNextNew =
             observations.grow(observationCardinalityNextOld, observationCardinalityNext);
@@ -305,7 +299,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     /// @return amount1 the amount of token1 owed to the pool, negative if the pool should pay the recipient
     function _modifyPosition(ModifyPositionParams memory params)
         private
-        noDelegateCall
         returns (
             Position.Info storage position,
             int256 amount0,
@@ -453,7 +446,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    /// @dev noDelegateCall is applied indirectly via _modifyPosition
     function mint(
         address recipient,
         int24 tickLower,
@@ -513,7 +505,6 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    /// @dev noDelegateCall is applied indirectly via _modifyPosition
     function burn(
         int24 tickLower,
         int24 tickUpper,
@@ -599,7 +590,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         int256 amountSpecified,
         uint160 sqrtPriceLimitX96,
         bytes calldata data
-    ) external override noDelegateCall returns (int256 amount0, int256 amount1) {
+    ) external override returns (int256 amount0, int256 amount1) {
         require(amountSpecified != 0, 'AS');
 
         Slot0 memory slot0Start = slot0;
@@ -667,7 +658,7 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
                     : step.sqrtPriceNextX96,
                 state.liquidity,
                 state.amountSpecifiedRemaining,
-                fee
+                fee()
             );
 
             if (exactInput) {
@@ -793,12 +784,12 @@ contract UniswapV3Pool is IUniswapV3Pool, NoDelegateCall {
         uint256 amount0,
         uint256 amount1,
         bytes calldata data
-    ) external override lock noDelegateCall {
+    ) external override lock {
         uint128 _liquidity = liquidity;
         require(_liquidity > 0, 'L');
 
-        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee, 1e6);
-        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee, 1e6);
+        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee(), 1e6);
+        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee(), 1e6);
         uint256 balance0Before = balance0();
         uint256 balance1Before = balance1();
 

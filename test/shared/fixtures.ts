@@ -5,7 +5,6 @@ import { TestERC20 } from '../../typechain/TestERC20'
 import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
 import { TestUniswapV3Callee } from '../../typechain/TestUniswapV3Callee'
 import { TestUniswapV3Router } from '../../typechain/TestUniswapV3Router'
-import { MockTimeUniswapV3PoolDeployer } from '../../typechain/MockTimeUniswapV3PoolDeployer'
 
 import { Fixture } from 'ethereum-waffle'
 
@@ -14,8 +13,10 @@ interface FactoryFixture {
 }
 
 async function factoryFixture(): Promise<FactoryFixture> {
+  const poolFactory = await ethers.getContractFactory('UniswapV3Pool')
+  const poolImplementation = await poolFactory.deploy()
   const factoryFactory = await ethers.getContractFactory('UniswapV3Factory')
-  const factory = (await factoryFactory.deploy()) as UniswapV3Factory
+  const factory = (await factoryFactory.deploy(poolImplementation.address)) as UniswapV3Factory
   return { factory }
 }
 
@@ -55,11 +56,14 @@ interface PoolFixture extends TokensAndFactoryFixture {
 export const TEST_POOL_START_TIME = 1601906400
 
 export const poolFixture: Fixture<PoolFixture> = async function (): Promise<PoolFixture> {
-  const { factory } = await factoryFixture()
   const { token0, token1, token2 } = await tokensFixture()
 
-  const MockTimeUniswapV3PoolDeployerFactory = await ethers.getContractFactory('MockTimeUniswapV3PoolDeployer')
+  const MockTimeUniswapV3PoolDeployerFactory = await ethers.getContractFactory('UniswapV3Factory')
   const MockTimeUniswapV3PoolFactory = await ethers.getContractFactory('MockTimeUniswapV3Pool')
+  const mockTimePool = (await MockTimeUniswapV3PoolFactory.deploy()) as MockTimeUniswapV3Pool
+  const mockTimePoolDeployer = (await MockTimeUniswapV3PoolDeployerFactory.deploy(
+    mockTimePool.address
+  )) as UniswapV3Factory
 
   const calleeContractFactory = await ethers.getContractFactory('TestUniswapV3Callee')
   const routerContractFactory = await ethers.getContractFactory('TestUniswapV3Router')
@@ -71,22 +75,21 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     token0,
     token1,
     token2,
-    factory,
+    factory: mockTimePoolDeployer,
     swapTargetCallee,
     swapTargetRouter,
     createPool: async (fee, tickSpacing, firstToken = token0, secondToken = token1) => {
-      const mockTimePoolDeployer = (await MockTimeUniswapV3PoolDeployerFactory.deploy()) as MockTimeUniswapV3PoolDeployer
-      const tx = await mockTimePoolDeployer.deploy(
-        factory.address,
-        firstToken.address,
-        secondToken.address,
-        fee,
-        tickSpacing
-      )
+      // add tick spacing if not already added, backwards compatible with uniswapv3 tests
+      const tickSpacingFee = await mockTimePoolDeployer.tickSpacingToFee(tickSpacing)
+      if (tickSpacingFee == 0) await mockTimePoolDeployer['enableTickSpacing(int24,uint24)'](tickSpacing, fee)
+
+      const tx = await mockTimePoolDeployer.createPool(firstToken.address, secondToken.address, tickSpacing)
 
       const receipt = await tx.wait()
       const poolAddress = receipt.events?.[0].args?.pool as string
-      return MockTimeUniswapV3PoolFactory.attach(poolAddress) as MockTimeUniswapV3Pool
+      const pool = MockTimeUniswapV3PoolFactory.attach(poolAddress) as MockTimeUniswapV3Pool
+      await pool.advanceTime(TEST_POOL_START_TIME)
+      return pool
     },
   }
 }

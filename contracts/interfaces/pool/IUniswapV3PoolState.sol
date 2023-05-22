@@ -31,6 +31,11 @@ interface IUniswapV3PoolState {
             bool unlocked
         );
 
+    /// @notice The pool's fee in hundredths of a bip, i.e. 1e-6
+    /// @dev Can be modified in PoolFactory on a pool basis or upgraded to be dynamic.
+    /// @return The fee
+    function fee() external view returns (uint24);
+
     /// @notice The fee growth as a Q128.128 fees of token0 collected per unit of liquidity for the entire life of the pool
     /// @dev This value can overflow the uint256
     function feeGrowthGlobal0X128() external view returns (uint256);
