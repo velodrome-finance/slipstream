@@ -30,6 +30,15 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      # Runs a single command using the runners shell
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install deps
+        run: forge install
+
       # This is required separately from yarn test because it generates the typechain definitions
       - name: Compile
         run: yarn compile

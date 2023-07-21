@@ -12,14 +12,6 @@ interface FactoryFixture {
   factory: UniswapV3Factory
 }
 
-async function factoryFixture(): Promise<FactoryFixture> {
-  const poolFactory = await ethers.getContractFactory('UniswapV3Pool')
-  const poolImplementation = await poolFactory.deploy()
-  const factoryFactory = await ethers.getContractFactory('UniswapV3Factory')
-  const factory = (await factoryFactory.deploy(poolImplementation.address)) as UniswapV3Factory
-  return { factory }
-}
-
 interface TokensFixture {
   token0: TestERC20
   token1: TestERC20

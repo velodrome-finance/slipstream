@@ -4,7 +4,7 @@ pragma solidity =0.7.6;
 import './interfaces/IUniswapV3Factory.sol';
 import './interfaces/fees/IFeeModule.sol';
 
-import './libraries/Clones.sol';
+import 'openzeppelin-contracts/contracts/proxy/Clones.sol';
 import './UniswapV3Pool.sol';
 
 /// @title Canonical Uniswap V3 factory
@@ -88,8 +88,9 @@ contract UniswapV3Factory is IUniswapV3Factory {
 
     /// @inheritdoc IUniswapV3Factory
     function setOwner(address _owner) external override {
-        // TODO: should this be escrow.governor()?
+        // TODO: should this be voter.governor()?
         require(msg.sender == owner);
+        require(_owner != address(0));
         emit OwnerChanged(owner, _owner);
         owner = _owner;
     }
@@ -106,6 +107,7 @@ contract UniswapV3Factory is IUniswapV3Factory {
     /// @inheritdoc IUniswapV3Factory
     function setFeeModule(address _feeModule) external override {
         require(msg.sender == feeManager);
+        require(_feeModule != address(0));
         address oldFeeModule = feeModule;
         feeModule = _feeModule;
         emit FeeModuleChanged(oldFeeModule, _feeModule);
