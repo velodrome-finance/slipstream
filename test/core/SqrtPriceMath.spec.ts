@@ -1,6 +1,6 @@
 import { BigNumber, constants } from 'ethers'
 import { ethers } from 'hardhat'
-import { SqrtPriceMathTest } from '../typechain/SqrtPriceMathTest'
+import { SqrtPriceMathTest } from '../../typechain/SqrtPriceMathTest'
 
 import { expect } from './shared/expect'
 import snapshotGasCost from './shared/snapshotGasCost'

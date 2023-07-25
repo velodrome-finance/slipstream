@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {IUniswapV3Pool} from 'contracts/interfaces/IUniswapV3Pool.sol';
+import {IUniswapV3Pool} from 'contracts/core/interfaces/IUniswapV3Pool.sol';
 import {UniswapV3PoolTest} from './UniswapV3Pool.t.sol';
 
 contract InitTest is UniswapV3PoolTest {

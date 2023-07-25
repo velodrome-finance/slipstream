@@ -1,6 +1,6 @@
 import { BigNumber, BigNumberish, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
-import { OracleTest } from '../typechain/OracleTest'
+import { OracleTest } from '../../typechain/OracleTest'
 import checkObservationEquals from './shared/checkObservationEquals'
 import { expect } from './shared/expect'
 import { TEST_POOL_START_TIME } from './shared/fixtures'
@@ -602,8 +602,8 @@ describe('Oracle', () => {
             0,
           ])
           expect({
-            tickCumulatives: tickCumulatives.map((tc) => tc.toNumber()),
-            secondsPerLiquidityCumulativeX128s: secondsPerLiquidityCumulativeX128s.map((lc) => lc.toString()),
+            tickCumulatives: tickCumulatives.map((tc: any) => tc.toNumber()),
+            secondsPerLiquidityCumulativeX128s: secondsPerLiquidityCumulativeX128s.map((lc: any) => lc.toString()),
           }).to.matchSnapshot()
         })
 

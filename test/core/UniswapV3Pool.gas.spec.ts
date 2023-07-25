@@ -1,6 +1,6 @@
 import { ethers, waffle } from 'hardhat'
 import { Wallet } from 'ethers'
-import { MockTimeUniswapV3Pool } from '../typechain/MockTimeUniswapV3Pool'
+import { MockTimeUniswapV3Pool } from '../../typechain/MockTimeUniswapV3Pool'
 import { expect } from './shared/expect'
 
 import { poolFixture } from './shared/fixtures'

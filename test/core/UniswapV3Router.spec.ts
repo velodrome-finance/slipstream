@@ -1,8 +1,8 @@
 import { Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
-import { TestERC20 } from '../typechain/TestERC20'
-import { UniswapV3Factory } from '../typechain/UniswapV3Factory'
-import { MockTimeUniswapV3Pool } from '../typechain/MockTimeUniswapV3Pool'
+import { TestERC20 } from '../../typechain/TestERC20'
+import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
+import { MockTimeUniswapV3Pool } from '../../typechain/MockTimeUniswapV3Pool'
 import { expect } from './shared/expect'
 
 import { poolFixture } from './shared/fixtures'
@@ -18,8 +18,8 @@ import {
   getMaxTick,
   expandTo18Decimals,
 } from './shared/utilities'
-import { TestUniswapV3Router } from '../typechain/TestUniswapV3Router'
-import { TestUniswapV3Callee } from '../typechain/TestUniswapV3Callee'
+import { TestUniswapV3Router } from '../../typechain/TestUniswapV3Router'
+import { TestUniswapV3Callee } from '../../typechain/TestUniswapV3Callee'
 
 const feeAmount = FeeAmount.MEDIUM
 const tickSpacing = TICK_SPACINGS[feeAmount]

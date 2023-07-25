@@ -67,4 +67,4 @@ jobs:
           solc-select use 0.7.6
 
       - name: Run ${{ matrix.testName }}
-        run: echidna contracts/test/${{ matrix.testName }}.sol --contract ${{ matrix.testName }} --config echidna.config.yml
+        run: echidna contracts/core/test/${{ matrix.testName }}.sol --contract ${{ matrix.testName }} --config echidna.config.yml

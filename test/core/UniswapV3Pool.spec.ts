@@ -1,9 +1,9 @@
 import { ethers, waffle } from 'hardhat'
 import { BigNumber, BigNumberish, constants, Wallet } from 'ethers'
-import { TestERC20 } from '../typechain/TestERC20'
-import { UniswapV3Factory } from '../typechain/UniswapV3Factory'
-import { MockTimeUniswapV3Pool } from '../typechain/MockTimeUniswapV3Pool'
-import { TestUniswapV3SwapPay } from '../typechain/TestUniswapV3SwapPay'
+import { TestERC20 } from '../../typechain/TestERC20'
+import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
+import { MockTimeUniswapV3Pool } from '../../typechain/MockTimeUniswapV3Pool'
+import { TestUniswapV3SwapPay } from '../../typechain/TestUniswapV3SwapPay'
 import checkObservationEquals from './shared/checkObservationEquals'
 import { expect } from './shared/expect'
 
@@ -27,10 +27,10 @@ import {
   MIN_SQRT_RATIO,
   SwapToPriceFunction,
 } from './shared/utilities'
-import { TestUniswapV3Callee } from '../typechain/TestUniswapV3Callee'
-import { TestUniswapV3ReentrantCallee } from '../typechain/TestUniswapV3ReentrantCallee'
-import { TickMathTest } from '../typechain/TickMathTest'
-import { SwapMathTest } from '../typechain/SwapMathTest'
+import { TestUniswapV3Callee } from '../../typechain/TestUniswapV3Callee'
+import { TestUniswapV3ReentrantCallee } from '../../typechain/TestUniswapV3ReentrantCallee'
+import { TickMathTest } from '../../typechain/TickMathTest'
+import { SwapMathTest } from '../../typechain/SwapMathTest'
 
 const createFixtureLoader = waffle.createFixtureLoader
 

@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CustomFeeModule} from 'contracts/fees/CustomFeeModule.sol';
+import {CustomFeeModule} from 'contracts/core/fees/CustomFeeModule.sol';
 import '../../BaseFixture.sol';
 
 contract CustomFeeModuleTest is BaseFixture {

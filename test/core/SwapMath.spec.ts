@@ -1,11 +1,11 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
-import { SwapMathTest } from '../typechain/SwapMathTest'
+import { SwapMathTest } from '../../typechain/SwapMathTest'
 
 import { expect } from './shared/expect'
 import snapshotGasCost from './shared/snapshotGasCost'
 import { encodePriceSqrt, expandTo18Decimals } from './shared/utilities'
-import { SqrtPriceMathTest } from '../typechain/SqrtPriceMathTest'
+import { SqrtPriceMathTest } from '../../typechain/SqrtPriceMathTest'
 
 describe('SwapMath', () => {
   let swapMath: SwapMathTest

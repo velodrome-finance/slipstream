@@ -1,7 +1,7 @@
 import { Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
-import { UniswapV3Factory } from '../typechain/UniswapV3Factory'
-import { Create2Address } from '../typechain/Create2Address'
+import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
+import { Create2Address } from '../../typechain/Create2Address'
 import { expect } from './shared/expect'
 
 import { FeeAmount, TICK_SPACINGS } from './shared/utilities'

@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat'
 import { BigNumber } from 'ethers'
-import { TickTest } from '../typechain/TickTest'
+import { TickTest } from '../../typechain/TickTest'
 import { expect } from './shared/expect'
 import { FeeAmount, getMaxLiquidityPerTick, TICK_SPACINGS } from './shared/utilities'
 
