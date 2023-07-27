@@ -17,18 +17,29 @@
     "url": "https://github.com/Uniswap/uniswap-v3-core"
   },
   "files": [
-    "contracts/interfaces",
-    "contracts/libraries",
-    "artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json",
-    "artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json",
-    "artifacts/contracts/interfaces/**/*.json",
-    "!artifacts/contracts/interfaces/**/*.dbg.json"
+    "contracts/core/interfaces",
+    "contracts/core/libraries",
+    "contracts/periphery/base",
+    "contracts/periphery/interfaces",
+    "contracts/peripherylibraries",
+    "artifacts/contracts/core/UniswapV3Factory.sol/UniswapV3Factory.json",
+    "artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json",
+    "artifacts/contracts/core/interfaces/**/*.json",
+    "!artifacts/contracts/core/interfaces/**/*.dbg.json",
+    "artifacts/contracts/periphery/**/*.json",
+    "!artifacts/contracts/periphery/**/*.dbg.json",
+    "!artifacts/contracts/periphery/test/**/*",
+    "!artifacts/contracts/periphery/base/**/*"
   ],
   "engines": {
     "node": ">=10"
   },
-  "dependencies": {},
+  "dependencies": {
+    "base64-sol": "1.0.1",
+    "@uniswap/lib": "^4.0.1-alpha"
+  },
   "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.0.1",
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-etherscan": "^2.1.8",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -42,6 +53,7 @@
     "hardhat": "^2.2.0",
     "hardhat-preprocessor": "^0.1.5",
     "hardhat-typechain": "^0.3.5",
+    "is-svg": "^4.3.1",
     "mocha": "^6.2.2",
     "mocha-chai-jest-snapshot": "^1.1.0",
     "prettier": "^2.0.5",

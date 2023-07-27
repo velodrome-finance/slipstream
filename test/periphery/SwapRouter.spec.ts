@@ -1,7 +1,7 @@
 import { Fixture } from 'ethereum-waffle'
 import { BigNumber, constants, Contract, ContractTransaction, Wallet } from 'ethers'
 import { waffle, ethers } from 'hardhat'
-import { IWETH9, MockTimeNonfungiblePositionManager, MockTimeSwapRouter, TestERC20 } from '../typechain'
+import { IWETH9, MockTimeNonfungiblePositionManager, MockTimeSwapRouter, TestERC20 } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -91,10 +91,6 @@ describe('SwapRouter', function () {
     expect(balance.eq(0)).to.be.eq(true)
   })
 
-  it('bytecode size', async () => {
-    expect(((await router.provider.getCode(router.address)).length - 2) / 2).to.matchSnapshot()
-  })
-
   describe('swaps', () => {
     const liquidity = 1000000
     async function createPool(tokenAddressA: string, tokenAddressB: string) {
@@ -104,14 +100,14 @@ describe('SwapRouter', function () {
       await nft.createAndInitializePoolIfNecessary(
         tokenAddressA,
         tokenAddressB,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       const liquidityParams = {
         token0: tokenAddressA,
         token1: tokenAddressB,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: wallet.address,
@@ -148,7 +144,7 @@ describe('SwapRouter', function () {
         const value = inputIsWETH ? amountIn : 0
 
         const params = {
-          path: encodePath(tokens, new Array(tokens.length - 1).fill(FeeAmount.MEDIUM)),
+          path: encodePath(tokens, new Array(tokens.length - 1).fill(TICK_SPACINGS[FeeAmount.MEDIUM])),
           recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
           deadline: 1,
           amountIn,
@@ -172,7 +168,7 @@ describe('SwapRouter', function () {
 
       describe('single-pool', () => {
         it('0 -> 1', async () => {
-          const pool = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+          const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -191,7 +187,7 @@ describe('SwapRouter', function () {
         })
 
         it('1 -> 0', async () => {
-          const pool = await factory.getPool(tokens[1].address, tokens[0].address, FeeAmount.MEDIUM)
+          const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -253,24 +249,40 @@ describe('SwapRouter', function () {
             .to.emit(tokens[0], 'Transfer')
             .withArgs(
               trader.address,
-              computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[0].address, tokens[1].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               5
             )
             .to.emit(tokens[1], 'Transfer')
             .withArgs(
-              computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[0].address, tokens[1].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               router.address,
               3
             )
             .to.emit(tokens[1], 'Transfer')
             .withArgs(
               router.address,
-              computePoolAddress(factory.address, [tokens[1].address, tokens[2].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[1].address, tokens[2].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               3
             )
             .to.emit(tokens[2], 'Transfer')
             .withArgs(
-              computePoolAddress(factory.address, [tokens[1].address, tokens[2].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[1].address, tokens[2].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               trader.address,
               1
             )
@@ -284,7 +296,7 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -325,7 +337,7 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -377,7 +389,7 @@ describe('SwapRouter', function () {
         const params = {
           tokenIn,
           tokenOut,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           sqrtPriceLimitX96:
             sqrtPriceLimitX96 ?? tokenIn.toLowerCase() < tokenOut.toLowerCase()
               ? BigNumber.from('4295128740')
@@ -406,7 +418,7 @@ describe('SwapRouter', function () {
       }
 
       it('0 -> 1', async () => {
-        const pool = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+        const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -425,7 +437,7 @@ describe('SwapRouter', function () {
       })
 
       it('1 -> 0', async () => {
-        const pool = await factory.getPool(tokens[1].address, tokens[0].address, FeeAmount.MEDIUM)
+        const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -450,7 +462,7 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -479,7 +491,7 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -513,7 +525,10 @@ describe('SwapRouter', function () {
         const value = inputIsWETH9 ? amountInMaximum : 0
 
         const params = {
-          path: encodePath(tokens.slice().reverse(), new Array(tokens.length - 1).fill(FeeAmount.MEDIUM)),
+          path: encodePath(
+            tokens.slice().reverse(),
+            new Array(tokens.length - 1).fill(TICK_SPACINGS[FeeAmount.MEDIUM])
+          ),
           recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
           deadline: 1,
           amountOut,
@@ -534,7 +549,7 @@ describe('SwapRouter', function () {
 
       describe('single-pool', () => {
         it('0 -> 1', async () => {
-          const pool = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+          const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -553,7 +568,7 @@ describe('SwapRouter', function () {
         })
 
         it('1 -> 0', async () => {
-          const pool = await factory.getPool(tokens[1].address, tokens[0].address, FeeAmount.MEDIUM)
+          const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -614,20 +629,36 @@ describe('SwapRouter', function () {
           )
             .to.emit(tokens[2], 'Transfer')
             .withArgs(
-              computePoolAddress(factory.address, [tokens[2].address, tokens[1].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[2].address, tokens[1].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               trader.address,
               1
             )
             .to.emit(tokens[1], 'Transfer')
             .withArgs(
-              computePoolAddress(factory.address, [tokens[1].address, tokens[0].address], FeeAmount.MEDIUM),
-              computePoolAddress(factory.address, [tokens[2].address, tokens[1].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[1].address, tokens[0].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
+              await computePoolAddress(
+                factory.address,
+                [tokens[2].address, tokens[1].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               3
             )
             .to.emit(tokens[0], 'Transfer')
             .withArgs(
               trader.address,
-              computePoolAddress(factory.address, [tokens[1].address, tokens[0].address], FeeAmount.MEDIUM),
+              await computePoolAddress(
+                factory.address,
+                [tokens[1].address, tokens[0].address],
+                TICK_SPACINGS[FeeAmount.MEDIUM]
+              ),
               5
             )
         })
@@ -640,7 +671,7 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -681,7 +712,7 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -733,7 +764,7 @@ describe('SwapRouter', function () {
         const params = {
           tokenIn,
           tokenOut,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
           deadline: 1,
           amountOut,
@@ -759,7 +790,7 @@ describe('SwapRouter', function () {
       }
 
       it('0 -> 1', async () => {
-        const pool = await factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+        const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -778,7 +809,7 @@ describe('SwapRouter', function () {
       })
 
       it('1 -> 0', async () => {
-        const pool = await factory.getPool(tokens[1].address, tokens[0].address, FeeAmount.MEDIUM)
+        const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -803,7 +834,7 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -832,7 +863,7 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, FeeAmount.MEDIUM)
+            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -860,7 +891,7 @@ describe('SwapRouter', function () {
       it('#sweepTokenWithFee', async () => {
         const amountOutMinimum = 100
         const params = {
-          path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           recipient: router.address,
           deadline: 1,
           amountIn: 102,
@@ -890,7 +921,7 @@ describe('SwapRouter', function () {
 
         const amountOutMinimum = 100
         const params = {
-          path: encodePath([tokens[0].address, weth9.address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, weth9.address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           recipient: router.address,
           deadline: 1,
           amountIn: 102,

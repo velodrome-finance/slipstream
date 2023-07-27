@@ -2,11 +2,11 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/libraries/SafeCast.sol';
-import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
-import '@uniswap/v3-core/contracts/libraries/TickBitmap.sol';
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol';
+import 'contracts/core/libraries/SafeCast.sol';
+import 'contracts/core/libraries/TickMath.sol';
+import 'contracts/core/libraries/TickBitmap.sol';
+import 'contracts/core/interfaces/IUniswapV3Pool.sol';
+import 'contracts/core/interfaces/callback/IUniswapV3SwapCallback.sol';
 
 import '../interfaces/IQuoterV2.sol';
 import '../base/PeripheryImmutableState.sol';
@@ -32,9 +32,9 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
     function getPool(
         address tokenA,
         address tokenB,
-        uint24 fee
+        int24 tickSpacing
     ) private view returns (IUniswapV3Pool) {
-        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, fee)));
+        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
     }
 
     /// @inheritdoc IUniswapV3SwapCallback
@@ -44,15 +44,15 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         bytes memory path
     ) external view override {
         require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
-        (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
-        CallbackValidation.verifyCallback(factory, tokenIn, tokenOut, fee);
+        (address tokenIn, address tokenOut, int24 tickSpacing) = path.decodeFirstPool();
+        CallbackValidation.verifyCallback(factory, tokenIn, tokenOut, tickSpacing);
 
         (bool isExactInput, uint256 amountToPay, uint256 amountReceived) =
             amount0Delta > 0
                 ? (tokenIn < tokenOut, uint256(amount0Delta), uint256(-amount1Delta))
                 : (tokenOut < tokenIn, uint256(amount1Delta), uint256(-amount0Delta));
 
-        IUniswapV3Pool pool = getPool(tokenIn, tokenOut, fee);
+        IUniswapV3Pool pool = getPool(tokenIn, tokenOut, tickSpacing);
         (uint160 sqrtPriceX96After, int24 tickAfter, , , , , ) = pool.slot0();
 
         if (isExactInput) {
@@ -131,7 +131,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         )
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
-        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.fee);
+        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
 
         uint256 gasBefore = gasleft();
         try
@@ -142,7 +142,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
                 params.sqrtPriceLimitX96 == 0
                     ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
                     : params.sqrtPriceLimitX96,
-                abi.encodePacked(params.tokenIn, params.fee, params.tokenOut)
+                abi.encodePacked(params.tokenIn, params.tickSpacing, params.tokenOut)
             )
         {} catch (bytes memory reason) {
             gasEstimate = gasBefore - gasleft();
@@ -165,7 +165,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
 
         uint256 i = 0;
         while (true) {
-            (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
+            (address tokenIn, address tokenOut, int24 tickSpacing) = path.decodeFirstPool();
 
             // the outputs of prior swaps become the inputs to subsequent ones
             (uint256 _amountOut, uint160 _sqrtPriceX96After, uint32 _initializedTicksCrossed, uint256 _gasEstimate) =
@@ -173,7 +173,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
                     QuoteExactInputSingleParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
-                        fee: fee,
+                        tickSpacing: tickSpacing,
                         amountIn: amountIn,
                         sqrtPriceLimitX96: 0
                     })
@@ -205,7 +205,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         )
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
-        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.fee);
+        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
 
         // if no price limit has been specified, cache the output amount for comparison in the swap callback
         if (params.sqrtPriceLimitX96 == 0) amountOutCached = params.amount;
@@ -218,7 +218,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
                 params.sqrtPriceLimitX96 == 0
                     ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
                     : params.sqrtPriceLimitX96,
-                abi.encodePacked(params.tokenOut, params.fee, params.tokenIn)
+                abi.encodePacked(params.tokenOut, params.tickSpacing, params.tokenIn)
             )
         {} catch (bytes memory reason) {
             gasEstimate = gasBefore - gasleft();
@@ -242,7 +242,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
 
         uint256 i = 0;
         while (true) {
-            (address tokenOut, address tokenIn, uint24 fee) = path.decodeFirstPool();
+            (address tokenOut, address tokenIn, int24 tickSpacing) = path.decodeFirstPool();
 
             // the inputs of prior swaps become the outputs of subsequent ones
             (uint256 _amountIn, uint160 _sqrtPriceX96After, uint32 _initializedTicksCrossed, uint256 _gasEstimate) =
@@ -251,7 +251,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
                         amount: amountOut,
-                        fee: fee,
+                        tickSpacing: tickSpacing,
                         sqrtPriceLimitX96: 0
                     })
                 );

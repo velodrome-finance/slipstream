@@ -66,6 +66,7 @@ export default {
       optimizer: {
         enabled: true,
         runs: 200, // TODO: update post bytecode size fix, orig: 800
+        // TODO: review compiler overrides for periphery
       },
       metadata: {
         // do not include the metadata hash, since this is machine dependent

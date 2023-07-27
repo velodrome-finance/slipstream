@@ -1,6 +1,6 @@
 import { BigNumberish, constants, Signature, Wallet } from 'ethers'
 import { splitSignature } from 'ethers/lib/utils'
-import { TestERC20, TestERC20PermitAllowed } from '../../typechain'
+import { TestERC20, TestERC20PermitAllowed } from '../../../typechain'
 
 export async function getPermitSignature(
   wallet: Wallet,

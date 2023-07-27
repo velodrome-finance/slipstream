@@ -1,8 +1,7 @@
-import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Fixture } from 'ethereum-waffle'
 import { BigNumber, constants, ContractTransaction, Wallet } from 'ethers'
-import { ethers, waffle } from 'hardhat'
-import { IUniswapV3Pool, IWETH9, MockTimeSwapRouter, TestERC20 } from '../typechain'
+import { ethers, waffle, artifacts } from 'hardhat'
+import { IUniswapV3Pool, IWETH9, MockTimeSwapRouter, TestERC20 } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -41,14 +40,14 @@ describe('SwapRouter gas tests', function () {
       await nft.createAndInitializePoolIfNecessary(
         tokenAddressA,
         tokenAddressB,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(100005, 100000) // we don't want to cross any ticks
       )
 
       const liquidityParams = {
         token0: tokenAddressA,
         token1: tokenAddressB,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: wallet.address,
@@ -74,11 +73,12 @@ describe('SwapRouter gas tests', function () {
     await createPoolWETH9(tokens[0].address)
 
     const poolAddresses = await Promise.all([
-      factory.getPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM),
-      factory.getPool(tokens[1].address, tokens[2].address, FeeAmount.MEDIUM),
-      factory.getPool(weth9.address, tokens[0].address, FeeAmount.MEDIUM),
+      factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
+      factory.getPool(tokens[1].address, tokens[2].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
+      factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
     ])
 
+    const IUniswapV3PoolABI = artifacts.readArtifactSync('IUniswapV3Pool').abi
     const pools = poolAddresses.map((poolAddress) => new ethers.Contract(poolAddress, IUniswapV3PoolABI, wallet)) as [
       IUniswapV3Pool,
       IUniswapV3Pool,
@@ -122,7 +122,7 @@ describe('SwapRouter gas tests', function () {
     const value = inputIsWETH ? amountIn : 0
 
     const params = {
-      path: encodePath(tokens, new Array(tokens.length - 1).fill(FeeAmount.MEDIUM)),
+      path: encodePath(tokens, new Array(tokens.length - 1).fill(TICK_SPACINGS[FeeAmount.MEDIUM])),
       recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
       deadline: 1,
       amountIn,
@@ -153,7 +153,7 @@ describe('SwapRouter gas tests', function () {
     const params = {
       tokenIn,
       tokenOut,
-      fee: FeeAmount.MEDIUM,
+      tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
       sqrtPriceLimitX96: sqrtPriceLimitX96 ?? 0,
       recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
       deadline: 1,
@@ -180,7 +180,7 @@ describe('SwapRouter gas tests', function () {
     const value = inputIsWETH9 ? amountInMaximum : 0
 
     const params = {
-      path: encodePath(tokens.slice().reverse(), new Array(tokens.length - 1).fill(FeeAmount.MEDIUM)),
+      path: encodePath(tokens.slice().reverse(), new Array(tokens.length - 1).fill(TICK_SPACINGS[FeeAmount.MEDIUM])),
       recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
       deadline: 1,
       amountOut,
@@ -209,7 +209,7 @@ describe('SwapRouter gas tests', function () {
     const params = {
       tokenIn,
       tokenOut,
-      fee: FeeAmount.MEDIUM,
+      tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
       recipient: outputIsWETH9 ? constants.AddressZero : trader.address,
       deadline: 1,
       amountOut,
@@ -305,7 +305,7 @@ describe('SwapRouter gas tests', function () {
       await weth9.connect(trader).deposit({ value: 3 })
       await weth9.connect(trader).approve(router.address, constants.MaxUint256)
       const swap0 = {
-        path: encodePath([weth9.address, tokens[0].address], [FeeAmount.MEDIUM]),
+        path: encodePath([weth9.address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         recipient: constants.AddressZero,
         deadline: 1,
         amountIn: 3,
@@ -313,7 +313,7 @@ describe('SwapRouter gas tests', function () {
       }
 
       const swap1 = {
-        path: encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+        path: encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         recipient: constants.AddressZero,
         deadline: 1,
         amountIn: 3,
@@ -333,7 +333,7 @@ describe('SwapRouter gas tests', function () {
       await weth9.connect(trader).deposit({ value: 3 })
       await weth9.connect(trader).approve(router.address, constants.MaxUint256)
       const swap0 = {
-        path: encodePath([weth9.address, tokens[0].address], [FeeAmount.MEDIUM]),
+        path: encodePath([weth9.address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         recipient: trader.address,
         deadline: 1,
         amountIn: 3,
@@ -341,7 +341,7 @@ describe('SwapRouter gas tests', function () {
       }
 
       const swap1 = {
-        path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+        path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         recipient: trader.address,
         deadline: 1,
         amountIn: 3,
@@ -349,7 +349,7 @@ describe('SwapRouter gas tests', function () {
       }
 
       const swap2 = {
-        path: encodePath([tokens[1].address, tokens[2].address], [FeeAmount.MEDIUM]),
+        path: encodePath([tokens[1].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         recipient: trader.address,
         deadline: 1,
         amountIn: 3,
@@ -370,7 +370,7 @@ describe('SwapRouter gas tests', function () {
     await weth9.connect(trader).deposit({ value: 3 })
     await weth9.connect(trader).approve(router.address, constants.MaxUint256)
     const swap0 = {
-      path: encodePath([weth9.address, tokens[0].address], [FeeAmount.MEDIUM]),
+      path: encodePath([weth9.address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
       recipient: trader.address,
       deadline: 1,
       amountIn: 3,
@@ -378,7 +378,7 @@ describe('SwapRouter gas tests', function () {
     }
 
     const swap1 = {
-      path: encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+      path: encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
       recipient: trader.address,
       deadline: 1,
       amountIn: 3,

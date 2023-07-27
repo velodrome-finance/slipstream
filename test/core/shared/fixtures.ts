@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers'
 import { ethers } from 'hardhat'
 import { MockTimeUniswapV3Pool } from '../../../typechain/MockTimeUniswapV3Pool'
-import { TestERC20 } from '../../../typechain/TestERC20'
+import { CoreTestERC20 } from '../../../typechain/CoreTestERC20'
 import { UniswapV3Factory } from '../../../typechain/UniswapV3Factory'
 import { TestUniswapV3Callee } from '../../../typechain/TestUniswapV3Callee'
 import { TestUniswapV3Router } from '../../../typechain/TestUniswapV3Router'
@@ -13,16 +13,16 @@ interface FactoryFixture {
 }
 
 interface TokensFixture {
-  token0: TestERC20
-  token1: TestERC20
-  token2: TestERC20
+  token0: CoreTestERC20
+  token1: CoreTestERC20
+  token2: CoreTestERC20
 }
 
 async function tokensFixture(): Promise<TokensFixture> {
-  const tokenFactory = await ethers.getContractFactory('TestERC20')
-  const tokenA = (await tokenFactory.deploy(BigNumber.from(2).pow(255))) as TestERC20
-  const tokenB = (await tokenFactory.deploy(BigNumber.from(2).pow(255))) as TestERC20
-  const tokenC = (await tokenFactory.deploy(BigNumber.from(2).pow(255))) as TestERC20
+  const tokenFactory = await ethers.getContractFactory('CoreTestERC20')
+  const tokenA = (await tokenFactory.deploy(BigNumber.from(2).pow(255))) as CoreTestERC20
+  const tokenB = (await tokenFactory.deploy(BigNumber.from(2).pow(255))) as CoreTestERC20
+  const tokenC = (await tokenFactory.deploy(BigNumber.from(2).pow(255))) as CoreTestERC20
 
   const [token0, token1, token2] = [tokenA, tokenB, tokenC].sort((tokenA, tokenB) =>
     tokenA.address.toLowerCase() < tokenB.address.toLowerCase() ? -1 : 1
@@ -39,8 +39,8 @@ interface PoolFixture extends TokensAndFactoryFixture {
   createPool(
     fee: number,
     tickSpacing: number,
-    firstToken?: TestERC20,
-    secondToken?: TestERC20
+    firstToken?: CoreTestERC20,
+    secondToken?: CoreTestERC20
   ): Promise<MockTimeUniswapV3Pool>
 }
 

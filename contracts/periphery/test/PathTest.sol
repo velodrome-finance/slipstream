@@ -14,7 +14,7 @@ contract PathTest {
         returns (
             address tokenA,
             address tokenB,
-            uint24 fee
+            int24 tickSpacing
         )
     {
         return Path.decodeFirstPool(path);

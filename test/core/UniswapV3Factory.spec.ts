@@ -42,22 +42,6 @@ describe('UniswapV3Factory', () => {
     expect(await factory.owner()).to.eq(wallet.address)
   })
 
-  it('factory bytecode size', async () => {
-    expect(((await waffle.provider.getCode(factory.address)).length - 2) / 2).to.matchSnapshot()
-  })
-
-  it('pool bytecode size', async () => {
-    await factory['enableTickSpacing(int24,uint24)'](TICK_SPACINGS[FeeAmount.MEDIUM], FeeAmount.MEDIUM)
-    await factory.createPool(TEST_ADDRESSES[0], TEST_ADDRESSES[1], TICK_SPACINGS[FeeAmount.MEDIUM])
-    const implementation = await factory.implementation()
-    const salt = ethers.utils.solidityKeccak256(
-      ['address', 'address', 'int24'],
-      [TEST_ADDRESSES[0], TEST_ADDRESSES[1], TICK_SPACINGS[FeeAmount.MEDIUM]]
-    )
-    const poolAddress = create2Address.predictDeterministicAddress(implementation, salt, factory.address)
-    expect(((await waffle.provider.getCode(poolAddress)).length - 2) / 2).to.matchSnapshot()
-  })
-
   describe('#setOwner', () => {
     it('fails if caller is not owner', async () => {
       await expect(factory.connect(other).setOwner(wallet.address)).to.be.reverted

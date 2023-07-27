@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.8 <0.8.0;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/libraries/FixedPoint128.sol';
-import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
-import '@uniswap/v3-core/contracts/libraries/Tick.sol';
+import 'contracts/core/interfaces/IUniswapV3Pool.sol';
+import 'contracts/core/libraries/FixedPoint128.sol';
+import 'contracts/core/libraries/TickMath.sol';
+import 'contracts/core/libraries/Tick.sol';
 import '../interfaces/INonfungiblePositionManager.sol';
 import './LiquidityAmounts.sol';
 import './PoolAddress.sol';
@@ -55,7 +55,7 @@ library PositionValue {
     struct FeeParams {
         address token0;
         address token1;
-        uint24 fee;
+        int24 tickSpacing;
         int24 tickLower;
         int24 tickUpper;
         uint128 liquidity;
@@ -80,7 +80,7 @@ library PositionValue {
             ,
             address token0,
             address token1,
-            uint24 fee,
+            int24 tickSpacing,
             int24 tickLower,
             int24 tickUpper,
             uint128 liquidity,
@@ -96,7 +96,7 @@ library PositionValue {
                 FeeParams({
                     token0: token0,
                     token1: token1,
-                    fee: fee,
+                    tickSpacing: tickSpacing,
                     tickLower: tickLower,
                     tickUpper: tickUpper,
                     liquidity: liquidity,
@@ -118,7 +118,11 @@ library PositionValue {
                 IUniswapV3Pool(
                     PoolAddress.computeAddress(
                         positionManager.factory(),
-                        PoolAddress.PoolKey({token0: feeParams.token0, token1: feeParams.token1, fee: feeParams.fee})
+                        PoolAddress.PoolKey({
+                            token0: feeParams.token0,
+                            token1: feeParams.token1,
+                            tickSpacing: feeParams.tickSpacing
+                        })
                     )
                 ),
                 feeParams.tickLower,

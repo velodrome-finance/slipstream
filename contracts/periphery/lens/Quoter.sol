@@ -2,10 +2,10 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/libraries/SafeCast.sol';
-import '@uniswap/v3-core/contracts/libraries/TickMath.sol';
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol';
+import 'contracts/core/libraries/SafeCast.sol';
+import 'contracts/core/libraries/TickMath.sol';
+import 'contracts/core/interfaces/IUniswapV3Pool.sol';
+import 'contracts/core/interfaces/callback/IUniswapV3SwapCallback.sol';
 
 import '../interfaces/IQuoter.sol';
 import '../base/PeripheryImmutableState.sol';
@@ -29,9 +29,9 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
     function getPool(
         address tokenA,
         address tokenB,
-        uint24 fee
+        int24 tickSpacing
     ) private view returns (IUniswapV3Pool) {
-        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, fee)));
+        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
     }
 
     /// @inheritdoc IUniswapV3SwapCallback
@@ -41,8 +41,8 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
         bytes memory path
     ) external view override {
         require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
-        (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
-        CallbackValidation.verifyCallback(factory, tokenIn, tokenOut, fee);
+        (address tokenIn, address tokenOut, int24 tickSpacing) = path.decodeFirstPool();
+        CallbackValidation.verifyCallback(factory, tokenIn, tokenOut, tickSpacing);
 
         (bool isExactInput, uint256 amountToPay, uint256 amountReceived) =
             amount0Delta > 0
@@ -81,21 +81,21 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
     function quoteExactInputSingle(
         address tokenIn,
         address tokenOut,
-        uint24 fee,
+        int24 tickSpacing,
         uint256 amountIn,
         uint160 sqrtPriceLimitX96
     ) public override returns (uint256 amountOut) {
         bool zeroForOne = tokenIn < tokenOut;
 
         try
-            getPool(tokenIn, tokenOut, fee).swap(
+            getPool(tokenIn, tokenOut, tickSpacing).swap(
                 address(this), // address(0) might cause issues with some tokens
                 zeroForOne,
                 amountIn.toInt256(),
                 sqrtPriceLimitX96 == 0
                     ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
                     : sqrtPriceLimitX96,
-                abi.encodePacked(tokenIn, fee, tokenOut)
+                abi.encodePacked(tokenIn, tickSpacing, tokenOut)
             )
         {} catch (bytes memory reason) {
             return parseRevertReason(reason);
@@ -107,10 +107,10 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
         while (true) {
             bool hasMultiplePools = path.hasMultiplePools();
 
-            (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
+            (address tokenIn, address tokenOut, int24 tickSpacing) = path.decodeFirstPool();
 
             // the outputs of prior swaps become the inputs to subsequent ones
-            amountIn = quoteExactInputSingle(tokenIn, tokenOut, fee, amountIn, 0);
+            amountIn = quoteExactInputSingle(tokenIn, tokenOut, tickSpacing, amountIn, 0);
 
             // decide whether to continue or terminate
             if (hasMultiplePools) {
@@ -125,7 +125,7 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
     function quoteExactOutputSingle(
         address tokenIn,
         address tokenOut,
-        uint24 fee,
+        int24 tickSpacing,
         uint256 amountOut,
         uint160 sqrtPriceLimitX96
     ) public override returns (uint256 amountIn) {
@@ -134,14 +134,14 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
         // if no price limit has been specified, cache the output amount for comparison in the swap callback
         if (sqrtPriceLimitX96 == 0) amountOutCached = amountOut;
         try
-            getPool(tokenIn, tokenOut, fee).swap(
+            getPool(tokenIn, tokenOut, tickSpacing).swap(
                 address(this), // address(0) might cause issues with some tokens
                 zeroForOne,
                 -amountOut.toInt256(),
                 sqrtPriceLimitX96 == 0
                     ? (zeroForOne ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
                     : sqrtPriceLimitX96,
-                abi.encodePacked(tokenOut, fee, tokenIn)
+                abi.encodePacked(tokenOut, tickSpacing, tokenIn)
             )
         {} catch (bytes memory reason) {
             if (sqrtPriceLimitX96 == 0) delete amountOutCached; // clear cache
@@ -154,10 +154,10 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
         while (true) {
             bool hasMultiplePools = path.hasMultiplePools();
 
-            (address tokenOut, address tokenIn, uint24 fee) = path.decodeFirstPool();
+            (address tokenOut, address tokenIn, int24 tickSpacing) = path.decodeFirstPool();
 
             // the inputs of prior swaps become the outputs of subsequent ones
-            amountOut = quoteExactOutputSingle(tokenIn, tokenOut, fee, amountOut, 0);
+            amountOut = quoteExactOutputSingle(tokenIn, tokenOut, tickSpacing, amountOut, 0);
 
             // decide whether to continue or terminate
             if (hasMultiplePools) {

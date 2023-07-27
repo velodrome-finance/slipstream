@@ -1,7 +1,7 @@
 import { Fixture } from 'ethereum-waffle'
-import { BigNumber, BigNumberish, constants, Contract, ContractTransaction, Wallet } from 'ethers'
+import { BigNumber, BigNumberish, constants, Contract, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
-import { MockTimeNonfungiblePositionManager, TestERC20, TickLensTest } from '../typechain'
+import { MockTimeNonfungiblePositionManager, TestERC20, TickLensTest } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -57,14 +57,14 @@ describe('TickLens', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokenAddressA,
         tokenAddressB,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       const liquidityParams = {
         token0: tokenAddressA,
         token1: tokenAddressB,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: wallets[0].address,
@@ -82,7 +82,7 @@ describe('TickLens', () => {
       const mintParams = {
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower,
         tickUpper,
         amount0Desired: amountBothDesired,
@@ -101,7 +101,11 @@ describe('TickLens', () => {
 
     beforeEach(async () => {
       await createPool(tokens[0].address, tokens[1].address)
-      poolAddress = computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM)
+      poolAddress = await computePoolAddress(
+        factory.address,
+        [tokens[0].address, tokens[1].address],
+        TICK_SPACINGS[FeeAmount.MEDIUM]
+      )
     })
 
     beforeEach(async () => {

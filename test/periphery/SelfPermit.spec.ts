@@ -2,7 +2,7 @@ import { constants, Wallet } from 'ethers'
 import { waffle, ethers } from 'hardhat'
 
 import { Fixture } from 'ethereum-waffle'
-import { SelfPermitTest, TestERC20PermitAllowed } from '../typechain'
+import { SelfPermitTest, TestERC20PermitAllowed } from '../../typechain'
 import { expect } from 'chai'
 import { getPermitSignature } from './shared/permit'
 

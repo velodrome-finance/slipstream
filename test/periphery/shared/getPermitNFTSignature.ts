@@ -1,6 +1,6 @@
-import { BigNumber, BigNumberish, constants, Signature, Wallet } from 'ethers'
+import { BigNumberish, constants, Signature, Wallet } from 'ethers'
 import { splitSignature } from 'ethers/lib/utils'
-import { NonfungiblePositionManager } from '../../typechain'
+import { NonfungiblePositionManager } from '../../../typechain'
 
 export default async function getPermitNFTSignature(
   wallet: Wallet,

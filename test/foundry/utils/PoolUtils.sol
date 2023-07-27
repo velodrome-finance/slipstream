@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import {UniswapV3Factory} from 'contracts/core/UniswapV3Factory.sol';
 import {UniswapV3Pool} from 'contracts/core/UniswapV3Pool.sol';
-import {Clones} from 'openzeppelin-contracts/contracts/proxy/Clones.sol';
+import {Clones} from '@openzeppelin/contracts/proxy/Clones.sol';
 import {Constants} from './Constants.sol';
 import {Events} from './Events.sol';
 import 'forge-std/Test.sol';

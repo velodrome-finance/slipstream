@@ -1,7 +1,7 @@
 import { Fixture } from 'ethereum-waffle'
 import { constants, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
-import { MockTimeNonfungiblePositionManager, Quoter, TestERC20 } from '../typechain'
+import { MockTimeNonfungiblePositionManager, Quoter, TestERC20 } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -65,7 +65,7 @@ describe('Quoter', () => {
     describe('#quoteExactInput', () => {
       it('0 -> 1', async () => {
         const quote = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           3
         )
 
@@ -74,7 +74,7 @@ describe('Quoter', () => {
 
       it('1 -> 0', async () => {
         const quote = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           3
         )
 
@@ -85,7 +85,7 @@ describe('Quoter', () => {
         const quote = await quoter.callStatic.quoteExactInput(
           encodePath(
             tokens.map((token) => token.address),
-            [FeeAmount.MEDIUM, FeeAmount.MEDIUM]
+            [TICK_SPACINGS[FeeAmount.MEDIUM], TICK_SPACINGS[FeeAmount.MEDIUM]]
           ),
           5
         )
@@ -95,7 +95,10 @@ describe('Quoter', () => {
 
       it('2 -> 1 -> 0', async () => {
         const quote = await quoter.callStatic.quoteExactInput(
-          encodePath(tokens.map((token) => token.address).reverse(), [FeeAmount.MEDIUM, FeeAmount.MEDIUM]),
+          encodePath(tokens.map((token) => token.address).reverse(), [
+            TICK_SPACINGS[FeeAmount.MEDIUM],
+            TICK_SPACINGS[FeeAmount.MEDIUM],
+          ]),
           5
         )
 
@@ -108,7 +111,7 @@ describe('Quoter', () => {
         const quote = await quoter.callStatic.quoteExactInputSingle(
           tokens[0].address,
           tokens[1].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           MaxUint128,
           // -2%
           encodePriceSqrt(100, 102)
@@ -121,7 +124,7 @@ describe('Quoter', () => {
         const quote = await quoter.callStatic.quoteExactInputSingle(
           tokens[1].address,
           tokens[0].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           MaxUint128,
           // +2%
           encodePriceSqrt(102, 100)
@@ -134,7 +137,7 @@ describe('Quoter', () => {
     describe('#quoteExactOutput', () => {
       it('0 -> 1', async () => {
         const quote = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           1
         )
 
@@ -143,7 +146,7 @@ describe('Quoter', () => {
 
       it('1 -> 0', async () => {
         const quote = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           1
         )
 
@@ -152,7 +155,10 @@ describe('Quoter', () => {
 
       it('0 -> 1 -> 2', async () => {
         const quote = await quoter.callStatic.quoteExactOutput(
-          encodePath(tokens.map((token) => token.address).reverse(), [FeeAmount.MEDIUM, FeeAmount.MEDIUM]),
+          encodePath(tokens.map((token) => token.address).reverse(), [
+            TICK_SPACINGS[FeeAmount.MEDIUM],
+            TICK_SPACINGS[FeeAmount.MEDIUM],
+          ]),
           1
         )
 
@@ -163,7 +169,7 @@ describe('Quoter', () => {
         const quote = await quoter.callStatic.quoteExactOutput(
           encodePath(
             tokens.map((token) => token.address),
-            [FeeAmount.MEDIUM, FeeAmount.MEDIUM]
+            [TICK_SPACINGS[FeeAmount.MEDIUM], TICK_SPACINGS[FeeAmount.MEDIUM]]
           ),
           1
         )
@@ -177,7 +183,7 @@ describe('Quoter', () => {
         const quote = await quoter.callStatic.quoteExactOutputSingle(
           tokens[0].address,
           tokens[1].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           MaxUint128,
           encodePriceSqrt(100, 102)
         )
@@ -189,7 +195,7 @@ describe('Quoter', () => {
         const quote = await quoter.callStatic.quoteExactOutputSingle(
           tokens[1].address,
           tokens[0].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           MaxUint128,
           encodePriceSqrt(102, 100)
         )

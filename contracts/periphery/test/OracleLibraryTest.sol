@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import '../libraries/OracleLibrary.sol';
 
-contract OracleTest {
+contract OracleLibraryTest {
     function consult(address pool, uint32 secondsAgo)
         public
         view
@@ -61,7 +61,7 @@ contract OracleTest {
         return OracleLibrary.getWeightedArithmeticMeanTick(observations);
     }
 
-    function getChainedPrice(address[] memory tokens, int24[] memory ticks) public view returns (int256 syntheticTick) {
+    function getChainedPrice(address[] memory tokens, int24[] memory ticks) public pure returns (int256 syntheticTick) {
         return OracleLibrary.getChainedPrice(tokens, ticks);
     }
 }

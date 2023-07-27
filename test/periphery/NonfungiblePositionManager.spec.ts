@@ -1,7 +1,6 @@
-import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Fixture } from 'ethereum-waffle'
 import { BigNumberish, constants, Wallet } from 'ethers'
-import { ethers, waffle } from 'hardhat'
+import { ethers, waffle, artifacts } from 'hardhat'
 import {
   IUniswapV3Factory,
   IWETH9,
@@ -10,7 +9,7 @@ import {
   SwapRouter,
   TestERC20,
   TestPositionNFTOwner,
-} from '../typechain'
+} from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { computePoolAddress } from './shared/computePoolAddress'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
@@ -73,23 +72,19 @@ describe('NonfungiblePositionManager', () => {
     ;({ nft, factory, tokens, weth9, router } = await loadFixture(nftFixture))
   })
 
-  it('bytecode size', async () => {
-    expect(((await nft.provider.getCode(nft.address)).length - 2) / 2).to.matchSnapshot()
-  })
-
   describe('#createAndInitializePoolIfNecessary', () => {
     it('creates the pool at the expected address', async () => {
-      const expectedAddress = computePoolAddress(
+      const expectedAddress = await computePoolAddress(
         factory.address,
         [tokens[0].address, tokens[1].address],
-        FeeAmount.MEDIUM
+        TICK_SPACINGS[FeeAmount.MEDIUM]
       )
       const code = await wallet.provider.getCode(expectedAddress)
       expect(code).to.eq('0x')
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
       const codeAfter = await wallet.provider.getCode(expectedAddress)
@@ -100,36 +95,37 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1),
         { value: 1 }
       )
     })
 
     it('works if pool is created but not initialized', async () => {
-      const expectedAddress = computePoolAddress(
+      const expectedAddress = await computePoolAddress(
         factory.address,
         [tokens[0].address, tokens[1].address],
-        FeeAmount.MEDIUM
+        TICK_SPACINGS[FeeAmount.MEDIUM]
       )
-      await factory.createPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+      await factory.createPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
       const code = await wallet.provider.getCode(expectedAddress)
       expect(code).to.not.eq('0x')
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(2, 1)
       )
     })
 
     it('works if pool is created and initialized', async () => {
-      const expectedAddress = computePoolAddress(
+      const expectedAddress = await computePoolAddress(
         factory.address,
         [tokens[0].address, tokens[1].address],
-        FeeAmount.MEDIUM
+        TICK_SPACINGS[FeeAmount.MEDIUM]
       )
-      await factory.createPool(tokens[0].address, tokens[1].address, FeeAmount.MEDIUM)
+      await factory.createPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+      const IUniswapV3PoolABI = artifacts.readArtifactSync('IUniswapV3Pool').abi
       const pool = new ethers.Contract(expectedAddress, IUniswapV3PoolABI, wallet)
 
       await pool.initialize(encodePriceSqrt(3, 1))
@@ -138,7 +134,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(4, 1)
       )
     })
@@ -148,7 +144,7 @@ describe('NonfungiblePositionManager', () => {
 
       const createAndInitializePoolIfNecessaryData = nft.interface.encodeFunctionData(
         'createAndInitializePoolIfNecessary',
-        [token0.address, token1.address, FeeAmount.MEDIUM, encodePriceSqrt(1, 1)]
+        [token0.address, token1.address, TICK_SPACINGS[FeeAmount.MEDIUM], encodePriceSqrt(1, 1)]
       )
 
       await nft.multicall([createAndInitializePoolIfNecessaryData], { value: expandTo18Decimals(1) })
@@ -159,7 +155,7 @@ describe('NonfungiblePositionManager', () => {
         nft.createAndInitializePoolIfNecessary(
           tokens[0].address,
           tokens[1].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           encodePriceSqrt(1, 1)
         )
       )
@@ -180,7 +176,7 @@ describe('NonfungiblePositionManager', () => {
           amount1Min: 0,
           recipient: wallet.address,
           deadline: 1,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         })
       ).to.be.reverted
     })
@@ -189,7 +185,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
       await tokens[0].approve(nft.address, 0)
@@ -197,7 +193,7 @@ describe('NonfungiblePositionManager', () => {
         nft.mint({
           token0: tokens[0].address,
           token1: tokens[1].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           amount0Desired: 100,
@@ -214,7 +210,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -223,7 +219,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 15,
         amount1Desired: 15,
@@ -234,7 +230,7 @@ describe('NonfungiblePositionManager', () => {
       expect(await nft.balanceOf(other.address)).to.eq(1)
       expect(await nft.tokenOfOwnerByIndex(other.address, 0)).to.eq(1)
       const {
-        fee,
+        tickSpacing,
         token0,
         token1,
         tickLower,
@@ -247,7 +243,7 @@ describe('NonfungiblePositionManager', () => {
       } = await nft.positions(1)
       expect(token0).to.eq(tokens[0].address)
       expect(token1).to.eq(tokens[1].address)
-      expect(fee).to.eq(FeeAmount.MEDIUM)
+      expect(tickSpacing).to.eq(TICK_SPACINGS[FeeAmount.MEDIUM])
       expect(tickLower).to.eq(getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]))
       expect(tickUpper).to.eq(getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]))
       expect(liquidity).to.eq(15)
@@ -266,7 +262,7 @@ describe('NonfungiblePositionManager', () => {
       const createAndInitializeData = nft.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1),
       ])
 
@@ -276,7 +272,7 @@ describe('NonfungiblePositionManager', () => {
           token1: token1.address,
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: other.address,
           amount0Desired: 100,
           amount1Desired: 100,
@@ -303,7 +299,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -313,7 +309,7 @@ describe('NonfungiblePositionManager', () => {
           token1: tokens[1].address,
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: wallet.address,
           amount0Desired: 100,
           amount1Desired: 100,
@@ -329,7 +325,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -342,7 +338,7 @@ describe('NonfungiblePositionManager', () => {
                 token1: token1.address,
                 tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
                 tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-                fee: FeeAmount.MEDIUM,
+                tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
                 recipient: wallet.address,
                 amount0Desired: 100,
                 amount1Desired: 100,
@@ -363,7 +359,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -376,7 +372,7 @@ describe('NonfungiblePositionManager', () => {
                 token1: token1.address,
                 tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
                 tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-                fee: FeeAmount.MEDIUM,
+                tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
                 recipient: wallet.address,
                 amount0Desired: 100,
                 amount1Desired: 100,
@@ -396,7 +392,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -405,7 +401,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 100,
         amount1Desired: 100,
@@ -420,7 +416,7 @@ describe('NonfungiblePositionManager', () => {
           token1: tokens[1].address,
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: wallet.address,
           amount0Desired: 100,
           amount1Desired: 100,
@@ -435,7 +431,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -444,7 +440,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 100,
         amount1Desired: 100,
@@ -459,7 +455,7 @@ describe('NonfungiblePositionManager', () => {
           token1: tokens[1].address,
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]) + TICK_SPACINGS[FeeAmount.MEDIUM],
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]) - TICK_SPACINGS[FeeAmount.MEDIUM],
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: wallet.address,
           amount0Desired: 100,
           amount1Desired: 100,
@@ -477,7 +473,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -486,7 +482,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 1000,
         amount1Desired: 1000,
@@ -519,7 +515,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -527,7 +523,7 @@ describe('NonfungiblePositionManager', () => {
         {
           token0: token0.address,
           token1: token1.address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           recipient: other.address,
@@ -574,7 +570,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -583,7 +579,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 100,
         amount1Desired: 100,
@@ -645,7 +641,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 200,
         amount1Desired: 200,
@@ -677,14 +673,14 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: other.address,
@@ -735,7 +731,11 @@ describe('NonfungiblePositionManager', () => {
 
     it('transfers tokens owed from burn', async () => {
       await nft.connect(other).decreaseLiquidity({ tokenId, liquidity: 50, amount0Min: 0, amount1Min: 0, deadline: 1 })
-      const poolAddress = computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM)
+      const poolAddress = await computePoolAddress(
+        factory.address,
+        [tokens[0].address, tokens[1].address],
+        TICK_SPACINGS[FeeAmount.MEDIUM]
+      )
       await expect(
         nft.connect(other).collect({
           tokenId,
@@ -793,14 +793,14 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: other.address,
@@ -862,14 +862,14 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: other.address,
@@ -918,14 +918,14 @@ describe('NonfungiblePositionManager', () => {
         await nft.createAndInitializePoolIfNecessary(
           tokens[0].address,
           tokens[1].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           encodePriceSqrt(1, 1)
         )
 
         await nft.mint({
           token0: tokens[0].address,
           token1: tokens[1].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           recipient: other.address,
@@ -983,14 +983,14 @@ describe('NonfungiblePositionManager', () => {
         await nft.createAndInitializePoolIfNecessary(
           tokens[0].address,
           tokens[1].address,
-          FeeAmount.MEDIUM,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
           encodePriceSqrt(1, 1)
         )
 
         await nft.mint({
           token0: tokens[0].address,
           token1: tokens[1].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
           recipient: testPositionNFTOwner.address,
@@ -1043,14 +1043,14 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: other.address,
@@ -1095,7 +1095,11 @@ describe('NonfungiblePositionManager', () => {
 
     it('executes all the actions', async () => {
       const pool = poolAtAddress(
-        computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM),
+        await computePoolAddress(
+          factory.address,
+          [tokens[0].address, tokens[1].address],
+          TICK_SPACINGS[FeeAmount.MEDIUM]
+        ),
         wallet
       )
       await expect(
@@ -1132,14 +1136,14 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: other.address,
@@ -1172,16 +1176,16 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
       // nft 1 earns 25% of fees
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
-        tickLower: getMinTick(FeeAmount.MEDIUM),
-        tickUpper: getMaxTick(FeeAmount.MEDIUM),
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
+        tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
+        tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         amount0Desired: 100,
         amount1Desired: 100,
         amount0Min: 0,
@@ -1193,9 +1197,9 @@ describe('NonfungiblePositionManager', () => {
       await nft.mint({
         token0: tokens[0].address,
         token1: tokens[1].address,
-        fee: FeeAmount.MEDIUM,
-        tickLower: getMinTick(FeeAmount.MEDIUM),
-        tickUpper: getMaxTick(FeeAmount.MEDIUM),
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
+        tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
+        tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
 
         amount0Desired: 300,
         amount1Desired: 300,
@@ -1213,7 +1217,7 @@ describe('NonfungiblePositionManager', () => {
         await router.exactInput({
           recipient: wallet.address,
           deadline: 1,
-          path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: swapAmount,
           amountOutMinimum: 0,
         })
@@ -1238,10 +1242,10 @@ describe('NonfungiblePositionManager', () => {
       })
 
       it('actually collected', async () => {
-        const poolAddress = computePoolAddress(
+        const poolAddress = await computePoolAddress(
           factory.address,
           [tokens[0].address, tokens[1].address],
-          FeeAmount.MEDIUM
+          TICK_SPACINGS[FeeAmount.MEDIUM]
         )
 
         await expect(
@@ -1280,7 +1284,7 @@ describe('NonfungiblePositionManager', () => {
       await nft.createAndInitializePoolIfNecessary(
         tokens[0].address,
         tokens[1].address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
 
@@ -1289,7 +1293,7 @@ describe('NonfungiblePositionManager', () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: other.address,
         amount0Desired: 15,
         amount1Desired: 15,

@@ -2,7 +2,7 @@ import { constants, Wallet } from 'ethers'
 import { waffle, ethers } from 'hardhat'
 import { expect } from './shared/expect'
 import { Fixture } from 'ethereum-waffle'
-import { NonfungibleTokenPositionDescriptor, MockTimeNonfungiblePositionManager, TestERC20 } from '../typechain'
+import { NonfungibleTokenPositionDescriptor, MockTimeNonfungiblePositionManager, TestERC20 } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
 import { FeeAmount, TICK_SPACINGS } from './shared/constants'
@@ -117,7 +117,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
       await nft.createAndInitializePoolIfNecessary(
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
       await weth9.approve(nft.address, 100)
@@ -125,7 +125,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
       await nft.mint({
         token0: token0.address,
         token1: token1.address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: wallets[0].address,
@@ -147,7 +147,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
       await nft.createAndInitializePoolIfNecessary(
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
       await tokens[1].approve(nft.address, 100)
@@ -155,7 +155,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
       await nft.mint({
         token0: token0.address,
         token1: token1.address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: wallets[0].address,
@@ -176,7 +176,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
       await nft.createAndInitializePoolIfNecessary(
         token0.address,
         token1.address,
-        FeeAmount.MEDIUM,
+        TICK_SPACINGS[FeeAmount.MEDIUM],
         encodePriceSqrt(1, 1)
       )
       await weth9.approve(nft.address, 100)
@@ -184,7 +184,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
       await nft.mint({
         token0: token0.address,
         token1: token1.address,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         recipient: wallets[0].address,

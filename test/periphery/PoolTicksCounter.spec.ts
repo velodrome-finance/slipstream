@@ -1,9 +1,9 @@
-import { waffle, ethers, artifacts } from 'hardhat'
+import { ethers, artifacts } from 'hardhat'
 
 import { expect } from './shared/expect'
 
-import { PoolTicksCounterTest } from '../typechain'
-import { deployMockContract, Fixture, MockContract } from 'ethereum-waffle'
+import { PoolTicksCounterTest } from '../../typechain'
+import { deployMockContract, MockContract } from 'ethereum-waffle'
 import { Artifact } from 'hardhat/types'
 
 describe('PoolTicksCounter', () => {
@@ -21,7 +21,7 @@ describe('PoolTicksCounter', () => {
 
     before(async () => {
       const wallets = await (ethers as any).getSigners()
-      PoolAbi = await artifacts.readArtifact('IUniswapV3Pool')
+      PoolAbi = artifacts.readArtifactSync('UniswapV3Pool')
       const poolTicksHelperFactory = await ethers.getContractFactory('PoolTicksCounterTest')
       PoolTicksCounter = (await poolTicksHelperFactory.deploy()) as PoolTicksCounterTest
       pool = await deployMockContract(wallets[0], PoolAbi.abi)

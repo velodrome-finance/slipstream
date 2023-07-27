@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import '@uniswap/v3-core/contracts/libraries/FixedPoint128.sol';
-import '@uniswap/v3-core/contracts/libraries/FullMath.sol';
+import 'contracts/core/interfaces/IUniswapV3Pool.sol';
+import 'contracts/core/libraries/FixedPoint128.sol';
+import 'contracts/core/libraries/FullMath.sol';
 
 import './interfaces/INonfungiblePositionManager.sol';
 import './interfaces/INonfungibleTokenPositionDescriptor.sol';
@@ -86,7 +86,7 @@ contract NonfungiblePositionManager is
             address operator,
             address token0,
             address token1,
-            uint24 fee,
+            int24 tickSpacing,
             int24 tickLower,
             int24 tickUpper,
             uint128 liquidity,
@@ -104,7 +104,7 @@ contract NonfungiblePositionManager is
             position.operator,
             poolKey.token0,
             poolKey.token1,
-            poolKey.fee,
+            poolKey.tickSpacing,
             position.tickLower,
             position.tickUpper,
             position.liquidity,
@@ -142,7 +142,7 @@ contract NonfungiblePositionManager is
             AddLiquidityParams({
                 token0: params.token0,
                 token1: params.token1,
-                fee: params.fee,
+                tickSpacing: params.tickSpacing,
                 recipient: address(this),
                 tickLower: params.tickLower,
                 tickUpper: params.tickUpper,
@@ -162,7 +162,7 @@ contract NonfungiblePositionManager is
         uint80 poolId =
             cachePoolKey(
                 address(pool),
-                PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee})
+                PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing})
             );
 
         _positions[tokenId] = Position({
@@ -215,7 +215,7 @@ contract NonfungiblePositionManager is
             AddLiquidityParams({
                 token0: poolKey.token0,
                 token1: poolKey.token1,
-                fee: poolKey.fee,
+                tickSpacing: poolKey.tickSpacing,
                 tickLower: position.tickLower,
                 tickUpper: position.tickUpper,
                 amount0Desired: params.amount0Desired,

@@ -1,18 +1,6 @@
 import { ethers, waffle } from 'hardhat'
-import { BigNumber, constants, Contract, ContractTransaction } from 'ethers'
-import {
-  IWETH9,
-  MockTimeNonfungiblePositionManager,
-  MockTimeSwapRouter,
-  PairFlash,
-  IUniswapV3Pool,
-  TestERC20,
-  TestERC20Metadata,
-  IUniswapV3Factory,
-  NFTDescriptor,
-  Quoter,
-  SwapRouter,
-} from '../typechain'
+import { BigNumber } from 'ethers'
+import { MockTimeNonfungiblePositionManager, PairFlash, TestERC20, IUniswapV3Factory, Quoter } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -34,18 +22,18 @@ describe('PairFlash test', () => {
   let factory: IUniswapV3Factory
   let quoter: Quoter
 
-  async function createPool(tokenAddressA: string, tokenAddressB: string, fee: FeeAmount, price: BigNumber) {
+  async function createPool(tokenAddressA: string, tokenAddressB: string, tickSpacing: number, price: BigNumber) {
     if (tokenAddressA.toLowerCase() > tokenAddressB.toLowerCase())
       [tokenAddressA, tokenAddressB] = [tokenAddressB, tokenAddressA]
 
-    await nft.createAndInitializePoolIfNecessary(tokenAddressA, tokenAddressB, fee, price)
+    await nft.createAndInitializePoolIfNecessary(tokenAddressA, tokenAddressB, tickSpacing, price)
 
     const liquidityParams = {
       token0: tokenAddressA,
       token1: tokenAddressB,
-      fee: fee,
-      tickLower: getMinTick(TICK_SPACINGS[fee]),
-      tickUpper: getMaxTick(TICK_SPACINGS[fee]),
+      tickSpacing: tickSpacing,
+      tickLower: getMinTick(tickSpacing),
+      tickUpper: getMaxTick(tickSpacing),
       recipient: wallet.address,
       amount0Desired: 1000000,
       amount1Desired: 1000000,
@@ -91,9 +79,9 @@ describe('PairFlash test', () => {
 
     await token0.approve(nft.address, MaxUint128)
     await token1.approve(nft.address, MaxUint128)
-    await createPool(token0.address, token1.address, FeeAmount.LOW, encodePriceSqrt(5, 10))
-    await createPool(token0.address, token1.address, FeeAmount.MEDIUM, encodePriceSqrt(1, 1))
-    await createPool(token0.address, token1.address, FeeAmount.HIGH, encodePriceSqrt(20, 10))
+    await createPool(token0.address, token1.address, TICK_SPACINGS[FeeAmount.LOW], encodePriceSqrt(5, 10))
+    await createPool(token0.address, token1.address, TICK_SPACINGS[FeeAmount.MEDIUM], encodePriceSqrt(1, 1))
+    await createPool(token0.address, token1.address, TICK_SPACINGS[FeeAmount.HIGH], encodePriceSqrt(20, 10))
   })
 
   describe('flash', () => {
@@ -108,28 +96,40 @@ describe('PairFlash test', () => {
       const flashParams = {
         token0: token0.address,
         token1: token1.address,
-        fee1: FeeAmount.MEDIUM,
+        tickSpacing1: TICK_SPACINGS[FeeAmount.MEDIUM],
         amount0: amount0In,
         amount1: amount1In,
-        fee2: FeeAmount.LOW,
-        fee3: FeeAmount.HIGH,
+        tickSpacing2: TICK_SPACINGS[FeeAmount.LOW],
+        tickSpacing3: TICK_SPACINGS[FeeAmount.HIGH],
       }
       // pool1 is the borrow pool
-      const pool1 = computePoolAddress(factory.address, [token0.address, token1.address], FeeAmount.MEDIUM)
-      const pool2 = computePoolAddress(factory.address, [token0.address, token1.address], FeeAmount.LOW)
-      const pool3 = computePoolAddress(factory.address, [token0.address, token1.address], FeeAmount.HIGH)
+      const pool1 = await computePoolAddress(
+        factory.address,
+        [token0.address, token1.address],
+        TICK_SPACINGS[FeeAmount.MEDIUM]
+      )
+      const pool2 = await computePoolAddress(
+        factory.address,
+        [token0.address, token1.address],
+        TICK_SPACINGS[FeeAmount.LOW]
+      )
+      const pool3 = await computePoolAddress(
+        factory.address,
+        [token0.address, token1.address],
+        TICK_SPACINGS[FeeAmount.HIGH]
+      )
 
       const expectedAmountOut0 = await quoter.callStatic.quoteExactInputSingle(
         token1.address,
         token0.address,
-        FeeAmount.LOW,
+        TICK_SPACINGS[FeeAmount.LOW],
         amount1In,
         encodePriceSqrt(20, 10)
       )
       const expectedAmountOut1 = await quoter.callStatic.quoteExactInputSingle(
         token0.address,
         token1.address,
-        FeeAmount.HIGH,
+        TICK_SPACINGS[FeeAmount.HIGH],
         amount0In,
         encodePriceSqrt(5, 10)
       )
@@ -156,11 +156,11 @@ describe('PairFlash test', () => {
       const flashParams = {
         token0: token0.address,
         token1: token1.address,
-        fee1: FeeAmount.MEDIUM,
+        tickSpacing1: TICK_SPACINGS[FeeAmount.MEDIUM],
         amount0: amount0In,
         amount1: amount1In,
-        fee2: FeeAmount.LOW,
-        fee3: FeeAmount.HIGH,
+        tickSpacing2: TICK_SPACINGS[FeeAmount.LOW],
+        tickSpacing3: TICK_SPACINGS[FeeAmount.HIGH],
       }
       await snapshotGasCost(flash.initFlash(flashParams))
     })

@@ -1,9 +1,9 @@
 import { Fixture } from 'ethereum-waffle'
 import { constants, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
-import { MockTimeNonfungiblePositionManager, QuoterV2, TestERC20 } from '../typechain'
+import { MockTimeNonfungiblePositionManager, QuoterV2, TestERC20 } from '../../typechain'
 import completeFixture from './shared/completeFixture'
-import { FeeAmount, MaxUint128 } from './shared/constants'
+import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
 import { expandTo18Decimals } from './shared/expandTo18Decimals'
 import { expect } from './shared/expect'
@@ -73,7 +73,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           10000
         )
 
@@ -93,7 +93,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           6200
         )
 
@@ -112,7 +112,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           4000
         )
 
@@ -131,7 +131,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           10
         )
 
@@ -152,7 +152,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           10
         )
 
@@ -170,7 +170,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           10000
         )
 
@@ -191,7 +191,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           6250
         )
 
@@ -213,7 +213,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           200
         )
 
@@ -233,7 +233,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           103
         )
 
@@ -252,7 +252,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[2].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           10000
         )
 
@@ -270,7 +270,10 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactInput(
-          encodePath([tokens[0].address, tokens[2].address, tokens[1].address], [FeeAmount.MEDIUM, FeeAmount.MEDIUM]),
+          encodePath(
+            [tokens[0].address, tokens[2].address, tokens[1].address],
+            [TICK_SPACINGS[FeeAmount.MEDIUM], TICK_SPACINGS[FeeAmount.MEDIUM]]
+          ),
           10000
         )
 
@@ -294,7 +297,7 @@ describe('QuoterV2', function () {
         } = await quoter.callStatic.quoteExactInputSingle({
           tokenIn: tokens[0].address,
           tokenOut: tokens[2].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           amountIn: 10000,
           // -2%
           sqrtPriceLimitX96: encodePriceSqrt(100, 102),
@@ -315,7 +318,7 @@ describe('QuoterV2', function () {
         } = await quoter.callStatic.quoteExactInputSingle({
           tokenIn: tokens[2].address,
           tokenOut: tokens[0].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           amountIn: 10000,
           // +2%
           sqrtPriceLimitX96: encodePriceSqrt(102, 100),
@@ -336,7 +339,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           15000
         )
 
@@ -358,7 +361,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           6143
         )
 
@@ -377,7 +380,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           4000
         )
 
@@ -399,7 +402,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           100
         )
 
@@ -419,7 +422,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[2].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[2].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           10
         )
 
@@ -439,7 +442,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           15000
         )
 
@@ -460,7 +463,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           6223
         )
 
@@ -479,7 +482,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[0].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[0].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           6000
         )
 
@@ -498,7 +501,7 @@ describe('QuoterV2', function () {
           initializedTicksCrossedList,
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
-          encodePath([tokens[1].address, tokens[2].address], [FeeAmount.MEDIUM]),
+          encodePath([tokens[1].address, tokens[2].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           9871
         )
 
@@ -517,8 +520,8 @@ describe('QuoterV2', function () {
           gasEstimate,
         } = await quoter.callStatic.quoteExactOutput(
           encodePath([tokens[0].address, tokens[2].address, tokens[1].address].reverse(), [
-            FeeAmount.MEDIUM,
-            FeeAmount.MEDIUM,
+            TICK_SPACINGS[FeeAmount.MEDIUM],
+            TICK_SPACINGS[FeeAmount.MEDIUM],
           ]),
           9745
         )
@@ -543,7 +546,7 @@ describe('QuoterV2', function () {
         } = await quoter.callStatic.quoteExactOutputSingle({
           tokenIn: tokens[0].address,
           tokenOut: tokens[1].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           amount: MaxUint128,
           sqrtPriceLimitX96: encodePriceSqrt(100, 102),
         })
@@ -563,7 +566,7 @@ describe('QuoterV2', function () {
         } = await quoter.callStatic.quoteExactOutputSingle({
           tokenIn: tokens[1].address,
           tokenOut: tokens[0].address,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           amount: MaxUint128,
           sqrtPriceLimitX96: encodePriceSqrt(102, 100),
         })

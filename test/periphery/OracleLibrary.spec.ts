@@ -1,18 +1,18 @@
 import { expect } from 'chai'
 import { ethers, waffle } from 'hardhat'
 import { BigNumber, BigNumberish, constants, ContractFactory, Contract } from 'ethers'
-import { OracleTest, TestERC20 } from '../typechain'
+import { OracleLibraryTest, TestERC20 } from '../../typechain'
 import { expandTo18Decimals } from './shared/expandTo18Decimals'
 import snapshotGasCost from './shared/snapshotGasCost'
 
 describe('OracleLibrary', () => {
   let loadFixture: ReturnType<typeof waffle.createFixtureLoader>
   let tokens: TestERC20[]
-  let oracle: OracleTest
+  let oracle: OracleLibraryTest
 
   const BN0 = BigNumber.from(0)
 
-  const oracleTestFixture = async () => {
+  const OracleLibraryTestFixture = async () => {
     const tokenFactory = await ethers.getContractFactory('TestERC20')
     const tokens: [TestERC20, TestERC20, TestERC20] = [
       (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20, // do not use maxu256 to avoid overflowing
@@ -22,12 +22,12 @@ describe('OracleLibrary', () => {
 
     tokens.sort((a, b) => (a.address.toLowerCase() < b.address.toLowerCase() ? -1 : 1))
 
-    const oracleFactory = await ethers.getContractFactory('OracleTest')
+    const oracleFactory = await ethers.getContractFactory('OracleLibraryTest')
     const oracle = await oracleFactory.deploy()
 
     return {
       tokens: tokens as TestERC20[],
-      oracle: oracle as OracleTest,
+      oracle: oracle as OracleLibraryTest,
     }
   }
 
@@ -36,7 +36,7 @@ describe('OracleLibrary', () => {
   })
 
   beforeEach('deploy fixture', async () => {
-    const fixtures = await loadFixture(oracleTestFixture)
+    const fixtures = await loadFixture(OracleLibraryTestFixture)
     tokens = fixtures['tokens']
     oracle = fixtures['oracle']
   })

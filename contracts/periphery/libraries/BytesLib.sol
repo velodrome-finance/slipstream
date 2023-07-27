@@ -87,7 +87,7 @@ library BytesLib {
         return tempAddress;
     }
 
-    function toUint24(bytes memory _bytes, uint256 _start) internal pure returns (uint24) {
+    function toInt24(bytes memory _bytes, uint256 _start) internal pure returns (int24) {
         require(_start + 3 >= _start, 'toUint24_overflow');
         require(_bytes.length >= _start + 3, 'toUint24_outOfBounds');
         uint24 tempUint;
@@ -96,6 +96,7 @@ library BytesLib {
             tempUint := mload(add(add(_bytes, 0x3), _start))
         }
 
-        return tempUint;
+        require(tempUint <= uint24(type(int24).max), 'toInt24_overflow');
+        return int24(tempUint);
     }
 }

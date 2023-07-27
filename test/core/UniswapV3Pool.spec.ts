@@ -1,6 +1,6 @@
 import { ethers, waffle } from 'hardhat'
 import { BigNumber, BigNumberish, constants, Wallet } from 'ethers'
-import { TestERC20 } from '../../typechain/TestERC20'
+import { CoreTestERC20 } from '../../typechain/CoreTestERC20'
 import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
 import { MockTimeUniswapV3Pool } from '../../typechain/MockTimeUniswapV3Pool'
 import { TestUniswapV3SwapPay } from '../../typechain/TestUniswapV3SwapPay'
@@ -39,9 +39,9 @@ type ThenArg<T> = T extends PromiseLike<infer U> ? U : T
 describe('UniswapV3Pool', () => {
   let wallet: Wallet, other: Wallet
 
-  let token0: TestERC20
-  let token1: TestERC20
-  let token2: TestERC20
+  let token0: CoreTestERC20
+  let token1: CoreTestERC20
+  let token2: CoreTestERC20
 
   let factory: UniswapV3Factory
   let pool: MockTimeUniswapV3Pool

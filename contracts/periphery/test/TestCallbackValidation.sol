@@ -8,8 +8,8 @@ contract TestCallbackValidation {
         address factory,
         address tokenA,
         address tokenB,
-        uint24 fee
+        int24 tickSpacing
     ) external view returns (IUniswapV3Pool pool) {
-        return CallbackValidation.verifyCallback(factory, tokenA, tokenB, fee);
+        return CallbackValidation.verifyCallback(factory, tokenA, tokenB, tickSpacing);
     }
 }

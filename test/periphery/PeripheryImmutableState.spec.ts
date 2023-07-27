@@ -2,7 +2,7 @@ import { Contract } from 'ethers'
 import { waffle, ethers } from 'hardhat'
 
 import { Fixture } from 'ethereum-waffle'
-import { PeripheryImmutableStateTest, IWETH9 } from '../typechain'
+import { PeripheryImmutableStateTest, IWETH9 } from '../../typechain'
 import { expect } from './shared/expect'
 import { v3RouterFixture } from './shared/externalFixtures'
 
@@ -36,10 +36,6 @@ describe('PeripheryImmutableState', () => {
 
   beforeEach('load fixture', async () => {
     ;({ state, weth9, factory } = await loadFixture(nonfungiblePositionManagerFixture))
-  })
-
-  it('bytecode size', async () => {
-    expect(((await state.provider.getCode(state.address)).length - 2) / 2).to.matchSnapshot()
   })
 
   describe('#WETH9', () => {

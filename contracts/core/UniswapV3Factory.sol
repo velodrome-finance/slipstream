@@ -4,7 +4,7 @@ pragma solidity =0.7.6;
 import './interfaces/IUniswapV3Factory.sol';
 import './interfaces/fees/IFeeModule.sol';
 
-import 'openzeppelin-contracts/contracts/proxy/Clones.sol';
+import '@openzeppelin/contracts/proxy/Clones.sol';
 import './UniswapV3Pool.sol';
 
 /// @title Canonical Uniswap V3 factory

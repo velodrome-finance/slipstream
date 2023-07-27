@@ -30,7 +30,7 @@ library Path {
     /// @param path The encoded swap path
     /// @return The number of pools in the path
     function numPools(bytes memory path) internal pure returns (uint256) {
-        // Ignore the first token address. From then on every fee and token offset indicates a pool.
+        // Ignore the first token address. From then on every tick spacing and token offset indicates a pool.
         return ((path.length - ADDR_SIZE) / NEXT_OFFSET);
     }
 
@@ -38,18 +38,18 @@ library Path {
     /// @param path The bytes encoded swap path
     /// @return tokenA The first token of the given pool
     /// @return tokenB The second token of the given pool
-    /// @return fee The fee level of the pool
+    /// @return tickSpacing The tick spacing of the pool
     function decodeFirstPool(bytes memory path)
         internal
         pure
         returns (
             address tokenA,
             address tokenB,
-            uint24 fee
+            int24 tickSpacing
         )
     {
         tokenA = path.toAddress(0);
-        fee = path.toUint24(ADDR_SIZE);
+        tickSpacing = path.toInt24(ADDR_SIZE);
         tokenB = path.toAddress(NEXT_OFFSET);
     }
 

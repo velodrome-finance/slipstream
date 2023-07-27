@@ -1,14 +1,13 @@
-import { waffle, ethers } from 'hardhat'
+import { waffle, ethers, artifacts } from 'hardhat'
 import { constants, BigNumberish, Contract } from 'ethers'
 import { Fixture } from 'ethereum-waffle'
 import {
   PositionValueTest,
   SwapRouter,
   MockTimeNonfungiblePositionManager,
-  IUniswapV3Pool,
   TestERC20,
   IUniswapV3Factory,
-} from '../typechain'
+} from '../../typechain'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { getMaxTick, getMinTick } from './shared/ticks'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -19,8 +18,6 @@ import completeFixture from './shared/completeFixture'
 import snapshotGasCost from './shared/snapshotGasCost'
 
 import { expect } from './shared/expect'
-
-import { abi as IUniswapV3PoolABI } from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 
 describe('PositionValue', async () => {
   const [...wallets] = waffle.provider.getWallets()
@@ -69,11 +66,16 @@ describe('PositionValue', async () => {
     await nft.createAndInitializePoolIfNecessary(
       tokens[0].address,
       tokens[1].address,
-      FeeAmount.MEDIUM,
+      TICK_SPACINGS[FeeAmount.MEDIUM],
       encodePriceSqrt(1, 1)
     )
 
-    const poolAddress = computePoolAddress(factory.address, [tokens[0].address, tokens[1].address], FeeAmount.MEDIUM)
+    const poolAddress = await computePoolAddress(
+      factory.address,
+      [tokens[0].address, tokens[1].address],
+      TICK_SPACINGS[FeeAmount.MEDIUM]
+    )
+    const IUniswapV3PoolABI = artifacts.readArtifactSync('IUniswapV3Pool').abi
     pool = new ethers.Contract(poolAddress, IUniswapV3PoolABI, wallets[0])
   })
 
@@ -89,7 +91,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -106,7 +108,7 @@ describe('PositionValue', async () => {
       await router.exactInput({
         recipient: wallets[0].address,
         deadline: 1,
-        path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+        path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         amountIn: swapAmount,
         amountOutMinimum: 0,
       })
@@ -115,7 +117,7 @@ describe('PositionValue', async () => {
       await router.exactInput({
         recipient: wallets[0].address,
         deadline: 1,
-        path: encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+        path: encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
         amountIn: swapAmount,
         amountOutMinimum: 0,
       })
@@ -151,7 +153,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -171,7 +173,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: -60,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -191,7 +193,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: 60,
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -211,7 +213,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: -6_000,
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -231,7 +233,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: 6_000,
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -251,7 +253,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -276,7 +278,7 @@ describe('PositionValue', async () => {
         token1: tokens[1].address,
         tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
         tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-        fee: FeeAmount.MEDIUM,
+        tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
         recipient: wallets[0].address,
         amount0Desired: amountDesired,
         amount1Desired: amountDesired,
@@ -293,7 +295,7 @@ describe('PositionValue', async () => {
           token1: tokens[1].address,
           tickLower: TICK_SPACINGS[FeeAmount.MEDIUM] * -1_000,
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM] * 1_000,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: wallets[0].address,
           amount0Desired: amountDesired,
           amount1Desired: amountDesired,
@@ -310,7 +312,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: swapAmount,
           amountOutMinimum: 0,
         })
@@ -319,7 +321,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: swapAmount,
           amountOutMinimum: 0,
         })
@@ -355,7 +357,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: swapAmount,
           amountOutMinimum: 0,
         })
@@ -383,7 +385,7 @@ describe('PositionValue', async () => {
           token1: tokens[1].address,
           tickLower: TICK_SPACINGS[FeeAmount.MEDIUM] * -10,
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM] * 10,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: wallets[0].address,
           amount0Desired: expandTo18Decimals(10_000),
           amount1Desired: expandTo18Decimals(10_000),
@@ -399,7 +401,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: expandTo18Decimals(1_000),
           amountOutMinimum: 0,
         })
@@ -408,7 +410,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: expandTo18Decimals(50_000),
           amountOutMinimum: 0,
         })
@@ -439,7 +441,7 @@ describe('PositionValue', async () => {
           token1: tokens[1].address,
           tickLower: TICK_SPACINGS[FeeAmount.MEDIUM] * -10,
           tickUpper: TICK_SPACINGS[FeeAmount.MEDIUM] * 10,
-          fee: FeeAmount.MEDIUM,
+          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
           recipient: wallets[0].address,
           amount0Desired: expandTo18Decimals(10_000),
           amount1Desired: expandTo18Decimals(10_000),
@@ -455,7 +457,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[0].address, tokens[1].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[0].address, tokens[1].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: expandTo18Decimals(1_000),
           amountOutMinimum: 0,
         })
@@ -464,7 +466,7 @@ describe('PositionValue', async () => {
         await router.exactInput({
           recipient: wallets[0].address,
           deadline: 1,
-          path: encodePath([tokens[1].address, tokens[0].address], [FeeAmount.MEDIUM]),
+          path: encodePath([tokens[1].address, tokens[0].address], [TICK_SPACINGS[FeeAmount.MEDIUM]]),
           amountIn: expandTo18Decimals(50_000),
           amountOutMinimum: 0,
         })

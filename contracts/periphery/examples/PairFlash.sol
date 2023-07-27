@@ -2,8 +2,8 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3FlashCallback.sol';
-import '@uniswap/v3-core/contracts/libraries/LowGasSafeMath.sol';
+import 'contracts/core/interfaces/callback/IUniswapV3FlashCallback.sol';
+import 'contracts/core/libraries/LowGasSafeMath.sol';
 
 import '../base/PeripheryPayments.sol';
 import '../base/PeripheryImmutableState.sol';
@@ -28,14 +28,14 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
         swapRouter = _swapRouter;
     }
 
-    // fee2 and fee3 are the two other fees associated with the two other pools of token0 and token1
+    // tickSpacing2 and tickSpacing3 are the two other tick spacings associated with the two other pools of token0 and token1
     struct FlashCallbackData {
         uint256 amount0;
         uint256 amount1;
         address payer;
         PoolAddress.PoolKey poolKey;
-        uint24 poolFee2;
-        uint24 poolFee3;
+        int24 poolTickSpacing2;
+        int24 poolTickSpacing3;
     }
 
     /// @param fee0 The fee from calling flash for token0
@@ -59,14 +59,14 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
         uint256 amount0Min = LowGasSafeMath.add(decoded.amount0, fee0);
         uint256 amount1Min = LowGasSafeMath.add(decoded.amount1, fee1);
 
-        // call exactInputSingle for swapping token1 for token0 in pool with fee2
+        // call exactInputSingle for swapping token1 for token0 in pool with tickSpacing2
         TransferHelper.safeApprove(token1, address(swapRouter), decoded.amount1);
         uint256 amountOut0 =
             swapRouter.exactInputSingle(
                 ISwapRouter.ExactInputSingleParams({
                     tokenIn: token1,
                     tokenOut: token0,
-                    fee: decoded.poolFee2,
+                    tickSpacing: decoded.poolTickSpacing2,
                     recipient: address(this),
                     deadline: block.timestamp,
                     amountIn: decoded.amount1,
@@ -75,14 +75,14 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
                 })
             );
 
-        // call exactInputSingle for swapping token0 for token 1 in pool with fee3
+        // call exactInputSingle for swapping token0 for token 1 in pool with tickSpacing3
         TransferHelper.safeApprove(token0, address(swapRouter), decoded.amount0);
         uint256 amountOut1 =
             swapRouter.exactInputSingle(
                 ISwapRouter.ExactInputSingleParams({
                     tokenIn: token0,
                     tokenOut: token1,
-                    fee: decoded.poolFee3,
+                    tickSpacing: decoded.poolTickSpacing3,
                     recipient: address(this),
                     deadline: block.timestamp,
                     amountIn: decoded.amount0,
@@ -106,24 +106,24 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
         }
     }
 
-    //fee1 is the fee of the pool from the initial borrow
-    //fee2 is the fee of the first pool to arb from
-    //fee3 is the fee of the second pool to arb from
+    //tickSpacing1 is the tick spacing of the pool from the initial borrow
+    //tickSpacing2 is the tick spacing of the first pool to arb from
+    //tickSpacing3 is the tick spacing of the second pool to arb from
     struct FlashParams {
         address token0;
         address token1;
-        uint24 fee1;
+        int24 tickSpacing1;
         uint256 amount0;
         uint256 amount1;
-        uint24 fee2;
-        uint24 fee3;
+        int24 tickSpacing2;
+        int24 tickSpacing3;
     }
 
     /// @param params The parameters necessary for flash and the callback, passed in as FlashParams
     /// @notice Calls the pools flash function with data needed in `uniswapV3FlashCallback`
     function initFlash(FlashParams memory params) external {
         PoolAddress.PoolKey memory poolKey =
-            PoolAddress.PoolKey({token0: params.token0, token1: params.token1, fee: params.fee1});
+            PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing1});
         IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
         // recipient of borrowed amounts
         // amount of token0 requested to borrow
@@ -140,8 +140,8 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
                     amount1: params.amount1,
                     payer: msg.sender,
                     poolKey: poolKey,
-                    poolFee2: params.fee2,
-                    poolFee3: params.fee3
+                    poolTickSpacing2: params.tickSpacing2,
+                    poolTickSpacing3: params.tickSpacing3
                 })
             )
         );

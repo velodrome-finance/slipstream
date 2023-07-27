@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
+import 'contracts/core/interfaces/IUniswapV3Pool.sol';
 import '@uniswap/lib/contracts/libraries/SafeERC20Namer.sol';
 
 import './libraries/ChainId.sol';
@@ -51,14 +51,14 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
         override
         returns (string memory)
     {
-        (, , address token0, address token1, uint24 fee, int24 tickLower, int24 tickUpper, , , , , ) =
+        (, , address token0, address token1, int24 tickSpacing, int24 tickLower, int24 tickUpper, , , , , ) =
             positionManager.positions(tokenId);
 
         IUniswapV3Pool pool =
             IUniswapV3Pool(
                 PoolAddress.computeAddress(
                     positionManager.factory(),
-                    PoolAddress.PoolKey({token0: token0, token1: token1, fee: fee})
+                    PoolAddress.PoolKey({token0: token0, token1: token1, tickSpacing: tickSpacing})
                 )
             );
 
@@ -85,8 +85,8 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
                     tickLower: tickLower,
                     tickUpper: tickUpper,
                     tickCurrent: tick,
-                    tickSpacing: pool.tickSpacing(),
-                    fee: fee,
+                    tickSpacing: tickSpacing,
+                    fee: pool.fee(), // this makes less sense as fee can be variable, consider removing
                     poolAddress: address(pool)
                 })
             );
