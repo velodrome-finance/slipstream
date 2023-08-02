@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {UniswapV3FactoryTest} from './UniswapV3Factory.t.sol';
+import {UniswapV3FactoryTest} from "./UniswapV3Factory.t.sol";
 
 contract CreatePoolTest is UniswapV3FactoryTest {
     function test_RevertIf_SameTokens() public {
@@ -35,35 +35,32 @@ contract CreatePoolTest is UniswapV3FactoryTest {
     }
 
     function test_CreatePoolWithTickSpacingLow() public {
-        address pool =
-            createAndCheckPool({
-                factory: poolFactory,
-                token0: TEST_TOKEN_0,
-                token1: TEST_TOKEN_1,
-                tickSpacing: TICK_SPACING_LOW
-            });
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW
+        });
         assertEqUint(poolFactory.getFee(pool), 500);
     }
 
     function test_CreatePoolWithTickSpacingMedium() public {
-        address pool =
-            createAndCheckPool({
-                factory: poolFactory,
-                token0: TEST_TOKEN_0,
-                token1: TEST_TOKEN_1,
-                tickSpacing: TICK_SPACING_MEDIUM
-            });
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_MEDIUM
+        });
         assertEqUint(poolFactory.getFee(pool), 3_000);
     }
 
     function test_CreatePoolWithTickSpacingHigh() public {
-        address pool =
-            createAndCheckPool({
-                factory: poolFactory,
-                token0: TEST_TOKEN_0,
-                token1: TEST_TOKEN_1,
-                tickSpacing: TICK_SPACING_HIGH
-            });
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_HIGH
+        });
         assertEqUint(poolFactory.getFee(pool), 10_000);
     }
 }

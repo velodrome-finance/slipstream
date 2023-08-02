@@ -10,6 +10,9 @@ been renamed or removed.
 
 ## Core
 
+### All Contracts
+- NoDelegateCall was removed from all contracts.
+
 ### Factory (UniswapV3Factory.sol)
 
 The Factory Registry has been modified in the following ways:

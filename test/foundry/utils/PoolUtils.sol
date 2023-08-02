@@ -1,37 +1,33 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {UniswapV3Factory} from 'contracts/core/UniswapV3Factory.sol';
-import {UniswapV3Pool} from 'contracts/core/UniswapV3Pool.sol';
-import {Clones} from '@openzeppelin/contracts/proxy/Clones.sol';
-import {Constants} from './Constants.sol';
-import {Events} from './Events.sol';
-import 'forge-std/Test.sol';
+import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
+import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
+import {Constants} from "./Constants.sol";
+import {Events} from "./Events.sol";
+import "forge-std/Test.sol";
 
 abstract contract PoolUtils is Test, Constants, Events {
-    function computeAddress(
-        address factory,
-        address tokenA,
-        address tokenB,
-        int24 tickSpacing
-    ) internal view returns (address _pool) {
+    function computeAddress(address factory, address tokenA, address tokenB, int24 tickSpacing)
+        internal
+        view
+        returns (address _pool)
+    {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         address implementation = UniswapV3Factory(factory).implementation();
-        return
-            Clones.predictDeterministicAddress({
-                master: address(implementation),
-                salt: keccak256(abi.encode(token0, token1, tickSpacing)),
-                deployer: address(factory)
-            });
+        return Clones.predictDeterministicAddress({
+            master: address(implementation),
+            salt: keccak256(abi.encode(token0, token1, tickSpacing)),
+            deployer: address(factory)
+        });
     }
 
     /// @dev Use only with test addresses
-    function createAndCheckPool(
-        UniswapV3Factory factory,
-        address token0,
-        address token1,
-        int24 tickSpacing
-    ) internal returns (address _pool) {
+    function createAndCheckPool(UniswapV3Factory factory, address token0, address token1, int24 tickSpacing)
+        internal
+        returns (address _pool)
+    {
         address create2Addr =
             computeAddress({factory: address(factory), tokenA: token0, tokenB: token1, tickSpacing: tickSpacing});
 

@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CustomFeeModuleTest} from './CustomFeeModule.t.sol';
+import {CustomFeeModuleTest} from "./CustomFeeModule.t.sol";
 
 contract SetCustomFeeTest is CustomFeeModuleTest {
     function setUp() public override {
@@ -17,13 +17,12 @@ contract SetCustomFeeTest is CustomFeeModuleTest {
     }
 
     function test_RevertIf_FeeTooHigh() public {
-        address pool =
-            createAndCheckPool({
-                factory: poolFactory,
-                token0: TEST_TOKEN_0,
-                token1: TEST_TOKEN_1,
-                tickSpacing: TICK_SPACING_LOW
-            });
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW
+        });
 
         vm.expectRevert();
         customFeeModule.setCustomFee({pool: pool, fee: 10_001});
@@ -35,13 +34,12 @@ contract SetCustomFeeTest is CustomFeeModuleTest {
     }
 
     function test_SetCustomFee() public {
-        address pool =
-            createAndCheckPool({
-                factory: poolFactory,
-                token0: TEST_TOKEN_0,
-                token1: TEST_TOKEN_1,
-                tickSpacing: TICK_SPACING_LOW
-            });
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW
+        });
 
         vm.expectEmit(true, true, false, false, address(customFeeModule));
         emit SetCustomFee({pool: pool, fee: 5_000});

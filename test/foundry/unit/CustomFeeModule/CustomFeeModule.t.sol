@@ -1,8 +1,8 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CustomFeeModule} from 'contracts/core/fees/CustomFeeModule.sol';
-import '../../BaseFixture.sol';
+import {CustomFeeModule} from "contracts/core/fees/CustomFeeModule.sol";
+import "../../BaseFixture.sol";
 
 contract CustomFeeModuleTest is BaseFixture {
     CustomFeeModule public customFeeModule;
@@ -14,7 +14,7 @@ contract CustomFeeModuleTest is BaseFixture {
         vm.prank(users.feeManager);
         poolFactory.setFeeModule({_feeModule: address(customFeeModule)});
 
-        vm.label({account: address(customFeeModule), newLabel: 'Custom Fee Module'});
+        vm.label({account: address(customFeeModule), newLabel: "Custom Fee Module"});
     }
 
     function test_InitialState() public {
