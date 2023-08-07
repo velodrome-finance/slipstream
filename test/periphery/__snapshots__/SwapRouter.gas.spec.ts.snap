@@ -6,32 +6,32 @@ exports[`SwapRouter gas tests #exactInput 0 -> 1 1`] = `130022`;
 
 exports[`SwapRouter gas tests #exactInput 0 -> 1 minimal 1`] = `120135`;
 
-exports[`SwapRouter gas tests #exactInput 0 -> WETH9 1`] = `149755`;
+exports[`SwapRouter gas tests #exactInput 0 -> WETH9 1`] = `149925`;
 
-exports[`SwapRouter gas tests #exactInput 2 trades (via router) 1`] = `214242`;
+exports[`SwapRouter gas tests #exactInput 2 trades (via router) 1`] = `214072`;
 
-exports[`SwapRouter gas tests #exactInput 3 trades (directly to sender) 1`] = `297149`;
+exports[`SwapRouter gas tests #exactInput 3 trades (directly to sender) 1`] = `296979`;
 
-exports[`SwapRouter gas tests #exactInput WETH9 -> 0 1`] = `128247`;
+exports[`SwapRouter gas tests #exactInput WETH9 -> 0 1`] = `128077`;
 
 exports[`SwapRouter gas tests #exactInputSingle 0 -> 1 1`] = `129472`;
 
-exports[`SwapRouter gas tests #exactInputSingle 0 -> WETH9 1`] = `149199`;
+exports[`SwapRouter gas tests #exactInputSingle 0 -> WETH9 1`] = `149369`;
 
-exports[`SwapRouter gas tests #exactInputSingle WETH9 -> 0 1`] = `127697`;
+exports[`SwapRouter gas tests #exactInputSingle WETH9 -> 0 1`] = `127527`;
 
 exports[`SwapRouter gas tests #exactOutput 0 -> 1 -> 2 1`] = `204568`;
 
 exports[`SwapRouter gas tests #exactOutput 0 -> 1 1`] = `134036`;
 
-exports[`SwapRouter gas tests #exactOutput 0 -> WETH9 1`] = `151843`;
+exports[`SwapRouter gas tests #exactOutput 0 -> WETH9 1`] = `151153`;
 
-exports[`SwapRouter gas tests #exactOutput WETH9 -> 0 1`] = `141104`;
+exports[`SwapRouter gas tests #exactOutput WETH9 -> 0 1`] = `141794`;
 
 exports[`SwapRouter gas tests #exactOutputSingle 0 -> 1 1`] = `134270`;
 
-exports[`SwapRouter gas tests #exactOutputSingle 0 -> WETH9 1`] = `152077`;
+exports[`SwapRouter gas tests #exactOutputSingle 0 -> WETH9 1`] = `151387`;
 
-exports[`SwapRouter gas tests #exactOutputSingle WETH9 -> 0 1`] = `135871`;
+exports[`SwapRouter gas tests #exactOutputSingle WETH9 -> 0 1`] = `136561`;
 
-exports[`SwapRouter gas tests 3 trades (directly to sender) 1`] = `204680`;
+exports[`SwapRouter gas tests 3 trades (directly to sender) 1`] = `204510`;

@@ -14,8 +14,11 @@ import {Constants} from "./utils/Constants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract BaseFixture is Test, Constants, Events, PoolUtils {
+    ERC20 public token0;
+    ERC20 public token1;
     UniswapV3Factory public poolFactory;
     UniswapV3Pool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
@@ -43,6 +46,11 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         poolImplementation = new UniswapV3Pool();
         poolFactory = new UniswapV3Factory(address(voter), address(poolImplementation));
 
+        // backward compatibility with the original uniV3 fee structure and tick spacing
+        poolFactory.enableTickSpacing(10, 500);
+        poolFactory.enableTickSpacing(60, 3000);
+        poolFactory.enableTickSpacing(200, 10000);
+
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),
             _nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000 // 'ETH' as bytes32 string
@@ -61,16 +69,22 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         poolFactory.setOwner(users.owner);
         poolFactory.setFeeManager(users.feeManager);
 
+        ERC20 tokenA = new ERC20("", "");
+        ERC20 tokenB = new ERC20("", "");
+        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+
         labelContracts();
     }
 
-    function labelContracts() internal {
+    function labelContracts() internal virtual {
         vm.label({account: address(weth), newLabel: "WETH"});
         vm.label({account: address(voter), newLabel: "Voter"});
         vm.label({account: address(nftDescriptor), newLabel: "NFT Descriptor"});
         vm.label({account: address(nft), newLabel: "NFT Manager"});
         vm.label({account: address(poolImplementation), newLabel: "Pool Implementation"});
         vm.label({account: address(poolFactory), newLabel: "Pool Factory"});
+        vm.label({account: address(token0), newLabel: "Token 0"});
+        vm.label({account: address(token1), newLabel: "Token 1"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {

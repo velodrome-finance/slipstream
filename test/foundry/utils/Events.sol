@@ -18,4 +18,9 @@ abstract contract Events {
     ///
 
     event SetCustomFee(address indexed pool, uint24 indexed fee);
+
+    ///
+    /// ERC20 Events
+    ///
+    event Transfer(address indexed from, address indexed to, uint256 value);
 }
