@@ -10,13 +10,14 @@ contract CLGauge is ICLGauge {
     address public override rewardToken;
     bool public override isPool;
 
-    constructor(
+    function initialize(
         address _forwarder,
         address _pool,
         address _feesVotingReward,
         address _rewardToken,
         bool _isPool
-    ) {
+    ) external override {
+        require(pool == address(0), 'AI');
         forwarder = _forwarder;
         pool = _pool;
         feesVotingReward = _feesVotingReward;

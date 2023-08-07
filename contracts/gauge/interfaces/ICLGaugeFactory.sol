@@ -7,6 +7,6 @@ interface ICLGaugeFactory {
         address _pool,
         address _feesVotingReward,
         address _ve,
-        bool isPool
+        bool _isPool
     ) external returns (address);
 }

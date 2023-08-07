@@ -41,6 +41,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
     address public override token0;
     /// @inheritdoc IUniswapV3PoolImmutables
     address public override token1;
+    /// @inheritdoc IUniswapV3PoolImmutables
+    address public override gauge;
 
     /// @inheritdoc IUniswapV3PoolImmutables
     int24 public override tickSpacing;
@@ -110,11 +112,19 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    function init() external override {
+    function init(
+        address _factory,
+        address _token0,
+        address _token1,
+        int24 _tickSpacing,
+        address _gauge
+    ) external override {
         require(factory == address(0));
-        int24 _tickSpacing;
-        (factory, token0, token1, _tickSpacing) = IUniswapV3Factory(msg.sender).parameters();
+        factory = _factory;
+        token0 = _token0;
+        token1 = _token1;
         tickSpacing = _tickSpacing;
+        gauge = _gauge;
 
         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
     }

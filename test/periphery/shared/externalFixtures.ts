@@ -1,6 +1,9 @@
 import { Fixture } from 'ethereum-waffle'
 import { ethers, waffle } from 'hardhat'
 import { IUniswapV3Pool, IUniswapV3Factory, IWETH9, MockTimeSwapRouter } from '../../../typechain'
+import { MockVoter } from '../../../typechain/MockVoter'
+import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
+import { CLGauge } from '../../../typechain/CLGauge'
 
 import WETH9 from '../contracts/WETH9.json'
 
@@ -17,7 +20,21 @@ const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
   const Pool = await ethers.getContractFactory('UniswapV3Pool')
   const Factory = await ethers.getContractFactory('UniswapV3Factory')
   const pool = (await Pool.deploy()) as IUniswapV3Pool
-  const factory = (await Factory.deploy(pool.address)) as IUniswapV3Factory
+
+  const MockVoterFactory = await ethers.getContractFactory('MockVoter')
+  const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
+  const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
+
+  // voter & gauge factory set up
+  const mockVoter = (await MockVoterFactory.deploy()) as MockVoter
+  const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
+  const gaugeFactory = (await GaugeFactoryFactory.deploy(
+    mockVoter.address,
+    gaugeImplementation.address
+  )) as CLGaugeFactory
+  await mockVoter.setGaugeFactory(gaugeFactory.address)
+
+  const factory = (await Factory.deploy(mockVoter.address, pool.address)) as IUniswapV3Factory
   // backwards compatible with v3-periphery tests
   await factory['enableTickSpacing(int24,uint24)'](10, 500)
   await factory['enableTickSpacing(int24,uint24)'](60, 3000)

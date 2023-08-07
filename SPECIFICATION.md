@@ -22,7 +22,7 @@ The periphery contracts have been taken from v3-periphery at commit [6cce88e](ht
 Concentrated liquidity implementation identical to Uniswap V3's liquidity pools. A few additional
 features have been included to provide better integration with Velodrome's ecosystem.
 
-### Gauge Rewards
+### Gauges
 
 The concentrated liquidity pools that are created will be incentivizable like any other pool on Velodrome.
 Gauge rewards are distributed over time and only in the active tick. Distributing over time is similar to V2
@@ -42,6 +42,9 @@ a corresponding gauge.
 - When a user deposits into a gauge, the reward growth accumulator is recorded. 
     - When a user withdraws / collects fees from the gauge, they are distributed their share of gauge rewards proportional to the amount of time their positions were in the active tick. 
 - Gauge interactions must go through the `NFTPositionManager`. 
+
+Technical details about gauges:
+- Gauges are created atomically with a pool (i.e. on `factory.createPool` as opposed to `voter.createGauge`)
 
 ### Fee Modules
 

@@ -11,4 +11,12 @@ interface ICLGauge {
     function rewardToken() external view returns (address);
 
     function isPool() external view returns (bool);
+
+    function initialize(
+        address _forwarder,
+        address _pool,
+        address _feesVotingReward,
+        address _rewardToken,
+        bool _isPool
+    ) external;
 }

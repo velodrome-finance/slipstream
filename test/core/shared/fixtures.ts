@@ -5,6 +5,9 @@ import { CoreTestERC20 } from '../../../typechain/CoreTestERC20'
 import { UniswapV3Factory } from '../../../typechain/UniswapV3Factory'
 import { TestUniswapV3Callee } from '../../../typechain/TestUniswapV3Callee'
 import { TestUniswapV3Router } from '../../../typechain/TestUniswapV3Router'
+import { MockVoter } from '../../../typechain/MockVoter'
+import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
+import { CLGauge } from '../../../typechain/CLGauge'
 
 import { Fixture } from 'ethereum-waffle'
 
@@ -52,8 +55,22 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
 
   const MockTimeUniswapV3PoolDeployerFactory = await ethers.getContractFactory('UniswapV3Factory')
   const MockTimeUniswapV3PoolFactory = await ethers.getContractFactory('MockTimeUniswapV3Pool')
+  const MockVoterFactory = await ethers.getContractFactory('MockVoter')
+  const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
+  const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
+
+  // voter & gauge factory set up
+  const mockVoter = (await MockVoterFactory.deploy()) as MockVoter
+  const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
+  const gaugeFactory = (await GaugeFactoryFactory.deploy(
+    mockVoter.address,
+    gaugeImplementation.address
+  )) as CLGaugeFactory
+  await mockVoter.setGaugeFactory(gaugeFactory.address)
+
   const mockTimePool = (await MockTimeUniswapV3PoolFactory.deploy()) as MockTimeUniswapV3Pool
   const mockTimePoolDeployer = (await MockTimeUniswapV3PoolDeployerFactory.deploy(
+    mockVoter.address,
     mockTimePool.address
   )) as UniswapV3Factory
 

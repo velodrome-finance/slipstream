@@ -15,9 +15,10 @@ been renamed or removed.
 
 ### Factory (UniswapV3Factory.sol)
 
-The Factory Registry has been modified in the following ways:
+The Factory has been modified in the following ways:
 - Pools are now created using Clones (EIP-1167 Proxies). 
 - The clones are created deterministically, using `tickSpacing` instead of `fee`. 
+- Creating a pool automatically creates a gauge as the two are coupled.
 - The factory supports a fee module that can be changed by the factory owner. This fee module allows fees to be dynamic.
 
 ### Pool (UniswapV3Pool.sol)
@@ -44,3 +45,11 @@ Tests were modified to be consistent with the above, with newer tests using foun
 Tests were modified to be consistent with the above, with newer tests using foundry instead of hardhat.
 Places where artifacts were used from the uniswapv3 npm modules were replaced with artifacts built locally
 in this repository.
+
+## Gauge
+
+### Concentrated Liquidity Gauge Factory
+- Gauges are now created using Clones (EIP-1167 Proxies). 
+- Gauges are created atomically with pools (unlike v2).
+
+### Concentrated Liquidity Gauge

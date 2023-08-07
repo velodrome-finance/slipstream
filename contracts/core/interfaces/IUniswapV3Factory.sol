@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
+import './IVoter.sol';
+
 /// @title The interface for the Uniswap V3 Factory
 /// @notice The Uniswap V3 Factory facilitates creation of Uniswap V3 pools and control over the protocol fees
 interface IUniswapV3Factory {
-    struct Parameters {
-        address factory;
-        address token0;
-        address token1;
-        int24 tickSpacing;
-    }
-
     /// @notice Emitted when the owner of the factory is changed
     /// @param oldOwner The owner before the owner was changed
     /// @param newOwner The owner after the owner was changed
@@ -37,6 +32,14 @@ interface IUniswapV3Factory {
     /// @param tickSpacing The minimum number of ticks between initialized ticks for pools
     /// @param fee The default fee for a pool created with a given tickSpacing
     event TickSpacingEnabled(int24 indexed tickSpacing, uint24 indexed fee);
+
+    /// @notice The voter contract, used to create gauges
+    /// @return The address of the voter contract
+    function voter() external view returns (IVoter);
+
+    /// @notice The address of the implementation contract used to deploy proxies / clones
+    /// @return The address of the implementation contract
+    function implementation() external view returns (address);
 
     /// @notice Returns the current owner of the factory
     /// @dev Can be changed by the current owner via setOwner
@@ -87,26 +90,6 @@ interface IUniswapV3Factory {
     /// @param pool The pool to get the fee for
     /// @return The fee for the given pool
     function getFee(address pool) external view returns (uint24);
-
-    /// @notice Get the parameters to be used in constructing the pool, set transiently during pool creation.
-    /// @dev Called by the pool constructor to fetch the parameters of the pool
-    /// Returns factory The factory address
-    /// Returns token0 The first token of the pool by address sort order
-    /// Returns token1 The second token of the pool by address sort order
-    /// Returns tickSpacing The minimum number of ticks between initialized ticks
-    function parameters()
-        external
-        view
-        returns (
-            address factory,
-            address token0,
-            address token1,
-            int24 tickSpacing
-        );
-
-    /// @notice The address of the implementation contract used to deploy proxies / clones
-    /// @return The address of the implementation contract
-    function implementation() external view returns (address);
 
     /// @notice Creates a pool for the given two tokens and fee
     /// @param tokenA One of the two tokens in the desired pool

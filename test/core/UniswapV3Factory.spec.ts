@@ -3,13 +3,9 @@ import { ethers, waffle } from 'hardhat'
 import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
 import { Create2Address } from '../../typechain/Create2Address'
 import { expect } from './shared/expect'
-
-import { FeeAmount, TICK_SPACINGS } from './shared/utilities'
-
-const TEST_ADDRESSES: [string, string] = [
-  '0x1000000000000000000000000000000000000000',
-  '0x2000000000000000000000000000000000000000',
-]
+import { MockVoter } from '../../typechain/MockVoter'
+import { CLGaugeFactory } from '../../typechain/CLGaugeFactory'
+import { CLGauge } from '../../typechain/CLGauge'
 
 const createFixtureLoader = waffle.createFixtureLoader
 
@@ -22,7 +18,21 @@ describe('UniswapV3Factory', () => {
     const poolFactory = await ethers.getContractFactory('UniswapV3Pool')
     const poolImplementation = await poolFactory.deploy()
     const factoryFactory = await ethers.getContractFactory('UniswapV3Factory')
-    return (await factoryFactory.deploy(poolImplementation.address)) as UniswapV3Factory
+
+    const MockVoterFactory = await ethers.getContractFactory('MockVoter')
+    const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
+    const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
+
+    // voter & gauge factory set up
+    const mockVoter = (await MockVoterFactory.deploy()) as MockVoter
+    const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
+    const gaugeFactory = (await GaugeFactoryFactory.deploy(
+      mockVoter.address,
+      gaugeImplementation.address
+    )) as CLGaugeFactory
+    await mockVoter.setGaugeFactory(gaugeFactory.address)
+
+    return (await factoryFactory.deploy(mockVoter.address, poolImplementation.address)) as UniswapV3Factory
   }
 
   let loadFixture: ReturnType<typeof createFixtureLoader>

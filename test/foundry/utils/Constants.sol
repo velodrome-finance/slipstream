@@ -11,4 +11,9 @@ abstract contract Constants {
 
     uint256 public constant TOKEN_1 = 1e18;
     uint256 public constant USDC_1 = 1e6;
+
+    // mock addresses used for testing gauge creation
+    address public forwarder = address(11);
+    address public feesVotingReward = address(12);
+    address public rewardToken = address(13);
 }

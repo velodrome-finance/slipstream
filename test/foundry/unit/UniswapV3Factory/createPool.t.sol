@@ -1,6 +1,8 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
+import {CLGauge} from "contracts/gauge/CLGauge.sol";
+import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
 import {UniswapV3FactoryTest} from "./UniswapV3Factory.t.sol";
 
 contract CreatePoolTest is UniswapV3FactoryTest {
@@ -42,6 +44,14 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             tickSpacing: TICK_SPACING_LOW
         });
         assertEqUint(poolFactory.getFee(pool), 500);
+
+        CLGauge gauge = CLGauge(voter.gauges(pool));
+        assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
+        assertEq(gauge.pool(), address(pool));
+        assertEq(gauge.forwarder(), forwarder);
+        assertEq(gauge.feesVotingReward(), feesVotingReward);
+        assertEq(gauge.rewardToken(), rewardToken);
+        assertTrue(gauge.isPool());
     }
 
     function test_CreatePoolWithTickSpacingMedium() public {
@@ -52,6 +62,14 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             tickSpacing: TICK_SPACING_MEDIUM
         });
         assertEqUint(poolFactory.getFee(pool), 3_000);
+
+        CLGauge gauge = CLGauge(voter.gauges(pool));
+        assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
+        assertEq(gauge.pool(), address(pool));
+        assertEq(gauge.forwarder(), forwarder);
+        assertEq(gauge.feesVotingReward(), feesVotingReward);
+        assertEq(gauge.rewardToken(), rewardToken);
+        assertTrue(gauge.isPool());
     }
 
     function test_CreatePoolWithTickSpacingHigh() public {
@@ -62,5 +80,13 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             tickSpacing: TICK_SPACING_HIGH
         });
         assertEqUint(poolFactory.getFee(pool), 10_000);
+
+        CLGauge gauge = CLGauge(voter.gauges(pool));
+        assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
+        assertEq(gauge.pool(), address(pool));
+        assertEq(gauge.forwarder(), forwarder);
+        assertEq(gauge.feesVotingReward(), feesVotingReward);
+        assertEq(gauge.rewardToken(), rewardToken);
+        assertTrue(gauge.isPool());
     }
 }
