@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import '../interfaces/IUniswapV3Pool.sol';
-import '../interfaces/fees/ICustomFeeModule.sol';
+import "../interfaces/IUniswapV3Pool.sol";
+import "../interfaces/fees/ICustomFeeModule.sol";
 
 contract CustomFeeModule is ICustomFeeModule {
     /// @inheritdoc IFeeModule

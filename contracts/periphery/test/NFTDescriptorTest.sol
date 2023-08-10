@@ -2,9 +2,9 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '../libraries/NFTDescriptor.sol';
-import '../libraries/NFTSVG.sol';
-import '../libraries/HexStrings.sol';
+import "../libraries/NFTDescriptor.sol";
+import "../libraries/NFTSVG.sol";
+import "../libraries/HexStrings.sol";
 
 contract NFTDescriptorTest {
     using HexStrings for uint256;
@@ -37,11 +37,11 @@ contract NFTDescriptorTest {
         return NFTDescriptor.tickToDecimalString(tick, tickSpacing, token0Decimals, token1Decimals, flipRatio);
     }
 
-    function fixedPointToDecimalString(
-        uint160 sqrtRatioX96,
-        uint8 token0Decimals,
-        uint8 token1Decimals
-    ) public pure returns (string memory) {
+    function fixedPointToDecimalString(uint160 sqrtRatioX96, uint8 token0Decimals, uint8 token1Decimals)
+        public
+        pure
+        returns (string memory)
+    {
         return NFTDescriptor.fixedPointToDecimalString(sqrtRatioX96, token0Decimals, token1Decimals);
     }
 
@@ -53,7 +53,11 @@ contract NFTDescriptorTest {
         return NFTDescriptor.addressToString(_address);
     }
 
-    function generateSVGImage(NFTDescriptor.ConstructTokenURIParams memory params) public pure returns (string memory) {
+    function generateSVGImage(NFTDescriptor.ConstructTokenURIParams memory params)
+        public
+        pure
+        returns (string memory)
+    {
         return NFTDescriptor.generateSVGImage(params);
     }
 

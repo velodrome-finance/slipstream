@@ -3,8 +3,8 @@ pragma solidity =0.7.6;
 
 /// @dev Modified lightly from live deployed WETH contract as WETH9 is not a standard ERC20
 contract MockWETH {
-    string public name = 'Wrapped Ether';
-    string public symbol = 'WETH';
+    string public name = "Wrapped Ether";
+    string public symbol = "WETH";
     uint8 public decimals = 18;
 
     event Deposit(address indexed dst, uint256 wad);
@@ -42,11 +42,7 @@ contract MockWETH {
         return transferFrom(msg.sender, dst, wad);
     }
 
-    function transferFrom(
-        address src,
-        address dst,
-        uint256 wad
-    ) public returns (bool) {
+    function transferFrom(address src, address dst, uint256 wad) public returns (bool) {
         require(balanceOf[src] >= wad);
 
         if (src != msg.sender && allowance[src][msg.sender] != type(uint256).max) {

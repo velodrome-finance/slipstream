@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import './IFeeModule.sol';
+import "./IFeeModule.sol";
 
 interface ICustomFeeModule is IFeeModule {
     event SetCustomFee(address indexed pool, uint24 indexed fee);

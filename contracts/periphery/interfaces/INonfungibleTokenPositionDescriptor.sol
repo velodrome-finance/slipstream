@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import './INonfungiblePositionManager.sol';
+import "./INonfungiblePositionManager.sol";
 
 /// @title Describes position NFT tokens via URI
 interface INonfungibleTokenPositionDescriptor {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.7.6;
 
-import '../libraries/Tick.sol';
+import "../libraries/Tick.sol";
 
 contract TickOverflowSafetyEchidnaTest {
     using Tick for mapping(int24 => Tick.Info);
@@ -34,53 +34,51 @@ contract TickOverflowSafetyEchidnaTest {
         totalGrowth1 += amount;
     }
 
-    function setPosition(
-        int24 tickLower,
-        int24 tickUpper,
-        int128 liquidityDelta
-    ) external {
+    function setPosition(int24 tickLower, int24 tickUpper, int128 liquidityDelta) external {
         require(tickLower > MIN_TICK);
         require(tickUpper < MAX_TICK);
         require(tickLower < tickUpper);
-        bool flippedLower =
-            ticks.update(
-                tickLower,
-                tick,
-                liquidityDelta,
-                feeGrowthGlobal0X128,
-                feeGrowthGlobal1X128,
-                0,
-                0,
-                uint32(block.timestamp),
-                false,
-                MAX_LIQUIDITY
-            );
-        bool flippedUpper =
-            ticks.update(
-                tickUpper,
-                tick,
-                liquidityDelta,
-                feeGrowthGlobal0X128,
-                feeGrowthGlobal1X128,
-                0,
-                0,
-                uint32(block.timestamp),
-                true,
-                MAX_LIQUIDITY
-            );
+        bool flippedLower = ticks.update(
+            tickLower,
+            tick,
+            liquidityDelta,
+            feeGrowthGlobal0X128,
+            feeGrowthGlobal1X128,
+            0,
+            0,
+            uint32(block.timestamp),
+            false,
+            MAX_LIQUIDITY
+        );
+        bool flippedUpper = ticks.update(
+            tickUpper,
+            tick,
+            liquidityDelta,
+            feeGrowthGlobal0X128,
+            feeGrowthGlobal1X128,
+            0,
+            0,
+            uint32(block.timestamp),
+            true,
+            MAX_LIQUIDITY
+        );
 
         if (flippedLower) {
             if (liquidityDelta < 0) {
                 assert(ticks[tickLower].liquidityGross == 0);
                 ticks.clear(tickLower);
-            } else assert(ticks[tickLower].liquidityGross > 0);
+            } else {
+                assert(ticks[tickLower].liquidityGross > 0);
+            }
         }
 
         if (flippedUpper) {
             if (liquidityDelta < 0) {
                 assert(ticks[tickUpper].liquidityGross == 0);
                 ticks.clear(tickUpper);
-            } else assert(ticks[tickUpper].liquidityGross > 0);
+            } else {
+                assert(ticks[tickUpper].liquidityGross > 0);
+            }
         }
 
         totalLiquidity += liquidityDelta;
@@ -98,12 +96,14 @@ contract TickOverflowSafetyEchidnaTest {
         require(target < MAX_TICK);
         while (tick != target) {
             if (tick < target) {
-                if (ticks[tick + 1].liquidityGross > 0)
+                if (ticks[tick + 1].liquidityGross > 0) {
                     ticks.cross(tick + 1, feeGrowthGlobal0X128, feeGrowthGlobal1X128, 0, 0, uint32(block.timestamp));
+                }
                 tick++;
             } else {
-                if (ticks[tick].liquidityGross > 0)
+                if (ticks[tick].liquidityGross > 0) {
                     ticks.cross(tick, feeGrowthGlobal0X128, feeGrowthGlobal1X128, 0, 0, uint32(block.timestamp));
+                }
                 tick--;
             }
         }

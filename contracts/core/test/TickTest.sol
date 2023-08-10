@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '../libraries/Tick.sol';
+import "../libraries/Tick.sol";
 
 contract TickTest {
     using Tick for mapping(int24 => Tick.Info);
@@ -39,19 +39,18 @@ contract TickTest {
         bool upper,
         uint128 maxLiquidity
     ) external returns (bool flipped) {
-        return
-            ticks.update(
-                tick,
-                tickCurrent,
-                liquidityDelta,
-                feeGrowthGlobal0X128,
-                feeGrowthGlobal1X128,
-                secondsPerLiquidityCumulativeX128,
-                tickCumulative,
-                time,
-                upper,
-                maxLiquidity
-            );
+        return ticks.update(
+            tick,
+            tickCurrent,
+            liquidityDelta,
+            feeGrowthGlobal0X128,
+            feeGrowthGlobal1X128,
+            secondsPerLiquidityCumulativeX128,
+            tickCumulative,
+            time,
+            upper,
+            maxLiquidity
+        );
     }
 
     function clear(int24 tick) external {
@@ -66,14 +65,8 @@ contract TickTest {
         int56 tickCumulative,
         uint32 time
     ) external returns (int128 liquidityNet) {
-        return
-            ticks.cross(
-                tick,
-                feeGrowthGlobal0X128,
-                feeGrowthGlobal1X128,
-                secondsPerLiquidityCumulativeX128,
-                tickCumulative,
-                time
-            );
+        return ticks.cross(
+            tick, feeGrowthGlobal0X128, feeGrowthGlobal1X128, secondsPerLiquidityCumulativeX128, tickCumulative, time
+        );
     }
 }

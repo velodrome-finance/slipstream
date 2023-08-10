@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.7.6;
 
-import '../libraries/TickBitmap.sol';
+import "../libraries/TickBitmap.sol";
 
 contract TickBitmapEchidnaTest {
     using TickBitmap for mapping(int16 => uint256);

@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '../libraries/OracleLibrary.sol';
+import "../libraries/OracleLibrary.sol";
 
 contract OracleLibraryTest {
     function consult(address pool, uint32 secondsAgo)
@@ -13,12 +13,11 @@ contract OracleLibraryTest {
         return OracleLibrary.consult(pool, secondsAgo);
     }
 
-    function getQuoteAtTick(
-        int24 tick,
-        uint128 baseAmount,
-        address baseToken,
-        address quoteToken
-    ) public pure returns (uint256 quoteAmount) {
+    function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken)
+        public
+        pure
+        returns (uint256 quoteAmount)
+    {
         quoteAmount = OracleLibrary.getQuoteAtTick(tick, baseAmount, baseToken, quoteToken);
     }
 
@@ -29,12 +28,11 @@ contract OracleLibraryTest {
         return gasBefore - gasleft();
     }
 
-    function getGasCostOfGetQuoteAtTick(
-        int24 tick,
-        uint128 baseAmount,
-        address baseToken,
-        address quoteToken
-    ) public view returns (uint256) {
+    function getGasCostOfGetQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken)
+        public
+        view
+        returns (uint256)
+    {
         uint256 gasBefore = gasleft();
         OracleLibrary.getQuoteAtTick(tick, baseAmount, baseToken, quoteToken);
         return gasBefore - gasleft();
@@ -61,7 +59,11 @@ contract OracleLibraryTest {
         return OracleLibrary.getWeightedArithmeticMeanTick(observations);
     }
 
-    function getChainedPrice(address[] memory tokens, int24[] memory ticks) public pure returns (int256 syntheticTick) {
+    function getChainedPrice(address[] memory tokens, int24[] memory ticks)
+        public
+        pure
+        returns (int256 syntheticTick)
+    {
         return OracleLibrary.getChainedPrice(tokens, ticks);
     }
 }

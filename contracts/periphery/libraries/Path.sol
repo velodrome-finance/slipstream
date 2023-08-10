@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.0;
 
-import './BytesLib.sol';
+import "./BytesLib.sol";
 
 /// @title Functions for manipulating path data for multihop swaps
 library Path {
@@ -42,11 +42,7 @@ library Path {
     function decodeFirstPool(bytes memory path)
         internal
         pure
-        returns (
-            address tokenA,
-            address tokenB,
-            int24 tickSpacing
-        )
+        returns (address tokenA, address tokenB, int24 tickSpacing)
     {
         tokenA = path.toAddress(0);
         tickSpacing = path.toInt24(ADDR_SIZE);

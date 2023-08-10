@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
-import {ICLGauge} from './interfaces/ICLGauge.sol';
+import {ICLGauge} from "./interfaces/ICLGauge.sol";
 
 contract CLGauge is ICLGauge {
     address public override forwarder;
@@ -17,7 +17,7 @@ contract CLGauge is ICLGauge {
         address _rewardToken,
         bool _isPool
     ) external override {
-        require(pool == address(0), 'AI');
+        require(pool == address(0), "AI");
         forwarder = _forwarder;
         pool = _pool;
         feesVotingReward = _feesVotingReward;

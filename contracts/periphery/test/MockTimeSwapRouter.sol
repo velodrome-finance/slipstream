@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '../SwapRouter.sol';
+import "../SwapRouter.sol";
 
 contract MockTimeSwapRouter is SwapRouter {
     uint256 time;

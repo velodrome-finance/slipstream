@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0 <0.8.0;
 
-import 'contracts/core/libraries/FullMath.sol';
-import 'contracts/core/libraries/TickMath.sol';
-import 'contracts/core/interfaces/IUniswapV3Pool.sol';
+import "contracts/core/libraries/FullMath.sol";
+import "contracts/core/libraries/TickMath.sol";
+import "contracts/core/interfaces/IUniswapV3Pool.sol";
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle
@@ -18,7 +18,7 @@ library OracleLibrary {
         view
         returns (int24 arithmeticMeanTick, uint128 harmonicMeanLiquidity)
     {
-        require(secondsAgo != 0, 'BP');
+        require(secondsAgo != 0, "BP");
 
         uint32[] memory secondsAgos = new uint32[](2);
         secondsAgos[0] = secondsAgo;
@@ -46,12 +46,11 @@ library OracleLibrary {
     /// @param baseToken Address of an ERC20 token contract used as the baseAmount denomination
     /// @param quoteToken Address of an ERC20 token contract used as the quoteAmount denomination
     /// @return quoteAmount Amount of quoteToken received for baseAmount of baseToken
-    function getQuoteAtTick(
-        int24 tick,
-        uint128 baseAmount,
-        address baseToken,
-        address quoteToken
-    ) internal pure returns (uint256 quoteAmount) {
+    function getQuoteAtTick(int24 tick, uint128 baseAmount, address baseToken, address quoteToken)
+        internal
+        pure
+        returns (uint256 quoteAmount)
+    {
         uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
 
         // Calculate quoteAmount with better precision if it doesn't overflow when multiplied by itself
@@ -72,16 +71,16 @@ library OracleLibrary {
     /// @param pool Address of Uniswap V3 pool that we want to observe
     /// @return secondsAgo The number of seconds ago of the oldest observation stored for the pool
     function getOldestObservationSecondsAgo(address pool) internal view returns (uint32 secondsAgo) {
-        (, , uint16 observationIndex, uint16 observationCardinality, , , ) = IUniswapV3Pool(pool).slot0();
-        require(observationCardinality > 0, 'NI');
+        (,, uint16 observationIndex, uint16 observationCardinality,,,) = IUniswapV3Pool(pool).slot0();
+        require(observationCardinality > 0, "NI");
 
-        (uint32 observationTimestamp, , , bool initialized) =
+        (uint32 observationTimestamp,,, bool initialized) =
             IUniswapV3Pool(pool).observations((observationIndex + 1) % observationCardinality);
 
         // The next index might not be initialized if the cardinality is in the process of increasing
         // In this case the oldest observation is always in index 0
         if (!initialized) {
-            (observationTimestamp, , , ) = IUniswapV3Pool(pool).observations(0);
+            (observationTimestamp,,,) = IUniswapV3Pool(pool).observations(0);
         }
 
         secondsAgo = uint32(block.timestamp) - observationTimestamp;
@@ -91,15 +90,15 @@ library OracleLibrary {
     /// @param pool Address of Uniswap V3 pool
     /// @return The tick that the pool was in at the start of the current block
     function getBlockStartingTickAndLiquidity(address pool) internal view returns (int24, uint128) {
-        (, int24 tick, uint16 observationIndex, uint16 observationCardinality, , , ) = IUniswapV3Pool(pool).slot0();
+        (, int24 tick, uint16 observationIndex, uint16 observationCardinality,,,) = IUniswapV3Pool(pool).slot0();
 
         // 2 observations are needed to reliably calculate the block starting tick
-        require(observationCardinality > 1, 'NEO');
+        require(observationCardinality > 1, "NEO");
 
         // If the latest observation occurred in the past, then no tick-changing trades have happened in this block
         // therefore the tick in `slot0` is the same as at the beginning of the current block.
         // We don't need to check if this observation is initialized - it is guaranteed to be.
-        (uint32 observationTimestamp, int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128, ) =
+        (uint32 observationTimestamp, int56 tickCumulative, uint160 secondsPerLiquidityCumulativeX128,) =
             IUniswapV3Pool(pool).observations(observationIndex);
         if (observationTimestamp != uint32(block.timestamp)) {
             return (tick, IUniswapV3Pool(pool).liquidity());
@@ -113,15 +112,14 @@ library OracleLibrary {
             bool prevInitialized
         ) = IUniswapV3Pool(pool).observations(prevIndex);
 
-        require(prevInitialized, 'ONI');
+        require(prevInitialized, "ONI");
 
         uint32 delta = observationTimestamp - prevObservationTimestamp;
         tick = int24((tickCumulative - prevTickCumulative) / delta);
-        uint128 liquidity =
-            uint128(
-                (uint192(delta) * type(uint160).max) /
-                    (uint192(secondsPerLiquidityCumulativeX128 - prevSecondsPerLiquidityCumulativeX128) << 32)
-            );
+        uint128 liquidity = uint128(
+            (uint192(delta) * type(uint160).max)
+                / (uint192(secondsPerLiquidityCumulativeX128 - prevSecondsPerLiquidityCumulativeX128) << 32)
+        );
         return (tick, liquidity);
     }
 
@@ -170,7 +168,7 @@ library OracleLibrary {
         pure
         returns (int256 syntheticTick)
     {
-        require(tokens.length - 1 == ticks.length, 'DL');
+        require(tokens.length - 1 == ticks.length, "DL");
         for (uint256 i = 1; i <= ticks.length; i++) {
             // check the tokens for address sort order, then accumulate the
             // ticks into the running synthetic tick, ensuring that intermediate tokens "cancel out"

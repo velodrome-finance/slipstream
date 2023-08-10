@@ -2,11 +2,7 @@
 pragma solidity =0.7.6;
 
 interface ICLGaugeFactory {
-    function createGauge(
-        address _forwarder,
-        address _pool,
-        address _feesVotingReward,
-        address _ve,
-        bool _isPool
-    ) external returns (address);
+    function createGauge(address _forwarder, address _pool, address _feesVotingReward, address _ve, bool _isPool)
+        external
+        returns (address);
 }

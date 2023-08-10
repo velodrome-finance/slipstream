@@ -18,7 +18,7 @@ contract MockObservable {
     ) {
         require(
             secondsAgos.length == 2 && tickCumulatives.length == 2 && secondsPerLiquidityCumulativeX128s.length == 2,
-            'Invalid test case size'
+            "Invalid test case size"
         );
 
         observation0 = Observation(secondsAgos[0], tickCumulatives[0], secondsPerLiquidityCumulativeX128s[0]);
@@ -31,8 +31,7 @@ contract MockObservable {
         returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s)
     {
         require(
-            secondsAgos[0] == observation0.secondsAgo && secondsAgos[1] == observation1.secondsAgo,
-            'Invalid test case'
+            secondsAgos[0] == observation0.secondsAgo && secondsAgos[1] == observation1.secondsAgo, "Invalid test case"
         );
 
         int56[] memory _tickCumulatives = new int56[](2);

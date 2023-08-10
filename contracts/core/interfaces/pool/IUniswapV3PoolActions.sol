@@ -11,13 +11,7 @@ interface IUniswapV3PoolActions {
     /// @param _token1 The second token of the pool by address sort order
     /// @param _tickSpacing The pool tick spacing
     /// @param _gauge The address of the gauge corresponding to this pool
-    function init(
-        address _factory,
-        address _token0,
-        address _token1,
-        int24 _tickSpacing,
-        address _gauge
-    ) external;
+    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge) external;
 
     /// @notice Sets the initial price for the pool
     /// @dev Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
@@ -35,13 +29,9 @@ interface IUniswapV3PoolActions {
     /// @param data Any data that should be passed through to the callback
     /// @return amount0 The amount of token0 that was paid to mint the given amount of liquidity. Matches the value in the callback
     /// @return amount1 The amount of token1 that was paid to mint the given amount of liquidity. Matches the value in the callback
-    function mint(
-        address recipient,
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount,
-        bytes calldata data
-    ) external returns (uint256 amount0, uint256 amount1);
+    function mint(address recipient, int24 tickLower, int24 tickUpper, uint128 amount, bytes calldata data)
+        external
+        returns (uint256 amount0, uint256 amount1);
 
     /// @notice Collects tokens owed to a position
     /// @dev Does not recompute fees earned, which must be done either via mint or burn of any amount of liquidity.
@@ -71,11 +61,9 @@ interface IUniswapV3PoolActions {
     /// @param amount How much liquidity to burn
     /// @return amount0 The amount of token0 sent to the recipient
     /// @return amount1 The amount of token1 sent to the recipient
-    function burn(
-        int24 tickLower,
-        int24 tickUpper,
-        uint128 amount
-    ) external returns (uint256 amount0, uint256 amount1);
+    function burn(int24 tickLower, int24 tickUpper, uint128 amount)
+        external
+        returns (uint256 amount0, uint256 amount1);
 
     /// @notice Swap token0 for token1, or token1 for token0
     /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
@@ -103,12 +91,7 @@ interface IUniswapV3PoolActions {
     /// @param amount0 The amount of token0 to send
     /// @param amount1 The amount of token1 to send
     /// @param data Any data to be passed through to the callback
-    function flash(
-        address recipient,
-        uint256 amount0,
-        uint256 amount1,
-        bytes calldata data
-    ) external;
+    function flash(address recipient, uint256 amount0, uint256 amount1, bytes calldata data) external;
 
     /// @notice Increase the maximum number of price and liquidity observations that this pool will store
     /// @dev This method is no-op if the pool already has an observationCardinalityNext greater than or equal to

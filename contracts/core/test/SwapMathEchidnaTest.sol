@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.7.6;
 
-import '../libraries/SwapMath.sol';
+import "../libraries/SwapMath.sol";
 
 contract SwapMathEchidnaTest {
     function checkComputeSwapStepInvariants(

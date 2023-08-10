@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import '../libraries/Oracle.sol';
+import "../libraries/Oracle.sol";
 
 contract OracleTest {
     using Oracle for Oracle.Observation[65535];
@@ -23,7 +23,7 @@ contract OracleTest {
     }
 
     function initialize(InitializeParams calldata params) external {
-        require(cardinality == 0, 'already initialized');
+        require(cardinality == 0, "already initialized");
         time = params.time;
         tick = params.tick;
         liquidity = params.liquidity;
@@ -59,14 +59,8 @@ contract OracleTest {
 
         for (uint256 i = 0; i < params.length; i++) {
             _time += params[i].advanceTimeBy;
-            (_index, _cardinality) = observations.write(
-                _index,
-                _time,
-                _tick,
-                _liquidity,
-                _cardinality,
-                _cardinalityNext
-            );
+            (_index, _cardinality) =
+                observations.write(_index, _time, _tick, _liquidity, _cardinality, _cardinalityNext);
             _tick = params[i].tick;
             _liquidity = params[i].liquidity;
         }

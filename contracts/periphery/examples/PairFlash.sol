@@ -2,15 +2,15 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import 'contracts/core/interfaces/callback/IUniswapV3FlashCallback.sol';
-import 'contracts/core/libraries/LowGasSafeMath.sol';
+import "contracts/core/interfaces/callback/IUniswapV3FlashCallback.sol";
+import "contracts/core/libraries/LowGasSafeMath.sol";
 
-import '../base/PeripheryPayments.sol';
-import '../base/PeripheryImmutableState.sol';
-import '../libraries/PoolAddress.sol';
-import '../libraries/CallbackValidation.sol';
-import '../libraries/TransferHelper.sol';
-import '../interfaces/ISwapRouter.sol';
+import "../base/PeripheryPayments.sol";
+import "../base/PeripheryImmutableState.sol";
+import "../libraries/PoolAddress.sol";
+import "../libraries/CallbackValidation.sol";
+import "../libraries/TransferHelper.sol";
+import "../interfaces/ISwapRouter.sol";
 
 /// @title Flash contract implementation
 /// @notice An example contract using the Uniswap V3 flash function
@@ -20,11 +20,7 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
 
     ISwapRouter public immutable swapRouter;
 
-    constructor(
-        ISwapRouter _swapRouter,
-        address _factory,
-        address _WETH9
-    ) PeripheryImmutableState(_factory, _WETH9) {
+    constructor(ISwapRouter _swapRouter, address _factory, address _WETH9) PeripheryImmutableState(_factory, _WETH9) {
         swapRouter = _swapRouter;
     }
 
@@ -43,11 +39,7 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
     /// @param data The data needed in the callback passed as FlashCallbackData from `initFlash`
     /// @notice implements the callback called from flash
     /// @dev fails if the flash is not profitable, meaning the amountOut from the flash is less than the amount borrowed
-    function uniswapV3FlashCallback(
-        uint256 fee0,
-        uint256 fee1,
-        bytes calldata data
-    ) external override {
+    function uniswapV3FlashCallback(uint256 fee0, uint256 fee1, bytes calldata data) external override {
         FlashCallbackData memory decoded = abi.decode(data, (FlashCallbackData));
         CallbackValidation.verifyCallback(factory, decoded.poolKey);
 
@@ -61,35 +53,33 @@ contract PairFlash is IUniswapV3FlashCallback, PeripheryPayments {
 
         // call exactInputSingle for swapping token1 for token0 in pool with tickSpacing2
         TransferHelper.safeApprove(token1, address(swapRouter), decoded.amount1);
-        uint256 amountOut0 =
-            swapRouter.exactInputSingle(
-                ISwapRouter.ExactInputSingleParams({
-                    tokenIn: token1,
-                    tokenOut: token0,
-                    tickSpacing: decoded.poolTickSpacing2,
-                    recipient: address(this),
-                    deadline: block.timestamp,
-                    amountIn: decoded.amount1,
-                    amountOutMinimum: amount0Min,
-                    sqrtPriceLimitX96: 0
-                })
-            );
+        uint256 amountOut0 = swapRouter.exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: token1,
+                tokenOut: token0,
+                tickSpacing: decoded.poolTickSpacing2,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: decoded.amount1,
+                amountOutMinimum: amount0Min,
+                sqrtPriceLimitX96: 0
+            })
+        );
 
         // call exactInputSingle for swapping token0 for token 1 in pool with tickSpacing3
         TransferHelper.safeApprove(token0, address(swapRouter), decoded.amount0);
-        uint256 amountOut1 =
-            swapRouter.exactInputSingle(
-                ISwapRouter.ExactInputSingleParams({
-                    tokenIn: token0,
-                    tokenOut: token1,
-                    tickSpacing: decoded.poolTickSpacing3,
-                    recipient: address(this),
-                    deadline: block.timestamp,
-                    amountIn: decoded.amount0,
-                    amountOutMinimum: amount1Min,
-                    sqrtPriceLimitX96: 0
-                })
-            );
+        uint256 amountOut1 = swapRouter.exactInputSingle(
+            ISwapRouter.ExactInputSingleParams({
+                tokenIn: token0,
+                tokenOut: token1,
+                tickSpacing: decoded.poolTickSpacing3,
+                recipient: address(this),
+                deadline: block.timestamp,
+                amountIn: decoded.amount0,
+                amountOutMinimum: amount1Min,
+                sqrtPriceLimitX96: 0
+            })
+        );
 
         // pay the required amounts back to the pair
         if (amount0Min > 0) pay(token0, address(this), msg.sender, amount0Min);
