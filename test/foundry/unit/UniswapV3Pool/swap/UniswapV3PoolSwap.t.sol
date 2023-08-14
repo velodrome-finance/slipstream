@@ -660,7 +660,7 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
             uint256 liquidityAfter
         )
     {
-        (sqrtPriceX96After, tickAfter,,,,,) = UniswapV3Pool(poolSetup.pool).slot0();
+        (sqrtPriceX96After, tickAfter,,,,) = UniswapV3Pool(poolSetup.pool).slot0();
         liquidityAfter = UniswapV3Pool(poolSetup.pool).liquidity();
         uint256 poolBalance0After = token0.balanceOf(poolSetup.pool);
         uint256 poolBalance1After = token1.balanceOf(poolSetup.pool);

@@ -181,7 +181,7 @@ contract UniswapSwapper {
     }
 
     function getStats() internal view returns (SwapperStats memory stats) {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
         return
             SwapperStats(
                 pool.liquidity(),

@@ -71,7 +71,7 @@ contract E2E_swap {
         returns (uint160 sqrtPriceLimitX96)
     {
         // help echidna a bit by calculating a valid sqrtPriceLimitX96 using the amount as random seed
-        (uint160 currentPrice, , , , , , ) = pool.slot0();
+        (uint160 currentPrice, , , , , ) = pool.slot0();
         uint160 minimumPrice = TickMath.MIN_SQRT_RATIO;
         sqrtPriceLimitX96 =
             minimumPrice +
@@ -86,7 +86,7 @@ contract E2E_swap {
         returns (uint160 sqrtPriceLimitX96)
     {
         // help echidna a bit by calculating a valid sqrtPriceLimitX96 using the amount as random seed
-        (uint160 currentPrice, , , , , , ) = pool.slot0();
+        (uint160 currentPrice, , , , , ) = pool.slot0();
         uint160 maximumPrice = TickMath.MAX_SQRT_RATIO;
         sqrtPriceLimitX96 =
             currentPrice +
@@ -117,7 +117,7 @@ contract E2E_swap {
     }
 
     function check_liquidity_invariant() internal {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
         int128 liquidity = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
             int24 tick = usedTicks[i];
@@ -135,7 +135,7 @@ contract E2E_swap {
     }
 
     function check_tick_feegrowth_invariant() internal {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
 
         if (currentTick == poolParams.maxTick || currentTick == poolParams.minTick) return;
 

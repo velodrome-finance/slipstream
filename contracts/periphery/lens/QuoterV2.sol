@@ -48,7 +48,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
             : (tokenOut < tokenIn, uint256(amount1Delta), uint256(-amount0Delta));
 
         IUniswapV3Pool pool = getPool(tokenIn, tokenOut, tickSpacing);
-        (uint160 sqrtPriceX96After, int24 tickAfter,,,,,) = pool.slot0();
+        (uint160 sqrtPriceX96After, int24 tickAfter,,,,) = pool.slot0();
 
         if (isExactInput) {
             assembly {
@@ -94,7 +94,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
     {
         int24 tickBefore;
         int24 tickAfter;
-        (, tickBefore,,,,,) = pool.slot0();
+        (, tickBefore,,,,) = pool.slot0();
         (amount, sqrtPriceX96After, tickAfter) = parseRevertReason(reason);
 
         initializedTicksCrossed = pool.countInitializedTicksCrossed(tickBefore, tickAfter);

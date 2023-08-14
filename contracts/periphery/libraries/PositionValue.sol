@@ -141,7 +141,7 @@ library PositionValue {
         view
         returns (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128)
     {
-        (, int24 tickCurrent,,,,,) = pool.slot0();
+        (, int24 tickCurrent,,,,) = pool.slot0();
         (,,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,,) = pool.ticks(tickLower);
         (,,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,,) = pool.ticks(tickUpper);
 

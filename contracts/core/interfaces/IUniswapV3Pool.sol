@@ -17,6 +17,5 @@ interface IUniswapV3Pool is
     IUniswapV3PoolState,
     IUniswapV3PoolDerivedState,
     IUniswapV3PoolActions,
-    IUniswapV3PoolOwnerActions,
     IUniswapV3PoolEvents
 {}

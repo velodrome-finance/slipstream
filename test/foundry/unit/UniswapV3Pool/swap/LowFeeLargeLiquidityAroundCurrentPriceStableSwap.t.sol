@@ -26,7 +26,7 @@ contract LowFeeLargeLiquidityAroundCurrentPriceStableSwapTest is UniswapV3PoolSw
         uint256 poolBalance0 = token0.balanceOf(pool);
         uint256 poolBalance1 = token1.balanceOf(pool);
 
-        (uint160 sqrtPriceX96, int24 tick,,,,,) = IUniswapV3Pool(pool).slot0();
+        (uint160 sqrtPriceX96, int24 tick,,,,) = IUniswapV3Pool(pool).slot0();
 
         poolSetup = PoolSetup({
             poolName: poolName,

@@ -61,9 +61,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint16 observationCardinality;
         // the next maximum number of observations to store, triggered in observations.write
         uint16 observationCardinalityNext;
-        // the current protocol fee as a percentage of the swap fee taken on withdrawal
-        // represented as an integer denominator (1/x)%
-        uint8 feeProtocol;
         // whether the pool is locked
         bool unlocked;
     }
@@ -278,7 +275,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
             observationIndex: 0,
             observationCardinality: cardinality,
             observationCardinalityNext: cardinalityNext,
-            feeProtocol: 0,
             unlocked: true
         });
 
@@ -524,8 +520,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     struct SwapCache {
-        // the protocol fee for the input token
-        uint8 feeProtocol;
         // liquidity at the beginning of the swap
         uint128 liquidityStart;
         // the timestamp of the current block
@@ -598,7 +592,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
         SwapCache memory cache = SwapCache({
             liquidityStart: liquidity,
             blockTimestamp: _blockTimestamp(),
-            feeProtocol: zeroForOne ? (slot0Start.feeProtocol % 16) : (slot0Start.feeProtocol >> 4),
             secondsPerLiquidityCumulativeX128: 0,
             tickCumulative: 0,
             computedLatestObservation: false
@@ -652,13 +645,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
             } else {
                 state.amountSpecifiedRemaining += step.amountOut.toInt256();
                 state.amountCalculated = state.amountCalculated.add((step.amountIn + step.feeAmount).toInt256());
-            }
-
-            // if the protocol fee is on, calculate how much is owed, decrement feeAmount, and increment protocolFee
-            if (cache.feeProtocol > 0) {
-                uint256 delta = step.feeAmount / cache.feeProtocol;
-                step.feeAmount -= delta;
-                state.protocolFee += uint128(delta);
             }
 
             // update global fee tracker
@@ -784,55 +770,12 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint256 paid1 = balance1After - balance1Before;
 
         if (paid0 > 0) {
-            uint8 feeProtocol0 = slot0.feeProtocol % 16;
-            uint256 fees0 = feeProtocol0 == 0 ? 0 : paid0 / feeProtocol0;
-            if (uint128(fees0) > 0) protocolFees.token0 += uint128(fees0);
-            feeGrowthGlobal0X128 += FullMath.mulDiv(paid0 - fees0, FixedPoint128.Q128, _liquidity);
+            feeGrowthGlobal0X128 += FullMath.mulDiv(paid0, FixedPoint128.Q128, _liquidity);
         }
         if (paid1 > 0) {
-            uint8 feeProtocol1 = slot0.feeProtocol >> 4;
-            uint256 fees1 = feeProtocol1 == 0 ? 0 : paid1 / feeProtocol1;
-            if (uint128(fees1) > 0) protocolFees.token1 += uint128(fees1);
-            feeGrowthGlobal1X128 += FullMath.mulDiv(paid1 - fees1, FixedPoint128.Q128, _liquidity);
+            feeGrowthGlobal1X128 += FullMath.mulDiv(paid1, FixedPoint128.Q128, _liquidity);
         }
-
         emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
-    }
-
-    /// @inheritdoc IUniswapV3PoolOwnerActions
-    function setFeeProtocol(uint8 feeProtocol0, uint8 feeProtocol1) external override lock onlyFactoryOwner {
-        require(
-            (feeProtocol0 == 0 || (feeProtocol0 >= 4 && feeProtocol0 <= 10))
-                && (feeProtocol1 == 0 || (feeProtocol1 >= 4 && feeProtocol1 <= 10))
-        );
-        uint8 feeProtocolOld = slot0.feeProtocol;
-        slot0.feeProtocol = feeProtocol0 + (feeProtocol1 << 4);
-        emit SetFeeProtocol(feeProtocolOld % 16, feeProtocolOld >> 4, feeProtocol0, feeProtocol1);
-    }
-
-    /// @inheritdoc IUniswapV3PoolOwnerActions
-    function collectProtocol(address recipient, uint128 amount0Requested, uint128 amount1Requested)
-        external
-        override
-        lock
-        onlyFactoryOwner
-        returns (uint128 amount0, uint128 amount1)
-    {
-        amount0 = amount0Requested > protocolFees.token0 ? protocolFees.token0 : amount0Requested;
-        amount1 = amount1Requested > protocolFees.token1 ? protocolFees.token1 : amount1Requested;
-
-        if (amount0 > 0) {
-            if (amount0 == protocolFees.token0) amount0--; // ensure that the slot is not cleared, for gas savings
-            protocolFees.token0 -= amount0;
-            TransferHelper.safeTransfer(token0, recipient, amount0);
-        }
-        if (amount1 > 0) {
-            if (amount1 == protocolFees.token1) amount1--; // ensure that the slot is not cleared, for gas savings
-            protocolFees.token1 -= amount1;
-            TransferHelper.safeTransfer(token1, recipient, amount1);
-        }
-
-        emit CollectProtocol(msg.sender, recipient, amount0, amount1);
     }
 
     /// @inheritdoc IUniswapV3PoolState

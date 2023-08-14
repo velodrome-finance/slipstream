@@ -71,7 +71,7 @@ library OracleLibrary {
     /// @param pool Address of Uniswap V3 pool that we want to observe
     /// @return secondsAgo The number of seconds ago of the oldest observation stored for the pool
     function getOldestObservationSecondsAgo(address pool) internal view returns (uint32 secondsAgo) {
-        (,, uint16 observationIndex, uint16 observationCardinality,,,) = IUniswapV3Pool(pool).slot0();
+        (,, uint16 observationIndex, uint16 observationCardinality,,) = IUniswapV3Pool(pool).slot0();
         require(observationCardinality > 0, "NI");
 
         (uint32 observationTimestamp,,, bool initialized) =
@@ -90,7 +90,7 @@ library OracleLibrary {
     /// @param pool Address of Uniswap V3 pool
     /// @return The tick that the pool was in at the start of the current block
     function getBlockStartingTickAndLiquidity(address pool) internal view returns (int24, uint128) {
-        (, int24 tick, uint16 observationIndex, uint16 observationCardinality,,,) = IUniswapV3Pool(pool).slot0();
+        (, int24 tick, uint16 observationIndex, uint16 observationCardinality,,) = IUniswapV3Pool(pool).slot0();
 
         // 2 observations are needed to reliably calculate the block starting tick
         require(observationCardinality > 1, "NEO");

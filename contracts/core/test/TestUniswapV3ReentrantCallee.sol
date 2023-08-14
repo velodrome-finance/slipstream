@@ -45,12 +45,6 @@ contract TestUniswapV3ReentrantCallee is IUniswapV3SwapCallback {
             require(keccak256(abi.encode(reason)) == keccak256(abi.encode(expectedReason)));
         }
 
-        // try to reenter collectProtocol
-        try IUniswapV3Pool(msg.sender).collectProtocol(address(0), 0, 0) {}
-        catch Error(string memory reason) {
-            require(keccak256(abi.encode(reason)) == keccak256(abi.encode(expectedReason)));
-        }
-
         require(false, "Unable to reenter");
     }
 }

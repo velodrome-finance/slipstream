@@ -161,7 +161,7 @@ contract E2E_mint_burn {
     }
 
     function check_liquidity_invariant() internal {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
 
         int128 liquidity = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
@@ -182,7 +182,7 @@ contract E2E_mint_burn {
     }
 
     function check_tick_feegrowth_invariant() internal {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
 
         if (currentTick == poolParams.maxTick || currentTick == poolParams.minTick) return;
 
@@ -205,7 +205,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory bfre,
         UniswapMinter.MinterStats memory aftr
     ) internal {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
 
         // prop #1
         if (currentTick >= _tickLower && currentTick < _tickUpper) {
@@ -235,7 +235,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory bfre,
         UniswapMinter.MinterStats memory aftr
     ) internal {
-        (, int24 currentTick, , , , , ) = pool.slot0();
+        (, int24 currentTick, , , , ) = pool.slot0();
 
         if (_burnAmount > 0) {
             // prop #7

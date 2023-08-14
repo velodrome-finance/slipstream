@@ -2,33 +2,33 @@
 
 exports[`NonfungiblePositionManager #burn gas 1`] = `41284`;
 
-exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `109358`;
+exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `109272`;
 
-exports[`NonfungiblePositionManager #collect gas transfers token0 only 1`] = `120489`;
+exports[`NonfungiblePositionManager #collect gas transfers token0 only 1`] = `120403`;
 
-exports[`NonfungiblePositionManager #collect gas transfers token1 only 1`] = `120696`;
+exports[`NonfungiblePositionManager #collect gas transfers token1 only 1`] = `120610`;
 
-exports[`NonfungiblePositionManager #createAndInitializePoolIfNecessary gas 1`] = `523826`;
+exports[`NonfungiblePositionManager #createAndInitializePoolIfNecessary gas 1`] = `523740`;
 
-exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`] = `102730`;
+exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`] = `102721`;
 
-exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `169824`;
+exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `169805`;
 
-exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `191075`;
+exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `190955`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `636277`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `636157`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `646443`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `646311`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `639218`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `639086`;
 
-exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `468668`;
+exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `468548`;
 
-exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `359219`;
+exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `359099`;
 
-exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64586`;
+exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64545`;
 
-exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] = `68473`;
+exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] = `68432`;
 
 exports[`NonfungiblePositionManager #positions gas 1`] = `19955`;
 
@@ -36,4 +36,4 @@ exports[`NonfungiblePositionManager #transferFrom gas 1`] = `79174`;
 
 exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `67580`;
 
-exports[`NonfungiblePositionManager multicall exit gas 1`] = `155526`;
+exports[`NonfungiblePositionManager multicall exit gas 1`] = `155483`;

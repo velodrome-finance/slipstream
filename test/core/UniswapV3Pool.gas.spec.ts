@@ -34,7 +34,8 @@ describe('UniswapV3Pool gas tests', () => {
     loadFixture = createFixtureLoader([wallet, other])
   })
 
-  for (const feeProtocol of [0, 6]) {
+  for (const feeProtocol of [0]) {
+    // TODO: can potentially update with factory fee test
     describe(feeProtocol > 0 ? 'fee is on' : 'fee is off', () => {
       const startingPrice = encodePriceSqrt(100001, 100000)
       const startingTick = 0
@@ -56,7 +57,6 @@ describe('UniswapV3Pool gas tests', () => {
         })
 
         await pool.initialize(encodePriceSqrt(1, 1))
-        await pool.setFeeProtocol(feeProtocol, feeProtocol)
         await pool.increaseObservationCardinalityNext(4)
         await pool.advanceTime(1)
         await mint(wallet.address, minTick, maxTick, expandTo18Decimals(2))

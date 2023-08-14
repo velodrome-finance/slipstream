@@ -23,7 +23,7 @@ abstract contract PoolInitializer is IPoolInitializer, PeripheryImmutableState {
             pool = IUniswapV3Factory(factory).createPool(token0, token1, tickSpacing);
             IUniswapV3Pool(pool).initialize(sqrtPriceX96);
         } else {
-            (uint160 sqrtPriceX96Existing,,,,,,) = IUniswapV3Pool(pool).slot0();
+            (uint160 sqrtPriceX96Existing,,,,,) = IUniswapV3Pool(pool).slot0();
             if (sqrtPriceX96Existing == 0) {
                 IUniswapV3Pool(pool).initialize(sqrtPriceX96);
             }

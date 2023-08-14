@@ -18,7 +18,7 @@ contract UniswapV3PoolSwapTest is IUniswapV3SwapCallback {
             address(0), zeroForOne, amountSpecified, sqrtPriceLimitX96, abi.encode(msg.sender)
         );
 
-        (nextSqrtRatio,,,,,,) = IUniswapV3Pool(pool).slot0();
+        (nextSqrtRatio,,,,,) = IUniswapV3Pool(pool).slot0();
     }
 
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
