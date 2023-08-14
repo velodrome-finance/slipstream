@@ -65,8 +65,10 @@ describe('Tick', () => {
       await tickTest.setTick(2, {
         feeGrowthOutside0X128: 2,
         feeGrowthOutside1X128: 3,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 0,
         liquidityNet: 0,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 0,
         tickCumulativeOutside: 0,
         secondsOutside: 0,
@@ -81,8 +83,10 @@ describe('Tick', () => {
       await tickTest.setTick(-2, {
         feeGrowthOutside0X128: 2,
         feeGrowthOutside1X128: 3,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 0,
         liquidityNet: 0,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 0,
         tickCumulativeOutside: 0,
         secondsOutside: 0,
@@ -97,8 +101,10 @@ describe('Tick', () => {
       await tickTest.setTick(-2, {
         feeGrowthOutside0X128: 2,
         feeGrowthOutside1X128: 3,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 0,
         liquidityNet: 0,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 0,
         tickCumulativeOutside: 0,
         secondsOutside: 0,
@@ -107,8 +113,10 @@ describe('Tick', () => {
       await tickTest.setTick(2, {
         feeGrowthOutside0X128: 4,
         feeGrowthOutside1X128: 1,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 0,
         liquidityNet: 0,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 0,
         tickCumulativeOutside: 0,
         secondsOutside: 0,
@@ -123,8 +131,10 @@ describe('Tick', () => {
       await tickTest.setTick(-2, {
         feeGrowthOutside0X128: constants.MaxUint256.sub(3),
         feeGrowthOutside1X128: constants.MaxUint256.sub(2),
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 0,
         liquidityNet: 0,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 0,
         tickCumulativeOutside: 0,
         secondsOutside: 0,
@@ -133,8 +143,10 @@ describe('Tick', () => {
       await tickTest.setTick(2, {
         feeGrowthOutside0X128: 3,
         feeGrowthOutside1X128: 5,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 0,
         liquidityNet: 0,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 0,
         tickCumulativeOutside: 0,
         secondsOutside: 0,
@@ -244,8 +256,10 @@ describe('Tick', () => {
       await tickTest.setTick(2, {
         feeGrowthOutside0X128: 1,
         feeGrowthOutside1X128: 2,
+        rewardGrowthOutsideX128: 1,
         liquidityGross: 3,
         liquidityNet: 4,
+        stakedLiquidityNet: 1,
         secondsPerLiquidityOutsideX128: 5,
         tickCumulativeOutside: 6,
         secondsOutside: 7,
@@ -255,20 +269,24 @@ describe('Tick', () => {
       const {
         feeGrowthOutside0X128,
         feeGrowthOutside1X128,
+        rewardGrowthOutsideX128,
         secondsOutside,
         secondsPerLiquidityOutsideX128,
         liquidityGross,
         tickCumulativeOutside,
         liquidityNet,
+        stakedLiquidityNet,
         initialized,
       } = await tickTest.ticks(2)
       expect(feeGrowthOutside0X128).to.eq(0)
       expect(feeGrowthOutside1X128).to.eq(0)
+      expect(rewardGrowthOutsideX128).to.eq(0)
       expect(secondsOutside).to.eq(0)
       expect(secondsPerLiquidityOutsideX128).to.eq(0)
       expect(tickCumulativeOutside).to.eq(0)
       expect(liquidityGross).to.eq(0)
       expect(liquidityNet).to.eq(0)
+      expect(stakedLiquidityNet).to.eq(0)
       expect(initialized).to.eq(false)
     })
   })
@@ -278,8 +296,10 @@ describe('Tick', () => {
       await tickTest.setTick(2, {
         feeGrowthOutside0X128: 1,
         feeGrowthOutside1X128: 2,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 3,
         liquidityNet: 4,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 5,
         tickCumulativeOutside: 6,
         secondsOutside: 7,
@@ -303,8 +323,10 @@ describe('Tick', () => {
       await tickTest.setTick(2, {
         feeGrowthOutside0X128: 1,
         feeGrowthOutside1X128: 2,
+        rewardGrowthOutsideX128: 0,
         liquidityGross: 3,
         liquidityNet: 4,
+        stakedLiquidityNet: 0,
         secondsPerLiquidityOutsideX128: 5,
         tickCumulativeOutside: 6,
         secondsOutside: 7,

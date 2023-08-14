@@ -6,7 +6,6 @@ abstract contract Events {
     ///
     /// Pool Factory Events
     ///
-
     event FeeManagerChanged(address indexed oldFeeManager, address indexed newFeeManager);
     event FeeModuleChanged(address indexed oldFeeModule, address indexed newFeeModule);
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
@@ -23,4 +22,10 @@ abstract contract Events {
     /// ERC20 Events
     ///
     event Transfer(address indexed from, address indexed to, uint256 value);
+
+    ///
+    /// CLGauge Events
+    ///
+    event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
+    event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
 }

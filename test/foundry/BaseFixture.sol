@@ -5,20 +5,21 @@ import "forge-std/Test.sol";
 import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
 import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
-import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
+import {
+    INonfungiblePositionManager, NonfungiblePositionManager
+} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
 import {MockVoter} from "contracts/test/MockVoter.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Constants} from "./utils/Constants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 
 contract BaseFixture is Test, Constants, Events, PoolUtils {
-    ERC20 public token0;
-    ERC20 public token1;
     UniswapV3Factory public poolFactory;
     UniswapV3Pool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
@@ -28,6 +29,9 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
 
     MockVoter public voter;
     MockWETH public weth;
+
+    ERC20 public token0;
+    ERC20 public token1;
 
     Users internal users;
 
@@ -44,8 +48,10 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         voter = new MockVoter();
 
         poolImplementation = new UniswapV3Pool();
-        poolFactory = new UniswapV3Factory(address(voter), address(poolImplementation));
-
+        poolFactory = new UniswapV3Factory({
+            _voter: address(voter), 
+            _implementation: address(poolImplementation)
+        });
         // backward compatibility with the original uniV3 fee structure and tick spacing
         poolFactory.enableTickSpacing(10, 500);
         poolFactory.enableTickSpacing(60, 3000);
@@ -62,7 +68,11 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         });
 
         gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory(address(voter), address(gaugeImplementation));
+        gaugeFactory = new CLGaugeFactory({
+            _voter: address(voter),
+            _implementation: address(gaugeImplementation),
+            _nft: address(nft)
+        });
 
         voter.setGaugeFactory(address(gaugeFactory));
 

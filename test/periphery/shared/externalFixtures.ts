@@ -30,7 +30,8 @@ const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,
-    gaugeImplementation.address
+    gaugeImplementation.address,
+    '0x0000000000000000000000000000000000000000' // nft position manager stub, unused in hardhat tests
   )) as CLGaugeFactory
   await mockVoter.setGaugeFactory(gaugeFactory.address)
 

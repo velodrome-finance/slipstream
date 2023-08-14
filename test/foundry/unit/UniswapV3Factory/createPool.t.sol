@@ -47,7 +47,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
-        assertEq(gauge.pool(), address(pool));
+        assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), feesVotingReward);
         assertEq(gauge.rewardToken(), rewardToken);
@@ -65,7 +65,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
-        assertEq(gauge.pool(), address(pool));
+        assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), feesVotingReward);
         assertEq(gauge.rewardToken(), rewardToken);
@@ -83,7 +83,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
-        assertEq(gauge.pool(), address(pool));
+        assertEq(address(gauge.pool()), address(pool));
         assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), feesVotingReward);
         assertEq(gauge.rewardToken(), rewardToken);

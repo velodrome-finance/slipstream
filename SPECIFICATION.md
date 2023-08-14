@@ -33,6 +33,23 @@ Similar to existing pools and gauges, LPers can choose whether to collect fees o
 By minting a position in the pool, LPers will earn fees. If they then choose to stake the nft that represents
 their position in the gauge, they can earn emissions instead, with the fees that they would have earned being directed to the voters of the gauge. 
 
+When an NFT is staked (`deposit`) into a gauge:
+- Only callable by the owner of an NFT, while the gauge is alive.
+- The NFT's fee accumulator will remain unchanged while it is in the gauge as it is not earning any fees.
+- Any uncollected fees on the NFT will remain there.
+- The NFT's reward accumulator is updated inside the gauge.
+
+When an NFT is unstaked (`withdraw`) from a gauge:
+- Only callable by the owner of an NFT.
+- The NFT's fee accumulator remains unchanged.
+- Any outstanding rewards owed to the position are distributed (equivalent to a call to `getReward`) and the reward accumulator is updated.
+- Even when a gauge is killed, NFTs can be withdrawn at any time. The gauge will no longer receive emissions.
+
+When emissions are claimed (`getReward`) from a gauge:
+- Only callable by the owner of an NFT that is deposited in the gauge.
+- The rewards owed to the position at that time are distributed. The reward accumulator is then updated.
+- V2 gauges allow `getReward` to be called at any time even after the stake is withdrawn. This is not possible here.
+
 The above has been achieved by taking advantage of several features of UniswapV3's design. Note that each pool has
 a corresponding gauge. 
 - On each swap, fees proportional to the amount that are owed to gauge LPers in the current active tick are accrued.

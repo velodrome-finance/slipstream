@@ -75,6 +75,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
     uint256 public override feeGrowthGlobal0X128;
     /// @inheritdoc IUniswapV3PoolState
     uint256 public override feeGrowthGlobal1X128;
+    /// @inheritdoc IUniswapV3PoolState
+    uint256 public override rewardGrowthGlobalX128;
 
     // accumulated protocol fees in token0/token1 units
     struct ProtocolFees {
@@ -87,6 +89,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
 
     /// @inheritdoc IUniswapV3PoolState
     uint128 public override liquidity;
+    /// @inheritdoc IUniswapV3PoolState
+    uint128 public override stakedLiquidity;
 
     /// @inheritdoc IUniswapV3PoolState
     mapping(int24 => Tick.Info) public override ticks;
@@ -110,6 +114,12 @@ contract UniswapV3Pool is IUniswapV3Pool {
     /// @dev Prevents calling a function from anyone except the address returned by IUniswapV3Factory#owner()
     modifier onlyFactoryOwner() {
         require(msg.sender == IUniswapV3Factory(factory).owner());
+        _;
+    }
+
+    /// @dev Prevents calling a function from anyone except the gauge associated with this pool
+    modifier onlyGauge() {
+        require(msg.sender == gauge);
         _;
     }
 
@@ -499,6 +509,20 @@ contract UniswapV3Pool is IUniswapV3Pool {
         emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);
     }
 
+    /// @inheritdoc IUniswapV3PoolActions
+    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper) external override lock onlyGauge {
+        int24 tick = slot0.tick;
+        // Increase staked liquidity in the current tick
+        if (tick >= tickLower && tick < tickUpper) {
+            // TODO: update reward growth here as in range staked liquidity will be updated
+            stakedLiquidity = LiquidityMath.addDelta(stakedLiquidity, stakedLiquidityDelta);
+        }
+
+        // Update tick locations where staked liquidity needs to be added or subtracted
+        ticks.updateStake(tickLower, stakedLiquidityDelta, false);
+        ticks.updateStake(tickUpper, stakedLiquidityDelta, true);
+    }
+
     struct SwapCache {
         // the protocol fee for the input token
         uint8 feeProtocol;
@@ -809,5 +833,16 @@ contract UniswapV3Pool is IUniswapV3Pool {
         }
 
         emit CollectProtocol(msg.sender, recipient, amount0, amount1);
+    }
+
+    /// @inheritdoc IUniswapV3PoolState
+    function getRewardGrowthInside(int24 tickLower, int24 tickUpper)
+        external
+        view
+        override
+        returns (uint256 rewardGrowthInside)
+    {
+        checkTicks(tickLower, tickUpper);
+        return ticks.getRewardGrowthInside(tickLower, tickUpper, slot0.tick, rewardGrowthGlobalX128);
     }
 }

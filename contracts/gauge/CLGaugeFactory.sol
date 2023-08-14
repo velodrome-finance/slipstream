@@ -6,12 +6,17 @@ import "./CLGauge.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract CLGaugeFactory is ICLGaugeFactory {
-    address public immutable voter;
-    address public immutable implementation;
+    /// @inheritdoc ICLGaugeFactory
+    address public immutable override voter;
+    /// @inheritdoc ICLGaugeFactory
+    address public immutable override implementation;
+    /// @inheritdoc ICLGaugeFactory
+    address public immutable override nft;
 
-    constructor(address _voter, address _implementation) {
+    constructor(address _voter, address _implementation, address _nft) {
         voter = _voter;
         implementation = _implementation;
+        nft = _nft;
     }
 
     function createGauge(
@@ -23,6 +28,14 @@ contract CLGaugeFactory is ICLGaugeFactory {
     ) external override returns (address _gauge) {
         require(msg.sender == voter, "NV");
         _gauge = Clones.clone(implementation);
-        ICLGauge(_gauge).initialize(_forwarder, _pool, _feesVotingReward, _rewardToken, _isPool);
+        ICLGauge(_gauge).initialize({
+            _forwarder: _forwarder,
+            _pool: _pool,
+            _feesVotingReward: _feesVotingReward,
+            _rewardToken: _rewardToken,
+            _voter: voter,
+            _nft: nft,
+            _isPool: _isPool
+        });
     }
 }

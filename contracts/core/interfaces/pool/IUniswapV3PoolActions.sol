@@ -65,6 +65,13 @@ interface IUniswapV3PoolActions {
         external
         returns (uint256 amount0, uint256 amount1);
 
+    /// @notice Convert existing liquidity into staked liquidity
+    /// @notice Only callable by the gauge associated with this pool
+    /// @param stakedLiquidityDelta The amount by which to increase or decrease the staked liquidity
+    /// @param tickLower The lower tick of the position for which to stake liquidity
+    /// @param tickUpper The upper tick of the position for which to stake liquidity
+    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper) external;
+
     /// @notice Swap token0 for token1, or token1 for token0
     /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
     /// @param recipient The address to receive the output of the swap

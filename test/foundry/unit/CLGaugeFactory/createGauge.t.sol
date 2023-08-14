@@ -42,7 +42,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
         );
 
         assertEq(gauge.forwarder(), forwarder);
-        assertEq(gauge.pool(), pool);
+        assertEq(address(gauge.pool()), pool);
         assertEq(gauge.feesVotingReward(), feesVotingReward);
         assertEq(gauge.rewardToken(), rewardToken);
         assertEq(gauge.isPool(), true);

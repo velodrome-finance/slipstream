@@ -44,21 +44,32 @@ interface IUniswapV3PoolState {
     /// @dev This value can overflow the uint256
     function feeGrowthGlobal1X128() external view returns (uint256);
 
+    /// @notice The reward growth as a Q128.128 rewards of emission collected per unit of liquidity for the entire life of the pool
+    /// @dev This value can overflow the uint256
+    function rewardGrowthGlobalX128() external view returns (uint256);
+
     /// @notice The amounts of token0 and token1 that are owed to the protocol
     /// @dev Protocol fees will never exceed uint128 max in either token
     function protocolFees() external view returns (uint128 token0, uint128 token1);
 
     /// @notice The currently in range liquidity available to the pool
     /// @dev This value has no relationship to the total liquidity across all ticks
+    /// @dev This value includes staked liquidity
     function liquidity() external view returns (uint128);
+
+    /// @notice The currently in range staked liquidity available to the pool
+    /// @dev This value has no relationship to the total staked liquidity across all ticks
+    function stakedLiquidity() external view returns (uint128);
 
     /// @notice Look up information about a specific tick in the pool
     /// @param tick The tick to look up
     /// @return liquidityGross the total amount of position liquidity that uses the pool either as tick lower or
     /// tick upper,
     /// liquidityNet how much liquidity changes when the pool price crosses the tick,
+    /// stakedLiquidityNet how much staked liquidity changes when the pool price crosses the tick,
     /// feeGrowthOutside0X128 the fee growth on the other side of the tick from the current tick in token0,
     /// feeGrowthOutside1X128 the fee growth on the other side of the tick from the current tick in token1,
+    /// rewardGrowthOutsideX128 the reward growth on the other side of the tick from the current tick in emission token
     /// tickCumulativeOutside the cumulative tick value on the other side of the tick from the current tick
     /// secondsPerLiquidityOutsideX128 the seconds spent per liquidity on the other side of the tick from the current tick,
     /// secondsOutside the seconds spent on the other side of the tick from the current tick,
@@ -72,8 +83,10 @@ interface IUniswapV3PoolState {
         returns (
             uint128 liquidityGross,
             int128 liquidityNet,
+            int128 stakedLiquidityNet,
             uint256 feeGrowthOutside0X128,
             uint256 feeGrowthOutside1X128,
+            uint256 rewardGrowthOutsideX128,
             int56 tickCumulativeOutside,
             uint160 secondsPerLiquidityOutsideX128,
             uint32 secondsOutside,
@@ -118,4 +131,14 @@ interface IUniswapV3PoolState {
             uint160 secondsPerLiquidityCumulativeX128,
             bool initialized
         );
+
+    /// @notice Returns data about reward growth within a tick range.
+    /// @dev Used in gauge reward calculations
+    /// @param tickLower The lower tick of the range
+    /// @param tickUpper The upper tick of the range
+    /// @return rewardGrowthInsideX128 The reward growth in the range
+    function getRewardGrowthInside(int24 tickLower, int24 tickUpper)
+        external
+        view
+        returns (uint256 rewardGrowthInsideX128);
 }

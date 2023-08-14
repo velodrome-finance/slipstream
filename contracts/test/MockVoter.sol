@@ -12,7 +12,10 @@ contract MockVoter is IVoter {
     address public feesVotingReward = address(12);
     address public rewardToken = address(13);
 
+    /// @dev pool => gauge
     mapping(address => address) public override gauges;
+    /// @dev gauge => isAlive
+    mapping(address => bool) public override isAlive;
 
     function setGaugeFactory(address _gaugeFactory) external {
         require(gaugeFactory == address(0));
@@ -22,6 +25,7 @@ contract MockVoter is IVoter {
     function createGauge(address _poolFactory, address _pool) external override returns (address) {
         address gauge = CLGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, rewardToken, true);
         require(UniswapV3Factory(_poolFactory).isPair(_pool));
+        isAlive[gauge] = true;
         gauges[_pool] = gauge;
         return gauge;
     }
