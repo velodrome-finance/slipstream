@@ -30,6 +30,8 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
     MockVoter public voter;
     MockWETH public weth;
 
+    ERC20 public rewardToken;
+
     ERC20 public token0;
     ERC20 public token1;
 
@@ -44,8 +46,10 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
             charlie: createUser("Charlie")
         });
 
+        rewardToken = new ERC20("", "");
+
         weth = new MockWETH();
-        voter = new MockVoter();
+        voter = new MockVoter(address(rewardToken));
 
         poolImplementation = new UniswapV3Pool();
         poolFactory = new UniswapV3Factory({
@@ -86,6 +90,28 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         labelContracts();
     }
 
+    /// @dev Helper utility to forward time to next week
+    ///      note epoch requires at least one second to have
+    ///      passed into the new epoch
+    function skipToNextEpoch(uint256 offset) public {
+        uint256 ts = block.timestamp;
+        uint256 nextEpoch = ts - (ts % (1 weeks)) + (1 weeks);
+        vm.warp(nextEpoch + offset);
+        vm.roll(block.number + 1);
+    }
+
+    /// @dev Helper function to add rewards to gauge from voter
+    function addRewardToGauge(address _voter, address _gauge, uint256 _amount) internal {
+        deal(address(rewardToken), _voter, _amount);
+        vm.startPrank(_voter);
+        // do not overwrite approvals if already set
+        if (rewardToken.allowance(_voter, _gauge) < _amount) {
+            rewardToken.approve(_gauge, _amount);
+        }
+        CLGauge(_gauge).notifyRewardAmount(_amount);
+        vm.stopPrank();
+    }
+
     function labelContracts() internal virtual {
         vm.label({account: address(weth), newLabel: "WETH"});
         vm.label({account: address(voter), newLabel: "Voter"});
@@ -95,6 +121,8 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.label({account: address(poolFactory), newLabel: "Pool Factory"});
         vm.label({account: address(token0), newLabel: "Token 0"});
         vm.label({account: address(token1), newLabel: "Token 1"});
+        vm.label({account: address(rewardToken), newLabel: "Reward Token"});
+        vm.label({account: address(gaugeFactory), newLabel: "Gauge Factory"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {

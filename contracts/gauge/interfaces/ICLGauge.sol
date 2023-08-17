@@ -6,6 +6,7 @@ import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
 
 interface ICLGauge {
+    event NotifyReward(address indexed from, uint256 amount);
     event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
 
@@ -23,6 +24,21 @@ interface ICLGauge {
 
     /// @notice Address of the FeesVotingReward contract linked to the gauge
     function feesVotingReward() external view returns (address);
+
+    /// @notice Timestamp end of current rewards period
+    function periodFinish() external view returns (uint256);
+
+    /// @notice Current reward rate of rewardToken to distribute per second
+    function rewardRate() external view returns (uint256);
+
+    /// @notice Most recent timestamp contract has updated state
+    function lastUpdateTime() external view returns (uint256);
+
+    /// @notice View to see the rewardRate given the timestamp of the start of the epoch
+    function rewardRateByEpoch(uint256) external view returns (uint256);
+
+    /// @notice Total amount of rewardToken to distribute for the current rewards period
+    function left() external view returns (uint256 _left);
 
     /// @notice Address of the emissions token
     function rewardToken() external view returns (address);
@@ -52,6 +68,9 @@ interface ICLGauge {
         address _nft,
         bool _isPool
     ) external;
+
+    /// @notice Notifies gauge of gauge rewards.
+    function notifyRewardAmount(uint256 amount) external;
 
     /// @notice Used to deposit a UniswapV3 position into the gauge
     /// @notice Allows the user to receive emissions instead of fees

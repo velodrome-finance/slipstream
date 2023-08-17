@@ -72,6 +72,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
     uint256 public override feeGrowthGlobal0X128;
     /// @inheritdoc IUniswapV3PoolState
     uint256 public override feeGrowthGlobal1X128;
+
     /// @inheritdoc IUniswapV3PoolState
     uint256 public override rewardGrowthGlobalX128;
 
@@ -80,9 +81,16 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint128 token0;
         uint128 token1;
     }
-    /// @inheritdoc IUniswapV3PoolState
 
+    /// @inheritdoc IUniswapV3PoolState
     ProtocolFees public override protocolFees;
+
+    /// @inheritdoc IUniswapV3PoolState
+    uint256 public override rewardRate;
+    /// @inheritdoc IUniswapV3PoolState
+    uint256 public override rewardReserve;
+    /// @inheritdoc IUniswapV3PoolState
+    uint32 public override lastUpdated;
 
     /// @inheritdoc IUniswapV3PoolState
     uint128 public override liquidity;
@@ -510,7 +518,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         int24 tick = slot0.tick;
         // Increase staked liquidity in the current tick
         if (tick >= tickLower && tick < tickUpper) {
-            // TODO: update reward growth here as in range staked liquidity will be updated
+            _updateRewardsGrowthGlobal();
             stakedLiquidity = LiquidityMath.addDelta(stakedLiquidity, stakedLiquidityDelta);
         }
 
@@ -669,13 +677,15 @@ contract UniswapV3Pool is IUniswapV3Pool {
                         );
                         cache.computedLatestObservation = true;
                     }
+                    _updateRewardsGrowthGlobal();
                     int128 liquidityNet = ticks.cross(
                         step.tickNext,
                         (zeroForOne ? state.feeGrowthGlobalX128 : feeGrowthGlobal0X128),
                         (zeroForOne ? feeGrowthGlobal1X128 : state.feeGrowthGlobalX128),
                         cache.secondsPerLiquidityCumulativeX128,
                         cache.tickCumulative,
-                        cache.blockTimestamp
+                        cache.blockTimestamp,
+                        rewardGrowthGlobalX128
                     );
                     // if we're moving leftward, we interpret liquidityNet as the opposite sign
                     // safe because liquidityNet cannot be type(int128).min
@@ -787,5 +797,34 @@ contract UniswapV3Pool is IUniswapV3Pool {
     {
         checkTicks(tickLower, tickUpper);
         return ticks.getRewardGrowthInside(tickLower, tickUpper, slot0.tick, rewardGrowthGlobalX128);
+    }
+
+    /// @inheritdoc IUniswapV3PoolActions
+    function updateRewardsGrowthGlobal() external override lock onlyGauge {
+        _updateRewardsGrowthGlobal();
+    }
+
+    /// @dev timeDelta != 0 handles case when function is called twice in the same block.
+    /// @dev stakedLiquidity > 0 handles case when depositing staked liquidity and there is no liquidity staked yet,
+    /// or when notifying rewards when there is no liquidity stake
+    function _updateRewardsGrowthGlobal() internal {
+        uint32 timestamp = _blockTimestamp();
+        uint256 timeDelta = timestamp - lastUpdated;
+
+        if (timeDelta != 0 && stakedLiquidity > 0 && rewardRate > 0 && rewardReserve > 0) {
+            uint256 reward = rewardRate * timeDelta;
+            // ensures any remaining rewards for the past epoch are distributed
+            if (reward > rewardReserve) reward = rewardReserve;
+            rewardReserve -= reward;
+            rewardGrowthGlobalX128 += FullMath.mulDiv(reward, FixedPoint128.Q128, stakedLiquidity);
+        }
+        lastUpdated = timestamp;
+    }
+
+    /// @inheritdoc IUniswapV3PoolActions
+    function syncReward(uint256 _rewardRate, uint256 _rewardReserve) external override lock onlyGauge {
+        _updateRewardsGrowthGlobal();
+        rewardRate = _rewardRate;
+        rewardReserve = _rewardReserve;
     }
 }

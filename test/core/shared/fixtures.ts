@@ -60,7 +60,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
 
   // voter & gauge factory set up
-  const mockVoter = (await MockVoterFactory.deploy()) as MockVoter
+  const mockVoter = (await MockVoterFactory.deploy(token2.address)) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,

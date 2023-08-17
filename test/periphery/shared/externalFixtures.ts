@@ -1,9 +1,10 @@
 import { Fixture } from 'ethereum-waffle'
 import { ethers, waffle } from 'hardhat'
-import { IUniswapV3Pool, IUniswapV3Factory, IWETH9, MockTimeSwapRouter } from '../../../typechain'
+import { IUniswapV3Pool, IUniswapV3Factory, IWETH9, MockTimeSwapRouter, TestERC20 } from '../../../typechain'
 import { MockVoter } from '../../../typechain/MockVoter'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
+import { constants } from 'ethers'
 
 import WETH9 from '../contracts/WETH9.json'
 
@@ -17,6 +18,9 @@ const wethFixture: Fixture<{ weth9: IWETH9 }> = async ([wallet]) => {
 }
 
 const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
+  const tokenFactory = await ethers.getContractFactory('TestERC20')
+  const rewardToken: TestERC20 = (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20 // do not use maxu256 to avoid overflowing
+
   const Pool = await ethers.getContractFactory('UniswapV3Pool')
   const Factory = await ethers.getContractFactory('UniswapV3Factory')
   const pool = (await Pool.deploy()) as IUniswapV3Pool
@@ -26,7 +30,7 @@ const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
 
   // voter & gauge factory set up
-  const mockVoter = (await MockVoterFactory.deploy()) as MockVoter
+  const mockVoter = (await MockVoterFactory.deploy(rewardToken.address)) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,

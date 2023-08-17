@@ -6,6 +6,8 @@ import { expect } from './shared/expect'
 import { MockVoter } from '../../typechain/MockVoter'
 import { CLGaugeFactory } from '../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../typechain/CLGauge'
+import { TestERC20 } from '../../typechain/TestERC20'
+import { constants } from 'ethers'
 
 const createFixtureLoader = waffle.createFixtureLoader
 
@@ -24,7 +26,9 @@ describe('UniswapV3Factory', () => {
     const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
 
     // voter & gauge factory set up
-    const mockVoter = (await MockVoterFactory.deploy()) as MockVoter
+    const tokenFactory = await ethers.getContractFactory('TestERC20')
+    const rewardToken: TestERC20 = (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20 // do not use maxu256 to avoid overflowing
+    const mockVoter = (await MockVoterFactory.deploy(rewardToken.address)) as MockVoter
     const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
     const gaugeFactory = (await GaugeFactoryFactory.deploy(
       mockVoter.address,

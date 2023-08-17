@@ -217,6 +217,7 @@ library Tick {
     /// @param secondsPerLiquidityCumulativeX128 The current seconds per liquidity
     /// @param tickCumulative The tick * time elapsed since the pool was first initialized
     /// @param time The current block.timestamp
+    /// @param rewardGrowthGlobalX128 The all-time global reward growth, per unit of liquidity
     /// @return liquidityNet The amount of liquidity added (subtracted) when tick is crossed from left to right (right to left)
     function cross(
         mapping(int24 => Tick.Info) storage self,
@@ -225,11 +226,13 @@ library Tick {
         uint256 feeGrowthGlobal1X128,
         uint160 secondsPerLiquidityCumulativeX128,
         int56 tickCumulative,
-        uint32 time
+        uint32 time,
+        uint256 rewardGrowthGlobalX128
     ) internal returns (int128 liquidityNet) {
         Tick.Info storage info = self[tick];
         info.feeGrowthOutside0X128 = feeGrowthGlobal0X128 - info.feeGrowthOutside0X128;
         info.feeGrowthOutside1X128 = feeGrowthGlobal1X128 - info.feeGrowthOutside1X128;
+        info.rewardGrowthOutsideX128 = rewardGrowthGlobalX128 - info.rewardGrowthOutsideX128;
         info.secondsPerLiquidityOutsideX128 = secondsPerLiquidityCumulativeX128 - info.secondsPerLiquidityOutsideX128;
         info.tickCumulativeOutside = tickCumulative - info.tickCumulativeOutside;
         info.secondsOutside = time - info.secondsOutside;

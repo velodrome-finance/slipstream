@@ -24,5 +24,8 @@ abstract contract Constants {
     // mock addresses used for testing gauge creation
     address public forwarder = address(11);
     address public feesVotingReward = address(12);
-    address public rewardToken = address(13);
+
+    uint256 constant WEEK = 1 weeks;
+
+    uint256 internal constant Q128 = 0x100000000000000000000000000000000;
 }

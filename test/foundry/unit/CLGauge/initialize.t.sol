@@ -15,7 +15,7 @@ contract InitializeTest is CLGaugeTest {
             _forwarder: forwarder,
             _pool: pool,
             _feesVotingReward: feesVotingReward,
-            _rewardToken: rewardToken,
+            _rewardToken: address(rewardToken),
             _voter: address(voter),
             _nft: address(nft),
             _isPool: true

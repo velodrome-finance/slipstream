@@ -11,6 +11,7 @@ import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfu
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
+import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -33,6 +34,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLGauge
     bool public override isPool;
 
+    /// @inheritdoc ICLGauge
+    uint256 public override periodFinish;
+    /// @inheritdoc ICLGauge
+    uint256 public override rewardRate;
+    /// @inheritdoc ICLGauge
+    uint256 public override lastUpdateTime; // TODO might be removed once we implement getReward
+
+    mapping(uint256 => uint256) public override rewardRateByEpoch; // epochStart => rewardRate
     /// @dev The set of all staked nfts for a given address
     mapping(address => EnumerableSet.UintSet) internal _stakes;
     /// @inheritdoc ICLGauge
@@ -98,5 +107,44 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLGauge
     function stakedLength(address depositor) external view override returns (uint256) {
         return _stakes[depositor].length();
+    }
+
+    function left() external view override returns (uint256) {
+        if (block.timestamp >= periodFinish) return 0;
+        uint256 _remaining = periodFinish - block.timestamp;
+        return _remaining * rewardRate;
+    }
+
+    function notifyRewardAmount(uint256 _amount) external override nonReentrant {
+        address sender = msg.sender;
+        require(sender == address(voter), "NV");
+        require(_amount != 0, "ZR");
+        //_claimFees(); // TODO add this as well when due
+
+        uint256 timestamp = block.timestamp;
+        uint256 timeUntilNext = VelodromeTimeLibrary.epochNext(timestamp) - timestamp;
+
+        if (timestamp >= periodFinish) {
+            IERC20(rewardToken).safeTransferFrom(sender, address(this), _amount);
+            rewardRate = _amount / timeUntilNext;
+            pool.syncReward(rewardRate, _amount);
+        } else {
+            uint256 _remaining = periodFinish - timestamp;
+            uint256 _leftover = _remaining * rewardRate;
+            IERC20(rewardToken).safeTransferFrom(sender, address(this), _amount);
+            rewardRate = (_amount + _leftover) / timeUntilNext;
+            pool.syncReward(rewardRate, _amount + _leftover);
+        }
+        rewardRateByEpoch[VelodromeTimeLibrary.epochStart(timestamp)] = rewardRate;
+        require(rewardRate != 0, "ZRR");
+
+        // Ensure the provided reward amount is not more than the balance in the contract.
+        // This keeps the reward rate in the right range
+        uint256 balance = IERC20(rewardToken).balanceOf(address(this));
+        require(rewardRate <= balance / timeUntilNext, "RRH");
+
+        lastUpdateTime = timestamp;
+        periodFinish = timestamp + timeUntilNext;
+        emit NotifyReward(sender, _amount);
     }
 }

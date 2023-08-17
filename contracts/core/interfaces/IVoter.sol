@@ -6,5 +6,7 @@ interface IVoter {
 
     function createGauge(address _poolFactory, address _pool) external returns (address);
 
+    function distribute(address gauge) external;
+
     function isAlive(address _gauge) external view returns (bool);
 }

@@ -105,4 +105,11 @@ interface IUniswapV3PoolActions {
     /// the input observationCardinalityNext.
     /// @param observationCardinalityNext The desired minimum number of observations for the pool to store
     function increaseObservationCardinalityNext(uint16 observationCardinalityNext) external;
+
+    /// @notice Updates rewardGrowthGlobalX128 every time when any tick is crossed,
+    /// or when any position is staked/unstaked from the gauge
+    function updateRewardsGrowthGlobal() external;
+
+    /// @notice Syncs rewards with gauge
+    function syncReward(uint256 rewardRate, uint256 rewardReserve) external;
 }
