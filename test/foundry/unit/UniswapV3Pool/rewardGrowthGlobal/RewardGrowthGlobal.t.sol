@@ -58,7 +58,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
             amount1Desired: amount1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp + 1
+            deadline: block.timestamp
         });
         (uint256 tokenId,,,) = nft.mint(params);
         return tokenId;
@@ -320,7 +320,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         skip(1 days);
 
         // withdraw to update
-        vm.prank(users.alice);
+        vm.startPrank(users.alice);
         gauge.withdraw(tokenId);
 
         uint256 rewardRate = pool.rewardRate();
@@ -453,85 +453,69 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
         // we are validating an undesirabled state, probably will change
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128 / 2);
-        assertApproxEqAbs(pool.rewardReserve(), reward / 2, 1e6);
+        assertApproxEqAbs(pool.rewardReserve(), reward / 2, 1e5);
 
-        // TODO add this when getRewards is implemented
-        // skipToNextEpoch(0);
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward / 2, 1e5);
 
         // assert that emissions gots stuck in the gauge
-        // uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
-        // assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e6);
+        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e5);
     }
 
     function test_RewardsGetStuckIfThereAreHolesInStakedLiquidityWithDepositAndWithdraw() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
-        uint128 liquidity = 10e18;
-
-        _mintNewFullRangePositionForUser(amount0, amount1, users.alice);
-
         // adding 29953549559107810 as amount0 and amount1 will be equal to ~10 liquidity
         uint256 tokenId = _mintNewCustomRangePositionForUser(
             29953549559107810, 29953549559107810, -tickSpacing, tickSpacing, users.alice
         );
+
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
         uint128 stakedLiquidity = pool.stakedLiquidity();
         assertApproxEqAbs(uint256(stakedLiquidity), 10e18, 1e3);
 
-        // sanity checks
-        assertEqUint(pool.liquidity(), liquidity + stakedLiquidity);
         // needs to be 0 since there are no rewards
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
 
         uint256 reward = TOKEN_1;
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        // still 0 since no action triggered update on the accumulator
-        assertEqUint(pool.rewardGrowthGlobalX128(), 0);
-
-        // reward states should be set
-        assertEqUint(pool.lastUpdated(), block.timestamp);
-        assertEqUint(pool.rewardRate(), reward / WEEK);
-        assertEqUint(pool.rewardReserve(), 1e18);
-
-        // move half a week and withdraw to remove stakedLiquidity
-        skip(WEEK / 2);
+        // move 3 days and withdraw to remove stakedLiquidity
+        skip(3 days);
         vm.startPrank(users.alice);
         gauge.withdraw(tokenId);
 
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward / 7 * 3, 1e5);
+
         assertEqUint(pool.stakedLiquidity(), 0);
 
+        // skipping 1 day, won't generate rewards which is desirable but rewards get stuck in gauge
         skip(1 days);
 
-        // deposit again to put back stakedLiquidity
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        skip(1 days);
+        skipToNextEpoch(0);
 
-        // add new stakedLiquidty to trigger an update on the accumulator
-        _mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        gauge.getReward(tokenId);
 
-        uint256 rewardRate = pool.rewardRate();
-        // 1 extra day is not generating rewards, which is desirabled, but the rewards will be stuck in gauge
-        uint256 accumulatedReward = rewardRate * (WEEK / 2 + 1 days);
-        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
+        // alice rewards should be 6 days worth of reward
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward / 7 * 6, 1e5);
 
-        // we are validating an undesirabled state, probably will change
-        assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
-        // the rewards should be half of epoch + 1 day rewards since we not counting the 1 day when there was no stakedLiq
-        assertApproxEqAbs(pool.rewardReserve(), reward / 2 - reward / 7, 1e6);
+        // at the start of the new epoch reserves should be 1 day worth of reward
+        assertApproxEqAbs(pool.rewardReserve(), reward / 7, 1e5);
 
-        // TODO add this when getRewards is implemented
-        //skipToNextEpoch(0);
-
-        // assert that emissions gots stuck in the gauge
-        // uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
-        // assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e6);
+        // assert that emissions got stuck in the gauge, 1 day worth of reward
+        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7 * 1, 1e5);
     }
 
     // TODO finnish once stakedLiq is updated in swap
@@ -594,10 +578,12 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertApproxEqAbs(pool.rewardReserve(), reward / 2, 1e6);
 
-        // TODO add this when getRewards is implemented
-        //skipToNextEpoch(0);
+        // TODO finnish this
 
-        // assert that emissions gots stuck in the gauge
+        // vm.prank(users.alice);
+        // gauge.getReward(tokenId);
+
+        // //assert that emissions gots stuck in the gauge
         // uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e6);
     }

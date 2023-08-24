@@ -789,14 +789,16 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     /// @inheritdoc IUniswapV3PoolState
-    function getRewardGrowthInside(int24 tickLower, int24 tickUpper)
+    function getRewardGrowthInside(int24 tickLower, int24 tickUpper, uint256 _rewardGrowthGlobalX128)
         external
         view
         override
         returns (uint256 rewardGrowthInside)
     {
         checkTicks(tickLower, tickUpper);
-        return ticks.getRewardGrowthInside(tickLower, tickUpper, slot0.tick, rewardGrowthGlobalX128);
+        if (_rewardGrowthGlobalX128 == 0) _rewardGrowthGlobalX128 = rewardGrowthGlobalX128;
+
+        return ticks.getRewardGrowthInside(tickLower, tickUpper, slot0.tick, _rewardGrowthGlobalX128);
     }
 
     /// @inheritdoc IUniswapV3PoolActions

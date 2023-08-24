@@ -164,4 +164,54 @@ contract WithdrawTest is CLGaugeTest {
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
     }
+
+    function test_WithdrawCollectsRewards() public {
+        skipToNextEpoch(0);
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: address(token0),
+            token1: address(token1),
+            tickSpacing: TICK_SPACING_60,
+            tickLower: -TICK_SPACING_60,
+            tickUpper: TICK_SPACING_60,
+            recipient: users.alice,
+            amount0Desired: TOKEN_1,
+            amount1Desired: TOKEN_1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+        (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit({tokenId: tokenId});
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        vm.startPrank(users.alice);
+
+        skip(2 days);
+
+        vm.expectEmit(true, true, true, false, address(gauge));
+        emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
+        gauge.withdraw({tokenId: tokenId});
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
+
+        assertEq(nft.balanceOf(address(gauge)), 0);
+        assertEq(nft.balanceOf(users.alice), 1);
+        assertEq(nft.ownerOf(tokenId), address(users.alice));
+        assertEq(gauge.stakedLength(users.alice), 0);
+        assertEq(gauge.stakedContains(users.alice, 1), false);
+        // we know that at this point the rewardGrowthInside will be the rewardGrowthGlobalX128
+        assertEq(gauge.rewardGrowthInside(tokenId), pool.rewardGrowthGlobalX128());
+        assertEqUint(pool.liquidity(), liquidity);
+        assertEqUint(pool.stakedLiquidity(), 0);
+        (,, int128 stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
+        assertEq(stakedLiquidityNet, 0);
+        (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
+        assertEq(stakedLiquidityNet, 0);
+    }
 }

@@ -9,6 +9,7 @@ interface ICLGauge {
     event NotifyReward(address indexed from, uint256 amount);
     event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
+    event ClaimRewards(address indexed from, uint256 amount);
 
     /// @notice NonfungiblePositionManager used to create nfts this gauge accepts
     function nft() external view returns (INonfungiblePositionManager);
@@ -68,6 +69,18 @@ interface ICLGauge {
         address _nft,
         bool _isPool
     ) external;
+
+    /// @notice Returns the claimable rewards for a given account and tokenId
+    /// @dev Throws if account is not the position owner
+    /// @param account The address of the user
+    /// @param tokenId The tokenId of the position
+    /// @return The amount of claimable reward
+    function earned(address account, uint256 tokenId) external view returns (uint256);
+
+    /// @notice Retrieve rewards for a tokenId
+    /// @dev Throws if not called by the position owner
+    /// @param tokenId The tokenId of the position
+    function getReward(uint256 tokenId) external;
 
     /// @notice Notifies gauge of gauge rewards.
     function notifyRewardAmount(uint256 amount) external;

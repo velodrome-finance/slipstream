@@ -29,4 +29,5 @@ abstract contract Events {
     event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event NotifyReward(address indexed from, uint256 amount);
+    event ClaimRewards(address indexed from, uint256 amount);
 }

@@ -138,11 +138,13 @@ interface IUniswapV3PoolState {
         );
 
     /// @notice Returns data about reward growth within a tick range.
-    /// @dev Used in gauge reward calculations
+    /// RewardGrowthGlobalX128 can be supplied as a parameter for claimable reward calculations.
+    /// @dev Used in gauge reward/earned calculations
     /// @param tickLower The lower tick of the range
     /// @param tickUpper The upper tick of the range
+    /// @param _rewardGrowthGlobalX128 a calculated rewardGrowthGlobalX128 or 0 (in case of 0 it means we use the rewardGrowthGlobalX128 from state)
     /// @return rewardGrowthInsideX128 The reward growth in the range
-    function getRewardGrowthInside(int24 tickLower, int24 tickUpper)
+    function getRewardGrowthInside(int24 tickLower, int24 tickUpper, uint256 _rewardGrowthGlobalX128)
         external
         view
         returns (uint256 rewardGrowthInsideX128);

@@ -11,6 +11,8 @@ import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfu
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
+import {FullMath} from "contracts/core/libraries/FullMath.sol";
+import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
@@ -68,6 +70,57 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     /// @inheritdoc ICLGauge
+    function earned(address account, uint256 tokenId) external view override returns (uint256) {
+        require(_stakes[account].contains(tokenId), "NA");
+
+        return _earned(tokenId);
+    }
+
+    function _earned(uint256 tokenId) internal view returns (uint256) {
+        uint256 timeDelta = block.timestamp - pool.lastUpdated();
+
+        uint256 rewardGrowthGlobalX128 = pool.rewardGrowthGlobalX128();
+        uint256 rewardReserve = pool.rewardReserve();
+
+        if (timeDelta != 0 && pool.stakedLiquidity() > 0 && rewardRate > 0 && rewardReserve > 0) {
+            uint256 reward = rewardRate * timeDelta;
+            if (reward > rewardReserve) reward = rewardReserve;
+
+            rewardGrowthGlobalX128 += FullMath.mulDiv(reward, FixedPoint128.Q128, pool.stakedLiquidity());
+        }
+
+        (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) = nft.positions(tokenId);
+
+        uint256 rewardPerTokenInsideInitialX128 = rewardGrowthInside[tokenId];
+        uint256 rewardPerTokenInsideX128 = pool.getRewardGrowthInside(tickLower, tickUpper, rewardGrowthGlobalX128);
+
+        uint256 claimable =
+            FullMath.mulDiv(rewardPerTokenInsideX128 - rewardPerTokenInsideInitialX128, liquidity, FixedPoint128.Q128);
+        return claimable;
+    }
+
+    /// @inheritdoc ICLGauge
+    function getReward(uint256 tokenId) external override nonReentrant {
+        require(_stakes[msg.sender].contains(tokenId), "NA");
+
+        (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) = nft.positions(tokenId);
+        _getReward(tickLower, tickUpper, liquidity, tokenId, msg.sender);
+    }
+
+    function _getReward(int24 tickLower, int24 tickUpper, uint128 liquidity, uint256 tokenId, address owner) internal {
+        pool.updateRewardsGrowthGlobal();
+        uint256 rewardPerTokenInsideInitialX128 = rewardGrowthInside[tokenId];
+        uint256 rewardPerTokenInsideX128 = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
+        uint256 reward =
+            FullMath.mulDiv(rewardPerTokenInsideX128 - rewardPerTokenInsideInitialX128, liquidity, FixedPoint128.Q128);
+        if (reward > 0) {
+            IERC20(rewardToken).safeTransfer(owner, reward);
+            emit ClaimRewards(owner, reward);
+        }
+        rewardGrowthInside[tokenId] = rewardPerTokenInsideX128;
+    }
+
+    /// @inheritdoc ICLGauge
     function deposit(uint256 tokenId) external override nonReentrant {
         require(nft.ownerOf(tokenId) == msg.sender, "NA");
         require(voter.isAlive(address(this)), "GK");
@@ -76,7 +129,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         _stakes[msg.sender].add(tokenId);
 
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
-        uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper);
+        uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
 
         pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper);
@@ -92,7 +145,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
 
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
-        // TODO: claim rewards, update rewardGrowthInside
+        _getReward(tickLower, tickUpper, liquidityToStake, tokenId, msg.sender);
 
         pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper);
 
