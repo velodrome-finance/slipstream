@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../../../../BaseFixture.sol";
 import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
 import {UniswapV3PoolTest} from "../UniswapV3Pool.t.sol";
@@ -68,7 +68,7 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
         super.setUp();
 
         string memory root = vm.projectRoot();
-        string memory path = string(abi.encodePacked(root, "/test/foundry/unit/UniswapV3Pool/swap/swap_assert.json"));
+        string memory path = string(abi.encodePacked(root, "/test/unit/concrete/UniswapV3Pool/swap/swap_assert.json"));
 
         jsonConstants = vm.readFile(path);
 

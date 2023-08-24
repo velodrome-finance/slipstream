@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../BaseFixture.sol";
+import "../../../BaseFixture.sol";
 
 contract CLGaugeFactoryTest is BaseFixture {
     function test_InitialState() public {
