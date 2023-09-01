@@ -1,13 +1,13 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "../../../BaseFixture.sol";
+import "../CLGauge.t.sol";
 
-contract NonfungiblePositionManagerTest is BaseFixture {
+contract LiquidityManagementBase is CLGaugeTest {
     UniswapV3Pool public pool;
     CLGauge public gauge;
 
-    function setUp() public virtual override {
+    function setUp() public override {
         super.setUp();
 
         pool = UniswapV3Pool(
@@ -22,5 +22,8 @@ contract NonfungiblePositionManagerTest is BaseFixture {
         token1.approve(address(nft), type(uint256).max);
         token0.approve(address(gauge), type(uint256).max);
         token1.approve(address(gauge), type(uint256).max);
+
+        vm.label({account: address(gauge), newLabel: "Gauge"});
+        vm.label({account: address(pool), newLabel: "Pool"});
     }
 }

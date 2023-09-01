@@ -5,16 +5,6 @@ import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfu
 import {NonfungiblePositionManagerTest} from "./NonfungiblePositionManager.t.sol";
 
 contract MintTest is NonfungiblePositionManagerTest {
-    function setUp() public virtual override {
-        super.setUp();
-
-        vm.startPrank(users.alice);
-        deal({token: address(token0), to: users.alice, give: TOKEN_1});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1});
-        token0.approve(address(nft), type(uint256).max);
-        token1.approve(address(nft), type(uint256).max);
-    }
-
     function test_Mint() public {
         nft.createAndInitializePoolIfNecessary({
             token0: address(token0),

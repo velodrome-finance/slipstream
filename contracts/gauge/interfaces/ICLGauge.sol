@@ -96,6 +96,36 @@ interface ICLGauge {
     /// @param tokenId The tokenId of the position
     function withdraw(uint256 tokenId) external;
 
+    /// @notice Used to increase liquidity of a staked position
+    /// @param tokenId The tokenId of the position
+    /// @param amount0Desired The desired amount of token0 to be staked,
+    /// @param amount1Desired The desired amount of token1 to be staked,
+    /// @param amount0Min The minimum amount of token0 to spend, which serves as a slippage check,
+    /// @param amount1Min The minimum amount of token1 to spend, which serves as a slippage check,
+    /// @param deadline The time by which the transaction must be included to effect the change
+    function increaseStakedLiquidity(
+        uint256 tokenId,
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external;
+
+    /// @notice Used to decrease liquidity of a staked position
+    /// @param tokenId The tokenId of the position
+    /// @param liquidity The amount of liquidity to be unstaked from the gauge
+    /// @param amount0Min The minimum amount of token0 that should be accounted for the burned liquidity,
+    /// @param amount1Min The minimum amount of token1 that should be accounted for the burned liquidity,
+    /// @param deadline The time by which the transaction must be included to effect the change
+    function decreaseStakedLiquidity(
+        uint256 tokenId,
+        uint128 liquidity,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external;
+
     /// @notice Check whether a position is staked in the gauge by a certain user
     /// @param depositor The address of the user
     /// @param tokenId The tokenId of the position

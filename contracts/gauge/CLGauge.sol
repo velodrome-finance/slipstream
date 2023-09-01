@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
+pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
@@ -14,6 +15,7 @@ import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
+import {TransferHelper} from "contracts/periphery/libraries/TransferHelper.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -150,6 +152,83 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper);
 
         emit Withdraw(msg.sender, tokenId, liquidityToStake);
+    }
+
+    /// @inheritdoc ICLGauge
+    function increaseStakedLiquidity(
+        uint256 tokenId,
+        uint256 amount0Desired,
+        uint256 amount1Desired,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external override nonReentrant {
+        IERC20 token0 = IERC20(pool.token0());
+        IERC20 token1 = IERC20(pool.token1());
+
+        // NFT manager will send these tokens to the pool
+        token0.safeIncreaseAllowance(address(nft), amount0Desired);
+        token1.safeIncreaseAllowance(address(nft), amount1Desired);
+
+        TransferHelper.safeTransferFrom(address(token0), msg.sender, address(this), amount0Desired);
+        TransferHelper.safeTransferFrom(address(token1), msg.sender, address(this), amount1Desired);
+
+        (uint128 liquidity, uint256 amount0, uint256 amount1) = nft.increaseLiquidity(
+            INonfungiblePositionManager.IncreaseLiquidityParams({
+                tokenId: tokenId,
+                amount0Desired: amount0Desired,
+                amount1Desired: amount1Desired,
+                amount0Min: amount0Min,
+                amount1Min: amount1Min,
+                deadline: deadline
+            })
+        );
+
+        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
+        pool.stake(liquidity.toInt128(), tickLower, tickUpper);
+
+        uint256 amount0Surplus = amount0Desired - amount0;
+        uint256 amount1Surplus = amount1Desired - amount1;
+
+        if (amount0Surplus > 0) {
+            TransferHelper.safeTransfer(pool.token0(), msg.sender, amount0Surplus);
+        }
+        if (amount1Surplus > 0) {
+            TransferHelper.safeTransfer(pool.token1(), msg.sender, amount1Surplus);
+        }
+    }
+
+    /// @inheritdoc ICLGauge
+    function decreaseStakedLiquidity(
+        uint256 tokenId,
+        uint128 liquidity,
+        uint256 amount0Min,
+        uint256 amount1Min,
+        uint256 deadline
+    ) external override nonReentrant {
+        require(_stakes[msg.sender].contains(tokenId), "NA");
+
+        (uint256 amount0, uint256 amount1) = nft.decreaseLiquidity(
+            INonfungiblePositionManager.DecreaseLiquidityParams({
+                tokenId: tokenId,
+                liquidity: liquidity,
+                amount0Min: amount0Min,
+                amount1Min: amount1Min,
+                deadline: deadline
+            })
+        );
+
+        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
+        pool.stake(-liquidity.toInt128(), tickLower, tickUpper);
+
+        nft.collect(
+            INonfungiblePositionManager.CollectParams({
+                tokenId: tokenId,
+                recipient: msg.sender,
+                amount0Max: uint128(amount0),
+                amount1Max: uint128(amount1)
+            })
+        );
     }
 
     /// @inheritdoc ICLGauge
