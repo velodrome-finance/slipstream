@@ -127,6 +127,16 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         require(nft.ownerOf(tokenId) == msg.sender, "NA");
         require(voter.isAlive(address(this)), "GK");
 
+        // trigger update on staked position so NFT will be in sync with the pool
+        nft.collect(
+            INonfungiblePositionManager.CollectParams({
+                tokenId: tokenId,
+                recipient: msg.sender,
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            })
+        );
+
         nft.safeTransferFrom(msg.sender, address(this), tokenId);
         _stakes[msg.sender].add(tokenId);
 
@@ -143,17 +153,28 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     function withdraw(uint256 tokenId) external override nonReentrant {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
-        _stakes[msg.sender].remove(tokenId);
-        nft.safeTransferFrom(address(this), msg.sender, tokenId);
+        // trigger update on staked position so NFT will be in sync with the pool
+        nft.collect(
+            INonfungiblePositionManager.CollectParams({
+                tokenId: tokenId,
+                recipient: msg.sender,
+                amount0Max: type(uint128).max,
+                amount1Max: type(uint128).max
+            })
+        );
 
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
         _getReward(tickLower, tickUpper, liquidityToStake, tokenId, msg.sender);
 
         pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper);
 
+        _stakes[msg.sender].remove(tokenId);
+        nft.safeTransferFrom(address(this), msg.sender, tokenId);
+
         emit Withdraw(msg.sender, tokenId, liquidityToStake);
     }
 
+    // TODO need to be updated, currently not working properly
     /// @inheritdoc ICLGauge
     function increaseStakedLiquidity(
         uint256 tokenId,
@@ -163,12 +184,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount1Min,
         uint256 deadline
     ) external override nonReentrant {
+        address _nft = address(nft);
+
         IERC20 token0 = IERC20(pool.token0());
         IERC20 token1 = IERC20(pool.token1());
 
         // NFT manager will send these tokens to the pool
-        token0.safeIncreaseAllowance(address(nft), amount0Desired);
-        token1.safeIncreaseAllowance(address(nft), amount1Desired);
+        token0.safeIncreaseAllowance(_nft, amount0Desired);
+        token1.safeIncreaseAllowance(_nft, amount1Desired);
 
         TransferHelper.safeTransferFrom(address(token0), msg.sender, address(this), amount0Desired);
         TransferHelper.safeTransferFrom(address(token1), msg.sender, address(this), amount1Desired);
@@ -198,6 +221,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         }
     }
 
+    // TODO need to be updated, currently not working properly
     /// @inheritdoc ICLGauge
     function decreaseStakedLiquidity(
         uint256 tokenId,

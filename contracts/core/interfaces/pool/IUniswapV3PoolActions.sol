@@ -65,6 +65,19 @@ interface IUniswapV3PoolActions {
         external
         returns (uint256 amount0, uint256 amount1);
 
+    /// @notice Burn liquidity from the supplied owner and account tokens owed for the liquidity to the position
+    /// @dev Can be used to trigger a recalculation of fees owed to a position by calling with an amount of 0
+    /// @dev Fees must be collected separately via a call to #collect
+    /// @param tickLower The lower tick of the position for which to burn liquidity
+    /// @param tickUpper The upper tick of the position for which to burn liquidity
+    /// @param amount How much liquidity to burn
+    /// @param owner Owner of the position in the pool (nft manager or gauge)
+    /// @return amount0 The amount of token0 sent to the recipient
+    /// @return amount1 The amount of token1 sent to the recipient
+    function burn(int24 tickLower, int24 tickUpper, uint128 amount, address owner)
+        external
+        returns (uint256 amount0, uint256 amount1);
+
     /// @notice Convert existing liquidity into staked liquidity
     /// @notice Only callable by the gauge associated with this pool
     /// @param stakedLiquidityDelta The amount by which to increase or decrease the staked liquidity

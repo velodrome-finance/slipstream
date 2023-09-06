@@ -5,24 +5,12 @@ import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfu
 import "./NonfungiblePositionManager.t.sol";
 
 contract CollectTest is NonfungiblePositionManagerTest {
-    // TODO: Use correct abstraction once #39 is merged
     function test_RevertIf_CallerIsNotGauge() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-            token0: address(token0),
-            token1: address(token1),
-            tickSpacing: TICK_SPACING_60,
-            tickLower: getMinTick(TICK_SPACING_60),
-            tickUpper: getMaxTick(TICK_SPACING_60),
-            recipient: users.alice,
-            amount0Desired: TOKEN_1,
-            amount1Desired: TOKEN_1,
-            amount0Min: 0,
-            amount1Min: 0,
-            deadline: block.timestamp
-        });
-        (uint256 tokenId,,,) = nft.mint(params);
+        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
+            TOKEN_1, TOKEN_1, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
+        );
 
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});

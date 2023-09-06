@@ -19,10 +19,12 @@ contract DepositTest is CLGaugeTest {
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);
-        deal({token: address(token0), to: users.alice, give: TOKEN_1});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1});
+        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
+        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
         token0.approve(address(nft), type(uint256).max);
         token1.approve(address(nft), type(uint256).max);
+        token0.approve(address(uniswapV3Callee), type(uint256).max);
+        token1.approve(address(uniswapV3Callee), type(uint256).max);
     }
 
     function test_RevertIf_CallerIsNotOwner() public {
@@ -183,5 +185,31 @@ contract DepositTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, liquidity.toInt128());
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
+    }
+
+    function test_DepositCollectsAlreadyAccumulatedFees() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
+            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
+        );
+
+        // swap 1 token0
+        uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
+
+        // swap 1 token1
+        uniswapV3Callee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
+
+        uint256 aliceBalanceBefore0 = token0.balanceOf(users.alice);
+        uint256 aliceBalanceBefore1 = token1.balanceOf(users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 aliceBalanceAfter0 = token0.balanceOf(users.alice);
+        uint256 aliceBalanceAfter1 = token1.balanceOf(users.alice);
+
+        assertApproxEqAbs(aliceBalanceAfter0 - aliceBalanceBefore0, 3e15, 1);
+        assertApproxEqAbs(aliceBalanceAfter1 - aliceBalanceBefore1, 3e15, 1);
     }
 }

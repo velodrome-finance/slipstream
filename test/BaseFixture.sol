@@ -18,6 +18,7 @@ import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
+import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 
 contract BaseFixture is Test, Constants, Events, PoolUtils {
     UniswapV3Factory public poolFactory;
@@ -37,6 +38,8 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
 
     Users internal users;
 
+    TestUniswapV3Callee public uniswapV3Callee;
+
     function setUp() public virtual {
         users = Users({
             owner: createUser("Owner"),
@@ -45,6 +48,8 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
             bob: createUser("Bob"),
             charlie: createUser("Charlie")
         });
+
+        uniswapV3Callee = new TestUniswapV3Callee();
 
         rewardToken = new ERC20("", "");
 
@@ -110,6 +115,32 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         }
         CLGauge(_gauge).notifyRewardAmount(_amount);
         vm.stopPrank();
+    }
+
+    function mintNewCustomRangePositionForUserWith60TickSpacing(
+        uint256 amount0,
+        uint256 amount1,
+        int24 tickLower,
+        int24 tickUpper,
+        address user
+    ) internal returns (uint256) {
+        vm.startPrank(user);
+
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: address(token0),
+            token1: address(token1),
+            tickSpacing: TICK_SPACING_60,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            recipient: user,
+            amount0Desired: amount0,
+            amount1Desired: amount1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+        (uint256 tokenId,,,) = nft.mint(params);
+        return tokenId;
     }
 
     function labelContracts() internal virtual {

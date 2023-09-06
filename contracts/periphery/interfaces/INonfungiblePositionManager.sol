@@ -156,6 +156,7 @@ interface INonfungiblePositionManager is
     }
 
     /// @notice Collects up to a maximum amount of fees owed to a specific position to the recipient
+    /// @notice Used to update staked positions before deposit and withdraw
     /// @param params tokenId The ID of the NFT for which tokens are being collected,
     /// recipient The account that should receive the tokens,
     /// amount0Max The maximum amount of token0 to collect,

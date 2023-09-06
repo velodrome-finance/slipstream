@@ -2,7 +2,6 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import "../../../../BaseFixture.sol";
-import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
 import {UniswapV3PoolTest} from "../UniswapV3Pool.t.sol";
 import "forge-std/StdJson.sol";
@@ -13,8 +12,6 @@ import "forge-std/StdJson.sol";
 /// poolPriceAfter and poolPriceBefore are stored as X96 pool price values (not sqrtPrice)
 contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
     using stdJson for string;
-
-    TestUniswapV3Callee public uniswapV3Callee;
 
     string jsonConstants;
 
@@ -71,8 +68,6 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
         string memory path = string(abi.encodePacked(root, "/test/unit/concrete/UniswapV3Pool/swap/swap_assert.json"));
 
         jsonConstants = vm.readFile(path);
-
-        uniswapV3Callee = new TestUniswapV3Callee();
 
         deal(address(token0), users.alice, TOKEN_2_TO_255);
         deal(address(token1), users.alice, TOKEN_2_TO_255);

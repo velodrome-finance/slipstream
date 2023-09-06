@@ -40,11 +40,13 @@ library Position {
     /// @param liquidityDelta The change in pool liquidity as a result of the position update
     /// @param feeGrowthInside0X128 The all-time fee growth in token0, per unit of liquidity, inside the position's tick boundaries
     /// @param feeGrowthInside1X128 The all-time fee growth in token1, per unit of liquidity, inside the position's tick boundaries
+    /// @param staked Signifies if the position is staked in the gauge or not
     function update(
         Info storage self,
         int128 liquidityDelta,
         uint256 feeGrowthInside0X128,
-        uint256 feeGrowthInside1X128
+        uint256 feeGrowthInside1X128,
+        bool staked
     ) internal {
         Info memory _self = self;
 
@@ -56,13 +58,21 @@ library Position {
             liquidityNext = LiquidityMath.addDelta(_self.liquidity, liquidityDelta);
         }
 
-        // calculate accumulated fees
-        uint128 tokensOwed0 = uint128(
-            FullMath.mulDiv(feeGrowthInside0X128 - _self.feeGrowthInside0LastX128, _self.liquidity, FixedPoint128.Q128)
-        );
-        uint128 tokensOwed1 = uint128(
-            FullMath.mulDiv(feeGrowthInside1X128 - _self.feeGrowthInside1LastX128, _self.liquidity, FixedPoint128.Q128)
-        );
+        uint128 tokensOwed0;
+        uint128 tokensOwed1;
+        if (!staked) {
+            // calculate accumulated fees
+            tokensOwed0 = uint128(
+                FullMath.mulDiv(
+                    feeGrowthInside0X128 - _self.feeGrowthInside0LastX128, _self.liquidity, FixedPoint128.Q128
+                )
+            );
+            tokensOwed1 = uint128(
+                FullMath.mulDiv(
+                    feeGrowthInside1X128 - _self.feeGrowthInside1LastX128, _self.liquidity, FixedPoint128.Q128
+                )
+            );
+        }
 
         // update the position
         if (liquidityDelta != 0) self.liquidity = liquidityNext;

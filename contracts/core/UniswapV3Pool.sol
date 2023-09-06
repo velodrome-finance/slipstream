@@ -24,6 +24,8 @@ import "./interfaces/callback/IUniswapV3MintCallback.sol";
 import "./interfaces/callback/IUniswapV3SwapCallback.sol";
 import "./interfaces/callback/IUniswapV3FlashCallback.sol";
 
+import "contracts/gauge/interfaces/ICLGauge.sol";
+
 contract UniswapV3Pool is IUniswapV3Pool {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
@@ -43,6 +45,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
     address public override token1;
     /// @inheritdoc IUniswapV3PoolImmutables
     address public override gauge;
+    /// @inheritdoc IUniswapV3PoolImmutables
+    address public override nft;
 
     /// @inheritdoc IUniswapV3PoolImmutables
     int24 public override tickSpacing;
@@ -139,6 +143,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         token1 = _token1;
         tickSpacing = _tickSpacing;
         gauge = _gauge;
+        nft = address(ICLGauge(_gauge).nft());
 
         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
     }
@@ -416,7 +421,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
         (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
             ticks.getFeeGrowthInside(tickLower, tickUpper, tick, _feeGrowthGlobal0X128, _feeGrowthGlobal1X128);
 
-        position.update(liquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128);
+        bool staked = owner == gauge;
+        position.update(liquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, staked);
 
         // clear any tick data that is no longer needed
         if (liquidityDelta < 0) {
@@ -514,6 +520,34 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
+    function burn(int24 tickLower, int24 tickUpper, uint128 amount, address owner)
+        external
+        override
+        lock
+        returns (uint256 amount0, uint256 amount1)
+    {
+        require(msg.sender == nft, "NNFT");
+        (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
+            ModifyPositionParams({
+                owner: owner,
+                tickLower: tickLower,
+                tickUpper: tickUpper,
+                liquidityDelta: -int256(amount).toInt128()
+            })
+        );
+
+        amount0 = uint256(-amount0Int);
+        amount1 = uint256(-amount1Int);
+
+        if (amount0 > 0 || amount1 > 0) {
+            (position.tokensOwed0, position.tokensOwed1) =
+                (position.tokensOwed0 + uint128(amount0), position.tokensOwed1 + uint128(amount1));
+        }
+
+        emit Burn(owner, tickLower, tickUpper, amount, amount0, amount1);
+    }
+
+    /// @inheritdoc IUniswapV3PoolActions
     function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper) external override lock onlyGauge {
         int24 tick = slot0.tick;
         // Increase staked liquidity in the current tick
@@ -521,6 +555,16 @@ contract UniswapV3Pool is IUniswapV3Pool {
             _updateRewardsGrowthGlobal();
             stakedLiquidity = LiquidityMath.addDelta(stakedLiquidity, stakedLiquidityDelta);
         }
+
+        Position.Info storage nftPosition = positions.get(nft, tickLower, tickUpper);
+        Position.Info storage gaugePosition = positions.get(gauge, tickLower, tickUpper);
+
+        (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
+            ticks.getFeeGrowthInside(tickLower, tickUpper, tick, feeGrowthGlobal0X128, feeGrowthGlobal1X128);
+
+        // Assign the staked positions virtually to the gauge
+        nftPosition.update(-stakedLiquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, false);
+        gaugePosition.update(stakedLiquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, true);
 
         // Update tick locations where staked liquidity needs to be added or subtracted
         ticks.updateStake(tickLower, stakedLiquidityDelta, false);

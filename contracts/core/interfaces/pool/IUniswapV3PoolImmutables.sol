@@ -21,6 +21,10 @@ interface IUniswapV3PoolImmutables {
     /// @return The gauge contract address
     function gauge() external view returns (address);
 
+    /// @notice The nft manager
+    /// @return The nft manager contract address
+    function nft() external view returns (address);
+
     /// @notice The pool tick spacing
     /// @dev Ticks can only be used at multiples of this value, minimum of 1 and always positive
     /// e.g.: a tickSpacing of 3 means ticks can be initialized every 3rd tick, i.e., ..., -6, -3, 0, 3, 6, ...

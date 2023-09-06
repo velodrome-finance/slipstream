@@ -256,12 +256,10 @@ describe('UniswapV3Pool arbitrage tests', () => {
                   : await swapExact1For0(inputAmount, wallet.address)
 
                 // burn the arb's liquidity
-                const { amount0: amount0Burn, amount1: amount1Burn } = await pool.callStatic.burn(
-                  tickLower,
-                  tickUpper,
-                  getMaxLiquidityPerTick(tickSpacing)
-                )
-                await pool.burn(tickLower, tickUpper, getMaxLiquidityPerTick(tickSpacing))
+                const { amount0: amount0Burn, amount1: amount1Burn } = await pool.callStatic[
+                  'burn(int24,int24,uint128)'
+                ](tickLower, tickUpper, getMaxLiquidityPerTick(tickSpacing))
+                await pool['burn(int24,int24,uint128)'](tickLower, tickUpper, getMaxLiquidityPerTick(tickSpacing))
                 arbBalance0 = arbBalance0.add(amount0Burn)
                 arbBalance1 = arbBalance1.add(amount1Burn)
 

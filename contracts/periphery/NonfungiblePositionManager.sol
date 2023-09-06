@@ -313,15 +313,19 @@ contract NonfungiblePositionManager is
 
         (uint128 tokensOwed0, uint128 tokensOwed1) = (position.tokensOwed0, position.tokensOwed1);
 
-        bool isStaked = ownerOf(params.tokenId) == pool.gauge();
+        address _gauge = pool.gauge();
+        bool isStaked = ownerOf(params.tokenId) == _gauge;
 
         // trigger an update of the position fees owed and fee growth snapshots if it has any liquidity
         if (position.liquidity > 0) {
-            pool.burn(position.tickLower, position.tickUpper, 0);
-            (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) =
-                pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
-
+            uint256 feeGrowthInside0LastX128;
+            uint256 feeGrowthInside1LastX128;
             if (!isStaked) {
+                pool.burn(position.tickLower, position.tickUpper, 0);
+
+                (, feeGrowthInside0LastX128, feeGrowthInside1LastX128,,) =
+                    pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
+
                 tokensOwed0 += uint128(
                     FullMath.mulDiv(
                         feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128,
@@ -336,27 +340,34 @@ contract NonfungiblePositionManager is
                         FixedPoint128.Q128
                     )
                 );
+            } else {
+                pool.burn(position.tickLower, position.tickUpper, 0, _gauge);
+
+                (, feeGrowthInside0LastX128, feeGrowthInside1LastX128,,) =
+                    pool.positions(PositionKey.compute(_gauge, position.tickLower, position.tickUpper));
             }
 
             position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
             position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
         }
 
-        // compute the arguments to give to the pool#collect method
-        (uint128 amount0Collect, uint128 amount1Collect) = (
-            params.amount0Max > tokensOwed0 ? tokensOwed0 : params.amount0Max,
-            params.amount1Max > tokensOwed1 ? tokensOwed1 : params.amount1Max
-        );
+        if (!isStaked) {
+            // compute the arguments to give to the pool#collect method
+            (uint128 amount0Collect, uint128 amount1Collect) = (
+                params.amount0Max > tokensOwed0 ? tokensOwed0 : params.amount0Max,
+                params.amount1Max > tokensOwed1 ? tokensOwed1 : params.amount1Max
+            );
 
-        // the actual amounts collected are returned
-        (amount0, amount1) =
-            pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
+            // the actual amounts collected are returned
+            (amount0, amount1) =
+                pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
 
-        // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
-        // instead of the actual amount so we can burn the token
-        (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
+            // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
+            // instead of the actual amount so we can burn the token
+            (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
 
-        emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
+            emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
+        }
     }
 
     /// @inheritdoc INonfungiblePositionManager

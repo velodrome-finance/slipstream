@@ -13,15 +13,20 @@ contract LiquidityManagementBase is CLGaugeTest {
         pool = UniswapV3Pool(
             poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
+
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);
-        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 10});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 10});
+        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
+        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
         token0.approve(address(nft), type(uint256).max);
         token1.approve(address(nft), type(uint256).max);
         token0.approve(address(gauge), type(uint256).max);
         token1.approve(address(gauge), type(uint256).max);
+        token0.approve(address(uniswapV3Callee), type(uint256).max);
+        token1.approve(address(uniswapV3Callee), type(uint256).max);
 
         vm.label({account: address(gauge), newLabel: "Gauge"});
         vm.label({account: address(pool), newLabel: "Pool"});

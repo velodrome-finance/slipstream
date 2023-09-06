@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TickLens #getPopulatedTicksInWord fully populated ticks 1`] = `4030544`;
+exports[`TickLens #getPopulatedTicksInWord fully populated ticks 1`] = `4034406`;
 
-exports[`TickLens #getPopulatedTicksInWord gas for single populated tick 1`] = `65414`;
+exports[`TickLens #getPopulatedTicksInWord gas for single populated tick 1`] = `65451`;

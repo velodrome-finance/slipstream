@@ -246,18 +246,20 @@ describe('UniswapV3Pool gas tests', () => {
             })
 
             it('burn when only position using ticks', async () => {
-              await snapshotGasCost(pool.burn(tickLower, tickUpper, expandTo18Decimals(1)))
+              await snapshotGasCost(pool['burn(int24,int24,uint128)'](tickLower, tickUpper, expandTo18Decimals(1)))
             })
             it('partial position burn', async () => {
-              await snapshotGasCost(pool.burn(tickLower, tickUpper, expandTo18Decimals(1).div(2)))
+              await snapshotGasCost(
+                pool['burn(int24,int24,uint128)'](tickLower, tickUpper, expandTo18Decimals(1).div(2))
+              )
             })
             it('entire position burn but other positions are using the ticks', async () => {
               await mint(other.address, tickLower, tickUpper, expandTo18Decimals(1))
-              await snapshotGasCost(pool.burn(tickLower, tickUpper, expandTo18Decimals(1)))
+              await snapshotGasCost(pool['burn(int24,int24,uint128)'](tickLower, tickUpper, expandTo18Decimals(1)))
             })
             it('burn entire position after some time passes', async () => {
               await pool.advanceTime(1)
-              await snapshotGasCost(pool.burn(tickLower, tickUpper, expandTo18Decimals(1)))
+              await snapshotGasCost(pool['burn(int24,int24,uint128)'](tickLower, tickUpper, expandTo18Decimals(1)))
             })
           })
         }
@@ -270,9 +272,9 @@ describe('UniswapV3Pool gas tests', () => {
         it('best case', async () => {
           await mint(wallet.address, tickLower, tickUpper, expandTo18Decimals(1))
           await swapExact0For1(expandTo18Decimals(1).div(100), wallet.address)
-          await pool.burn(tickLower, tickUpper, 0)
+          await pool['burn(int24,int24,uint128)'](tickLower, tickUpper, 0)
           await swapExact0For1(expandTo18Decimals(1).div(100), wallet.address)
-          await snapshotGasCost(pool.burn(tickLower, tickUpper, 0))
+          await snapshotGasCost(pool['burn(int24,int24,uint128)'](tickLower, tickUpper, 0))
         })
       })
 
@@ -283,7 +285,7 @@ describe('UniswapV3Pool gas tests', () => {
         it('close to worst case', async () => {
           await mint(wallet.address, tickLower, tickUpper, expandTo18Decimals(1))
           await swapExact0For1(expandTo18Decimals(1).div(100), wallet.address)
-          await pool.burn(tickLower, tickUpper, 0) // poke to accumulate fees
+          await pool['burn(int24,int24,uint128)'](tickLower, tickUpper, 0) // poke to accumulate fees
           await snapshotGasCost(pool.collect(wallet.address, tickLower, tickUpper, MaxUint128, MaxUint128))
         })
       })

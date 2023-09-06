@@ -2,7 +2,6 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import "../../../../BaseFixture.sol";
-import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
 import {UniswapV3PoolTest} from "../UniswapV3Pool.t.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
@@ -11,15 +10,12 @@ import "forge-std/console.sol";
 
 contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     UniswapV3Pool public pool;
-    TestUniswapV3Callee public uniswapV3Callee;
     CLGauge public gauge;
 
     int24 tickSpacing = TICK_SPACING_60;
 
     function setUp() public override {
         super.setUp();
-
-        uniswapV3Callee = new TestUniswapV3Callee();
 
         pool = UniswapV3Pool(
             poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing})
