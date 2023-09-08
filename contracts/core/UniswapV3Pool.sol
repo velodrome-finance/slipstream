@@ -80,14 +80,14 @@ contract UniswapV3Pool is IUniswapV3Pool {
     /// @inheritdoc IUniswapV3PoolState
     uint256 public override rewardGrowthGlobalX128;
 
-    // accumulated protocol fees in token0/token1 units
-    struct ProtocolFees {
+    // accumulated gauge fees in token0/token1 units
+    struct GaugeFees {
         uint128 token0;
         uint128 token1;
     }
 
     /// @inheritdoc IUniswapV3PoolState
-    ProtocolFees public override protocolFees;
+    GaugeFees public override gaugeFees;
 
     /// @inheritdoc IUniswapV3PoolState
     uint256 public override rewardRate;
@@ -574,6 +574,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
     struct SwapCache {
         // liquidity at the beginning of the swap
         uint128 liquidityStart;
+        // staked liquidity at the beginning of the swap
+        uint128 stakedLiquidityStart;
         // the timestamp of the current block
         uint32 blockTimestamp;
         // the current value of the tick accumulator, computed only if we cross an initialized tick
@@ -596,10 +598,12 @@ contract UniswapV3Pool is IUniswapV3Pool {
         int24 tick;
         // the global fee growth of the input token
         uint256 feeGrowthGlobalX128;
-        // amount of input token paid as protocol fee
-        uint128 protocolFee;
+        // amount of input token paid as gauge fee
+        uint128 gaugeFee;
         // the current liquidity in range
         uint128 liquidity;
+        // the current staked liquidity in range
+        uint128 stakedLiquidity;
     }
 
     struct StepComputations {
@@ -643,6 +647,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
 
         SwapCache memory cache = SwapCache({
             liquidityStart: liquidity,
+            stakedLiquidityStart: stakedLiquidity,
             blockTimestamp: _blockTimestamp(),
             secondsPerLiquidityCumulativeX128: 0,
             tickCumulative: 0,
@@ -657,8 +662,9 @@ contract UniswapV3Pool is IUniswapV3Pool {
             sqrtPriceX96: slot0Start.sqrtPriceX96,
             tick: slot0Start.tick,
             feeGrowthGlobalX128: zeroForOne ? feeGrowthGlobal0X128 : feeGrowthGlobal1X128,
-            protocolFee: 0,
-            liquidity: cache.liquidityStart
+            gaugeFee: 0,
+            liquidity: cache.liquidityStart,
+            stakedLiquidity: cache.stakedLiquidityStart
         });
 
         // continue swapping as long as we haven't used the entire input/output and haven't reached the price limit
@@ -699,9 +705,13 @@ contract UniswapV3Pool is IUniswapV3Pool {
                 state.amountCalculated = state.amountCalculated.add((step.amountIn + step.feeAmount).toInt256());
             }
 
-            // update global fee tracker
+            // update global fee tracker and gauge fee
             if (state.liquidity > 0) {
-                state.feeGrowthGlobalX128 += FullMath.mulDiv(step.feeAmount, FixedPoint128.Q128, state.liquidity);
+                (uint256 _feeGrowthGlobalX128, uint256 _stakedFeeAmount) =
+                    calculateFees(step.feeAmount, state.liquidity, state.stakedLiquidity);
+
+                state.feeGrowthGlobalX128 += _feeGrowthGlobalX128;
+                state.gaugeFee += uint128(_stakedFeeAmount);
             }
 
             // shift tick if we reached the next price
@@ -722,7 +732,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
                         cache.computedLatestObservation = true;
                     }
                     _updateRewardsGrowthGlobal();
-                    int128 liquidityNet = ticks.cross(
+                    Tick.LiquidityNets memory nets = ticks.cross(
                         step.tickNext,
                         (zeroForOne ? state.feeGrowthGlobalX128 : feeGrowthGlobal0X128),
                         (zeroForOne ? feeGrowthGlobal1X128 : state.feeGrowthGlobalX128),
@@ -731,11 +741,15 @@ contract UniswapV3Pool is IUniswapV3Pool {
                         cache.blockTimestamp,
                         rewardGrowthGlobalX128
                     );
-                    // if we're moving leftward, we interpret liquidityNet as the opposite sign
-                    // safe because liquidityNet cannot be type(int128).min
-                    if (zeroForOne) liquidityNet = -liquidityNet;
+                    // if we're moving leftward, we interpret liquidityNet & stakedLiquidityNet as the opposite sign
+                    // safe because liquidityNet & stakedLiquidityNet cannot be type(int128).min
+                    if (zeroForOne) {
+                        nets.liquidityNet = -nets.liquidityNet;
+                        nets.stakedLiquidityNet = -nets.stakedLiquidityNet;
+                    }
 
-                    state.liquidity = LiquidityMath.addDelta(state.liquidity, liquidityNet);
+                    state.liquidity = LiquidityMath.addDelta(state.liquidity, nets.liquidityNet);
+                    state.stakedLiquidity = LiquidityMath.addDelta(state.stakedLiquidity, nets.stakedLiquidityNet);
                 }
 
                 state.tick = zeroForOne ? step.tickNext - 1 : step.tickNext;
@@ -762,17 +776,18 @@ contract UniswapV3Pool is IUniswapV3Pool {
             slot0.sqrtPriceX96 = state.sqrtPriceX96;
         }
 
-        // update liquidity if it changed
+        // update liquidity and stakedLiquidity if it changed
         if (cache.liquidityStart != state.liquidity) liquidity = state.liquidity;
+        if (cache.stakedLiquidityStart != state.stakedLiquidity) stakedLiquidity = state.stakedLiquidity;
 
-        // update fee growth global and, if necessary, protocol fees
+        // update fee growth global and, if necessary, gauge fees
         // overflow is acceptable, protocol has to withdraw before it hits type(uint128).max fees
         if (zeroForOne) {
             feeGrowthGlobal0X128 = state.feeGrowthGlobalX128;
-            if (state.protocolFee > 0) protocolFees.token0 += state.protocolFee;
+            if (state.gaugeFee > 0) gaugeFees.token0 += state.gaugeFee;
         } else {
             feeGrowthGlobal1X128 = state.feeGrowthGlobalX128;
-            if (state.protocolFee > 0) protocolFees.token1 += state.protocolFee;
+            if (state.gaugeFee > 0) gaugeFees.token1 += state.gaugeFee;
         }
 
         (amount0, amount1) = zeroForOne == exactInput
@@ -824,10 +839,16 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint256 paid1 = balance1After - balance1Before;
 
         if (paid0 > 0) {
-            feeGrowthGlobal0X128 += FullMath.mulDiv(paid0, FixedPoint128.Q128, _liquidity);
+            (uint256 feeGrowthGlobalX128, uint256 stakedFeeAmount) = calculateFees(paid0, _liquidity, stakedLiquidity);
+
+            if (feeGrowthGlobalX128 > 0) feeGrowthGlobal0X128 += feeGrowthGlobalX128;
+            if (uint128(stakedFeeAmount) > 0) gaugeFees.token0 += uint128(stakedFeeAmount);
         }
         if (paid1 > 0) {
-            feeGrowthGlobal1X128 += FullMath.mulDiv(paid1, FixedPoint128.Q128, _liquidity);
+            (uint256 feeGrowthGlobalX128, uint256 stakedFeeAmount) = calculateFees(paid1, _liquidity, stakedLiquidity);
+
+            if (feeGrowthGlobalX128 > 0) feeGrowthGlobal1X128 += feeGrowthGlobalX128;
+            if (uint128(stakedFeeAmount) > 0) gaugeFees.token1 += uint128(stakedFeeAmount);
         }
         emit Flash(msg.sender, recipient, amount0, amount1, paid0, paid1);
     }
@@ -872,5 +893,56 @@ contract UniswapV3Pool is IUniswapV3Pool {
         _updateRewardsGrowthGlobal();
         rewardRate = _rewardRate;
         rewardReserve = _rewardReserve;
+    }
+
+    // calculates the fee for staked & unstaked liquidity
+    function splitFees(uint256 feeAmount, uint128 _liquidity, uint128 _stakedLiquidity)
+        internal
+        pure
+        returns (uint256 unstakedFeeAmount, uint256 stakedFeeAmount)
+    {
+        // Protocol takes 100% fees for staked liquidity
+        stakedFeeAmount = FullMath.mulDiv(feeAmount, _stakedLiquidity, _liquidity);
+        unstakedFeeAmount = feeAmount - stakedFeeAmount;
+    }
+
+    // calculates the fee growths for unstaked liquidity and returns it with the staked fee amount
+    function calculateFees(uint256 feeAmount, uint128 _liquidity, uint128 _stakedLiquidity)
+        internal
+        pure
+        returns (uint256 feeGrowthGlobalX128, uint256 stakedFeeAmount)
+    {
+        // if there is only staked liquidity
+        if (_liquidity == _stakedLiquidity) {
+            stakedFeeAmount = feeAmount;
+        }
+        // if there is only unstaked liquidity
+        else if (_stakedLiquidity == 0) {
+            feeGrowthGlobalX128 = FullMath.mulDiv(feeAmount, FixedPoint128.Q128, _liquidity);
+        }
+        // if there are staked and unstaked liquidities
+        else {
+            (uint256 unstakedFeeAmount, uint256 _stakedFeeAmount) = splitFees(feeAmount, _liquidity, _stakedLiquidity);
+            feeGrowthGlobalX128 = FullMath.mulDiv(unstakedFeeAmount, FixedPoint128.Q128, _liquidity - _stakedLiquidity);
+            stakedFeeAmount = _stakedFeeAmount;
+        }
+    }
+
+    /// @inheritdoc IUniswapV3PoolOwnerActions
+    function collectFees() external override lock onlyGauge returns (uint128 amount0, uint128 amount1) {
+        amount0 = gaugeFees.token0;
+        amount1 = gaugeFees.token1;
+        if (amount0 > 0) {
+            amount0--; // ensure that the slot is not cleared, for gas savings
+            gaugeFees.token0 -= amount0;
+            TransferHelper.safeTransfer(token0, gauge, amount0);
+        }
+        if (amount1 > 0) {
+            amount1--; // ensure that the slot is not cleared, for gas savings
+            gaugeFees.token1 -= amount1;
+            TransferHelper.safeTransfer(token1, gauge, amount1);
+        }
+
+        emit CollectFees(gauge, amount0, amount1);
     }
 }

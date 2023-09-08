@@ -9,6 +9,7 @@ interface ICLGauge {
     event NotifyReward(address indexed from, uint256 amount);
     event Deposit(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
+    event ClaimFees(address indexed from, uint256 claimed0, uint256 claimed1);
     event ClaimRewards(address indexed from, uint256 amount);
 
     /// @notice NonfungiblePositionManager used to create nfts this gauge accepts
@@ -38,13 +39,19 @@ interface ICLGauge {
     /// @notice View to see the rewardRate given the timestamp of the start of the epoch
     function rewardRateByEpoch(uint256) external view returns (uint256);
 
+    /// @notice Cached amount of fees generated from the Pool linked to the Gauge of token0
+    function fees0() external view returns (uint256);
+
+    /// @notice Cached amount of fees generated from the Pool linked to the Gauge of token1
+    function fees1() external view returns (uint256);
+
     /// @notice Total amount of rewardToken to distribute for the current rewards period
     function left() external view returns (uint256 _left);
 
     /// @notice Address of the emissions token
     function rewardToken() external view returns (address);
 
-    /// @notice Whether the attached pool is a real pool or not. Allows creation of gauges not attached to pools.
+    /// @notice To provide compatibility support with the old voter
     function isPool() external view returns (bool);
 
     /// @notice Returns the rewardGrowthInside of the position at the last user action (deposit, withdraw, getReward)

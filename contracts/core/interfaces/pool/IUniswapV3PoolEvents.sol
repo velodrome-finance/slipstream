@@ -111,10 +111,9 @@ interface IUniswapV3PoolEvents {
     /// @param feeProtocol1New The updated value of the token1 protocol fee
     event SetFeeProtocol(uint8 feeProtocol0Old, uint8 feeProtocol1Old, uint8 feeProtocol0New, uint8 feeProtocol1New);
 
-    /// @notice Emitted when the collected protocol fees are withdrawn by the factory owner
-    /// @param sender The address that collects the protocol fees
+    /// @notice Emitted when the collected protocol fees are withdrawn by the gauge
     /// @param recipient The address that receives the collected protocol fees
     /// @param amount0 The amount of token0 protocol fees that is withdrawn
     /// @param amount0 The amount of token1 protocol fees that is withdrawn
-    event CollectProtocol(address indexed sender, address indexed recipient, uint128 amount0, uint128 amount1);
+    event CollectFees(address indexed recipient, uint128 amount0, uint128 amount1);
 }

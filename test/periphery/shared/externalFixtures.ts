@@ -30,7 +30,10 @@ const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
 
   // voter & gauge factory set up
-  const mockVoter = (await MockVoterFactory.deploy(rewardToken.address)) as MockVoter
+  const mockVoter = (await MockVoterFactory.deploy(
+    rewardToken.address,
+    '0x0000000000000000000000000000000000000000' // fees voting manager stub, unused in hardhat tests
+  )) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,

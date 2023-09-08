@@ -19,23 +19,6 @@ contract WithdrawTest is CLGaugeTest {
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);
-        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
-        token0.approve(address(nft), type(uint256).max);
-        token1.approve(address(nft), type(uint256).max);
-        token0.approve(address(uniswapV3Callee), type(uint256).max);
-        token1.approve(address(uniswapV3Callee), type(uint256).max);
-    }
-
-    function collectOneAndOneForTokenId(uint256 tokenId, address recipient) internal {
-        nft.collect(
-            INonfungiblePositionManager.CollectParams({
-                tokenId: tokenId,
-                recipient: recipient,
-                amount0Max: 1, // don't actually collect it all
-                amount1Max: 1
-            })
-        );
     }
 
     function test_RevertIf_CallerIsNotOwner() public {
@@ -231,9 +214,8 @@ contract WithdrawTest is CLGaugeTest {
     function test_WithdrawUpdatesPositionCorrectly() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
@@ -246,8 +228,9 @@ contract WithdrawTest is CLGaugeTest {
 
         gauge.withdraw(tokenId);
 
+        nft.approve(address(nftCallee), tokenId);
         // call collect to trigger update on the nft position
-        collectOneAndOneForTokenId(tokenId, users.alice);
+        nftCallee.collectOneAndOneForTokenId(tokenId, users.alice);
 
         (
             ,
@@ -295,13 +278,10 @@ contract WithdrawTest is CLGaugeTest {
     function test_WithdrawUpdatesPositionCorrectlyWithUnstakedPositions() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
-        mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // swap 1 token0
         uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
@@ -349,13 +329,11 @@ contract WithdrawTest is CLGaugeTest {
     function test_WithdrawUpdatesPositionCorrectlyWithStakedAndUnstakedButStakedTriggersUpdate() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
-        uint256 tokenId2 = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId2 =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // two identical nfts, deposit one of them
         nft.approve(address(gauge), tokenId);
@@ -369,8 +347,9 @@ contract WithdrawTest is CLGaugeTest {
         gauge.withdraw(tokenId);
 
         uint256 pre0Bal = token0.balanceOf(users.alice);
+        nft.approve(address(nftCallee), tokenId);
         // call collect to trigger update on the nft position
-        collectOneAndOneForTokenId(tokenId, users.alice);
+        nftCallee.collectOneAndOneForTokenId(tokenId, users.alice);
 
         assertEq(token0.balanceOf(users.alice), pre0Bal); // values should be equal
 
@@ -412,7 +391,8 @@ contract WithdrawTest is CLGaugeTest {
         }
 
         pre0Bal = token0.balanceOf(users.alice);
-        collectOneAndOneForTokenId(tokenId2, users.alice);
+        nft.approve(address(nftCallee), tokenId2);
+        nftCallee.collectOneAndOneForTokenId(tokenId2, users.alice);
 
         assertEq(token0.balanceOf(users.alice), pre0Bal + 1); // should collect 1 for tokenId2
 
@@ -445,9 +425,9 @@ contract WithdrawTest is CLGaugeTest {
 
             assertEq(feeGrowthInside0LastX128Nft, feeGrowthInside0LastX128Position);
             assertEq(feeGrowthInside1LastX128Nft, feeGrowthInside1LastX128Position);
-            assertApproxEqAbs(uint256(tokensOwed0Position), 15e14, 2); // TODO this should be around 3e15 change this in #39
+            assertApproxEqAbs(uint256(tokensOwed0Position), 15e14, 2);
             assertEqUint(tokensOwed1Position, 0);
-            assertApproxEqAbs(uint256(tokensOwed0Nft), 15e14, 2); // TODO this should be around 3e15 change this in #39
+            assertApproxEqAbs(uint256(tokensOwed0Nft), 15e14, 2);
             assertEqUint(tokensOwed1Nft, 0);
         }
 
@@ -459,13 +439,11 @@ contract WithdrawTest is CLGaugeTest {
     function test_WithdrawUpdatesPositionCorrectlyWithStakedAndUnstakedButUnstakedTriggersUpdate() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
-        uint256 tokenId2 = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId2 =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // two identical nfts, deposit one of them
         nft.approve(address(gauge), tokenId);
@@ -477,14 +455,16 @@ contract WithdrawTest is CLGaugeTest {
         // call collect to trigger update on the nft position
         // triggers call to burn => position.update(staked=false)
         uint256 pre0Bal = token0.balanceOf(users.alice);
-        collectOneAndOneForTokenId(tokenId2, users.alice);
+        nft.approve(address(nftCallee), tokenId2);
+        nftCallee.collectOneAndOneForTokenId(tokenId2, users.alice);
 
         assertEq(token0.balanceOf(users.alice), pre0Bal + 1); // should collect 1 for unstaked position
 
         gauge.withdraw(tokenId);
 
         pre0Bal = token0.balanceOf(users.alice);
-        collectOneAndOneForTokenId(tokenId, users.alice); // should be equal
+        nft.approve(address(nftCallee), tokenId);
+        nftCallee.collectOneAndOneForTokenId(tokenId, users.alice); // should be equal
 
         assertEq(token0.balanceOf(users.alice), pre0Bal);
         // gauge position in the pool (staked)
@@ -553,9 +533,9 @@ contract WithdrawTest is CLGaugeTest {
 
             assertEq(feeGrowthInside0LastX128Nft, feeGrowthInside0LastX128Position);
             assertEq(feeGrowthInside1LastX128Nft, feeGrowthInside1LastX128Position);
-            assertApproxEqAbs(uint256(tokensOwed0Position), 15e14, 2); // TODO this should be around 3e15 change this in #39
+            assertApproxEqAbs(uint256(tokensOwed0Position), 15e14, 2);
             assertEqUint(tokensOwed1Position, 0);
-            assertApproxEqAbs(uint256(tokensOwed0Nft), 15e14, 2); // TODO this should be around 3e15 change this in #39
+            assertApproxEqAbs(uint256(tokensOwed0Nft), 15e14, 2);
             assertEqUint(tokensOwed1Nft, 0);
         }
 

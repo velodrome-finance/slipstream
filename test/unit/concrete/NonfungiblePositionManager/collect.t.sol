@@ -8,9 +8,7 @@ contract CollectTest is NonfungiblePositionManagerTest {
     function test_RevertIf_CallerIsNotGauge() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1, TOKEN_1, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});

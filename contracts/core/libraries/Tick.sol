@@ -43,6 +43,11 @@ library Tick {
         bool initialized;
     }
 
+    struct LiquidityNets {
+        int128 liquidityNet;
+        int128 stakedLiquidityNet;
+    }
+
     /// @notice Derives max liquidity per tick from given tick spacing
     /// @dev Executed within the pool constructor
     /// @param tickSpacing The amount of required tick separation, realized in multiples of `tickSpacing`
@@ -218,7 +223,7 @@ library Tick {
     /// @param tickCumulative The tick * time elapsed since the pool was first initialized
     /// @param time The current block.timestamp
     /// @param rewardGrowthGlobalX128 The all-time global reward growth, per unit of liquidity
-    /// @return liquidityNet The amount of liquidity added (subtracted) when tick is crossed from left to right (right to left)
+    /// @return nets The amount of liquidity and staked liquidity added (subtracted) when tick is crossed from left to right (right to left)
     function cross(
         mapping(int24 => Tick.Info) storage self,
         int24 tick,
@@ -228,7 +233,7 @@ library Tick {
         int56 tickCumulative,
         uint32 time,
         uint256 rewardGrowthGlobalX128
-    ) internal returns (int128 liquidityNet) {
+    ) internal returns (LiquidityNets memory nets) {
         Tick.Info storage info = self[tick];
         info.feeGrowthOutside0X128 = feeGrowthGlobal0X128 - info.feeGrowthOutside0X128;
         info.feeGrowthOutside1X128 = feeGrowthGlobal1X128 - info.feeGrowthOutside1X128;
@@ -236,6 +241,7 @@ library Tick {
         info.secondsPerLiquidityOutsideX128 = secondsPerLiquidityCumulativeX128 - info.secondsPerLiquidityOutsideX128;
         info.tickCumulativeOutside = tickCumulative - info.tickCumulativeOutside;
         info.secondsOutside = time - info.secondsOutside;
-        liquidityNet = info.liquidityNet;
+        nets.liquidityNet = info.liquidityNet;
+        nets.stakedLiquidityNet = info.stakedLiquidityNet;
     }
 }

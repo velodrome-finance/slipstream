@@ -23,7 +23,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
             gaugeFactory.createGauge({
                 _forwarder: forwarder,
                 _pool: pool,
-                _feesVotingReward: feesVotingReward,
+                _feesVotingReward: address(feesVotingReward),
                 _rewardToken: address(rewardToken),
                 _isPool: true
             })
@@ -35,7 +35,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
             gaugeFactory.createGauge({
                 _forwarder: forwarder,
                 _pool: pool,
-                _feesVotingReward: feesVotingReward,
+                _feesVotingReward: address(feesVotingReward),
                 _rewardToken: address(rewardToken),
                 _isPool: true
             })
@@ -43,7 +43,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
 
         assertEq(gauge.forwarder(), forwarder);
         assertEq(address(gauge.pool()), pool);
-        assertEq(gauge.feesVotingReward(), feesVotingReward);
+        assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertEq(gauge.isPool(), true);
     }

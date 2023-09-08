@@ -65,7 +65,7 @@ contract TickTest {
         int56 tickCumulative,
         uint32 time,
         uint256 rewardGrowthGlobalX128
-    ) external returns (int128 liquidityNet) {
+    ) external returns (Tick.LiquidityNets memory nets) {
         return ticks.cross(
             tick,
             feeGrowthGlobal0X128,

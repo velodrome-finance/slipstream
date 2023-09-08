@@ -14,7 +14,6 @@ import { Fixture } from 'ethereum-waffle'
 interface FactoryFixture {
   factory: UniswapV3Factory
 }
-
 interface TokensFixture {
   token0: CoreTestERC20
   token1: CoreTestERC20
@@ -46,7 +45,6 @@ interface PoolFixture extends TokensAndFactoryFixture {
     secondToken?: CoreTestERC20
   ): Promise<MockTimeUniswapV3Pool>
 }
-
 // Monday, October 5, 2020 9:00:00 AM GMT-05:00
 export const TEST_POOL_START_TIME = 1601906400
 
@@ -60,7 +58,10 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
 
   // voter & gauge factory set up
-  const mockVoter = (await MockVoterFactory.deploy(token2.address)) as MockVoter
+  const mockVoter = (await MockVoterFactory.deploy(
+    token2.address,
+    '0x0000000000000000000000000000000000000000' // fees voting manager stub, unused in hardhat tests
+  )) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,
@@ -80,7 +81,6 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
 
   const swapTargetCallee = (await calleeContractFactory.deploy()) as TestUniswapV3Callee
   const swapTargetRouter = (await routerContractFactory.deploy()) as TestUniswapV3Router
-
   return {
     token0,
     token1,
@@ -92,9 +92,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
       // add tick spacing if not already added, backwards compatible with uniswapv3 tests
       const tickSpacingFee = await mockTimePoolDeployer.tickSpacingToFee(tickSpacing)
       if (tickSpacingFee == 0) await mockTimePoolDeployer['enableTickSpacing(int24,uint24)'](tickSpacing, fee)
-
       const tx = await mockTimePoolDeployer.createPool(firstToken.address, secondToken.address, tickSpacing)
-
       const receipt = await tx.wait()
       const poolAddress = receipt.events?.[0].args?.pool as string
       const pool = MockTimeUniswapV3PoolFactory.attach(poolAddress) as MockTimeUniswapV3Pool

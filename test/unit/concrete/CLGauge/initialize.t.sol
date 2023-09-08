@@ -14,7 +14,7 @@ contract InitializeTest is CLGaugeTest {
         CLGauge(gauge).initialize({
             _forwarder: forwarder,
             _pool: pool,
-            _feesVotingReward: feesVotingReward,
+            _feesVotingReward: address(feesVotingReward),
             _rewardToken: address(rewardToken),
             _voter: address(voter),
             _nft: address(nft),

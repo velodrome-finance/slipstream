@@ -15,6 +15,7 @@ import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
+import {IReward} from "contracts/interfaces/IReward.sol";
 import {TransferHelper} from "contracts/periphery/libraries/TransferHelper.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
@@ -38,6 +39,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLGauge
     bool public override isPool;
 
+    uint256 internal constant DURATION = 7 days; // rewards are released over 7 days
+
     /// @inheritdoc ICLGauge
     uint256 public override periodFinish;
     /// @inheritdoc ICLGauge
@@ -50,6 +53,11 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     mapping(address => EnumerableSet.UintSet) internal _stakes;
     /// @inheritdoc ICLGauge
     mapping(uint256 => uint256) public override rewardGrowthInside;
+
+    /// @inheritdoc ICLGauge
+    uint256 public override fees0;
+    /// @inheritdoc ICLGauge
+    uint256 public override fees1;
 
     /// @inheritdoc ICLGauge
     function initialize(
@@ -275,7 +283,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         address sender = msg.sender;
         require(sender == address(voter), "NV");
         require(_amount != 0, "ZR");
-        //_claimFees(); // TODO add this as well when due
+        _claimFees();
 
         uint256 timestamp = block.timestamp;
         uint256 timeUntilNext = VelodromeTimeLibrary.epochNext(timestamp) - timestamp;
@@ -302,5 +310,34 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         lastUpdateTime = timestamp;
         periodFinish = timestamp + timeUntilNext;
         emit NotifyReward(sender, _amount);
+    }
+
+    function _claimFees() internal {
+        if (!isPool) return;
+
+        (uint256 claimed0, uint256 claimed1) = pool.collectFees();
+        if (claimed0 > 0 || claimed1 > 0) {
+            uint256 _fees0 = fees0 + claimed0;
+            uint256 _fees1 = fees1 + claimed1;
+            address _token0 = pool.token0();
+            address _token1 = pool.token1();
+            if (_fees0 > DURATION) {
+                fees0 = 0;
+                IERC20(_token0).safeApprove(feesVotingReward, _fees0);
+                IReward(feesVotingReward).notifyRewardAmount(_token0, _fees0);
+            } else {
+                fees0 = _fees0;
+            }
+            if (_fees1 > DURATION) {
+                fees1 = 0;
+                IERC20(_token1).safeApprove(feesVotingReward, _fees1);
+                IReward(feesVotingReward).notifyRewardAmount(_token1, _fees1);
+            } else {
+                fees1 = _fees1;
+            }
+
+            // TODO possibly update msg.sender to _msgSender()
+            emit ClaimFees(msg.sender, claimed0, claimed1);
+        }
     }
 }

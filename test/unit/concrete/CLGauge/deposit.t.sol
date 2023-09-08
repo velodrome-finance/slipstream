@@ -19,12 +19,6 @@ contract DepositTest is CLGaugeTest {
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);
-        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
-        token0.approve(address(nft), type(uint256).max);
-        token1.approve(address(nft), type(uint256).max);
-        token0.approve(address(uniswapV3Callee), type(uint256).max);
-        token1.approve(address(uniswapV3Callee), type(uint256).max);
     }
 
     function test_RevertIf_CallerIsNotOwner() public {
@@ -190,9 +184,8 @@ contract DepositTest is CLGaugeTest {
     function test_DepositCollectsAlreadyAccumulatedFees() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint256 tokenId = mintNewCustomRangePositionForUserWith60TickSpacing(
-            TOKEN_1 * 10, TOKEN_1 * 10, getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60), users.alice
-        );
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // swap 1 token0
         uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);

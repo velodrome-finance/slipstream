@@ -11,7 +11,7 @@ contract MockVoter is IVoter {
     address public gaugeFactory;
     // mock addresses used for testing gauge creation, a copy is stored in Constants.sol
     address public forwarder = address(11);
-    address public feesVotingReward = address(12);
+    address public feesVotingReward;
 
     // Rewards are released over 7 days
     uint256 internal constant DURATION = 7 days;
@@ -23,8 +23,9 @@ contract MockVoter is IVoter {
 
     IERC20 internal immutable rewardToken;
 
-    constructor(address _rewardToken) {
+    constructor(address _rewardToken, address _feesVotingReward) {
         rewardToken = IERC20(_rewardToken);
+        feesVotingReward = _feesVotingReward;
     }
 
     function setGaugeFactory(address _gaugeFactory) external {

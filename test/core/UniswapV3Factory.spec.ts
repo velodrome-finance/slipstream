@@ -28,7 +28,10 @@ describe('UniswapV3Factory', () => {
     // voter & gauge factory set up
     const tokenFactory = await ethers.getContractFactory('TestERC20')
     const rewardToken: TestERC20 = (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20 // do not use maxu256 to avoid overflowing
-    const mockVoter = (await MockVoterFactory.deploy(rewardToken.address)) as MockVoter
+    const mockVoter = (await MockVoterFactory.deploy(
+      rewardToken.address,
+      '0x0000000000000000000000000000000000000000' // fees voting manager stub, unused in hardhat tests
+    )) as MockVoter
     const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
     const gaugeFactory = (await GaugeFactoryFactory.deploy(
       mockVoter.address,

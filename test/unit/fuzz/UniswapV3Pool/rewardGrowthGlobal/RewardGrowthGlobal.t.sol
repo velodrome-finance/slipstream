@@ -21,57 +21,16 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
         );
         gauge = CLGauge(voter.gauges(address(pool)));
 
-        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
-
         vm.startPrank(users.alice);
-        token0.approve(address(uniswapV3Callee), type(uint256).max);
-        token1.approve(address(uniswapV3Callee), type(uint256).max);
-        token0.approve(address(nft), type(uint256).max);
-        token1.approve(address(nft), type(uint256).max);
 
         skipToNextEpoch(0);
     }
 
-    function _mintNewCustomRangePositionForUser(
-        uint128 amount0,
-        uint128 amount1,
-        int24 tickLower,
-        int24 tickUpper,
-        address user
-    ) internal returns (uint256) {
-        vm.startPrank(user);
-
-        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-            token0: address(token0),
-            token1: address(token1),
-            tickSpacing: tickSpacing,
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            recipient: user,
-            amount0Desired: amount0,
-            amount1Desired: amount1,
-            amount0Min: 0,
-            amount1Min: 0,
-            deadline: block.timestamp + 1
-        });
-        (uint256 tokenId,,,) = nft.mint(params);
-        return tokenId;
-    }
-
-    function _mintNewFullRangePositionForUser(uint128 amount0, uint128 amount1, address user)
+    function mintNewFullRangePositionAndDepositIntoGauge(uint128 _amount0, uint128 _amount1, address _user)
         internal
         returns (uint256)
     {
-        return
-            _mintNewCustomRangePositionForUser(amount0, amount1, getMinTick(tickSpacing), getMaxTick(tickSpacing), user);
-    }
-
-    function _mintNewFullRangePositionAndDepositIntoGauge(uint128 _amount0, uint128 _amount1, address _user)
-        internal
-        returns (uint256)
-    {
-        uint256 tokenId = _mintNewFullRangePositionForUser(_amount0, _amount1, _user);
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(_amount0, _amount1, _user);
         vm.startPrank(_user);
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
@@ -96,7 +55,7 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
         uint128 amount1 = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        _mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
 
         skip(delay);
 
@@ -109,7 +68,7 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
 
         // move one hour and mint new position and stake it as well to trigger update
         skip(1 hours);
-        _mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
 
         uint256 rewardRate = pool.rewardRate();
         uint256 accumulatedReward = rewardRate * 1 hours;
@@ -130,7 +89,7 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
         uint128 amount1 = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        uint256 tokenId = _mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        uint256 tokenId = mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
 
         // needs to be 0 since there are no rewards
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);

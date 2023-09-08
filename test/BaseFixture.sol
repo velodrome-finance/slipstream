@@ -12,6 +12,7 @@ import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
 import {MockVoter} from "contracts/test/MockVoter.sol";
+import {MockFeesVotingReward} from "contracts/test/MockFeesVotingReward.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Constants} from "./utils/Constants.sol";
 import {Events} from "./utils/Events.sol";
@@ -19,6 +20,7 @@ import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
+import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 
 contract BaseFixture is Test, Constants, Events, PoolUtils {
     UniswapV3Factory public poolFactory;
@@ -30,6 +32,7 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
 
     MockVoter public voter;
     MockWETH public weth;
+    MockFeesVotingReward public feesVotingReward;
 
     ERC20 public rewardToken;
 
@@ -39,6 +42,7 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
     Users internal users;
 
     TestUniswapV3Callee public uniswapV3Callee;
+    NFTManagerCallee public nftCallee;
 
     function setUp() public virtual {
         users = Users({
@@ -49,12 +53,11 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
             charlie: createUser("Charlie")
         });
 
-        uniswapV3Callee = new TestUniswapV3Callee();
-
         rewardToken = new ERC20("", "");
+        feesVotingReward = new MockFeesVotingReward();
 
         weth = new MockWETH();
-        voter = new MockVoter(address(rewardToken));
+        voter = new MockVoter(address(rewardToken), address(feesVotingReward));
 
         poolImplementation = new UniswapV3Pool();
         poolFactory = new UniswapV3Factory({
@@ -92,6 +95,22 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         ERC20 tokenB = new ERC20("", "");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
 
+        uniswapV3Callee = new TestUniswapV3Callee();
+        nftCallee = new NFTManagerCallee(address(token0), address(token1), address(nft));
+
+        // Setting up alice for the tests since she's the default test user
+        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
+        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
+
+        vm.startPrank(users.alice);
+        token0.approve(address(nft), type(uint256).max);
+        token1.approve(address(nft), type(uint256).max);
+        token0.approve(address(uniswapV3Callee), type(uint256).max);
+        token1.approve(address(uniswapV3Callee), type(uint256).max);
+        token0.approve(address(nftCallee), type(uint256).max);
+        token1.approve(address(nftCallee), type(uint256).max);
+        vm.stopPrank();
+
         labelContracts();
     }
 
@@ -117,35 +136,10 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.stopPrank();
     }
 
-    function mintNewCustomRangePositionForUserWith60TickSpacing(
-        uint256 amount0,
-        uint256 amount1,
-        int24 tickLower,
-        int24 tickUpper,
-        address user
-    ) internal returns (uint256) {
-        vm.startPrank(user);
-
-        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
-            token0: address(token0),
-            token1: address(token1),
-            tickSpacing: TICK_SPACING_60,
-            tickLower: tickLower,
-            tickUpper: tickUpper,
-            recipient: user,
-            amount0Desired: amount0,
-            amount1Desired: amount1,
-            amount0Min: 0,
-            amount1Min: 0,
-            deadline: block.timestamp
-        });
-        (uint256 tokenId,,,) = nft.mint(params);
-        return tokenId;
-    }
-
     function labelContracts() internal virtual {
         vm.label({account: address(weth), newLabel: "WETH"});
         vm.label({account: address(voter), newLabel: "Voter"});
+        vm.label({account: address(feesVotingReward), newLabel: "Fees Voting Reward"});
         vm.label({account: address(nftDescriptor), newLabel: "NFT Descriptor"});
         vm.label({account: address(nft), newLabel: "NFT Manager"});
         vm.label({account: address(poolImplementation), newLabel: "Pool Implementation"});

@@ -74,9 +74,6 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
 
         vm.startPrank(users.alice);
 
-        token0.approve(address(uniswapV3Callee), type(uint256).max);
-        token1.approve(address(uniswapV3Callee), type(uint256).max);
-
         labelContracts();
     }
 
