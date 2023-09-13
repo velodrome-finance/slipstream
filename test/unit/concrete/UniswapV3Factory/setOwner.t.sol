@@ -10,18 +10,18 @@ contract SetOwner is UniswapV3FactoryTest {
         vm.startPrank({msgSender: users.owner});
     }
 
-    function testCannotSetOwnerIfNotOwner() public {
+    function test_RevertIf_NotOwner() public {
         vm.expectRevert();
         changePrank({msgSender: users.charlie});
         poolFactory.setOwner({_owner: users.charlie});
     }
 
-    function testCannotSetOwnerWithZeroAddress() public {
+    function test_RevertIf_ZeroAddress() public {
         vm.expectRevert();
         poolFactory.setOwner({_owner: address(0)});
     }
 
-    function testSetOwner() public {
+    function test_SetOwner() public {
         vm.expectEmit(true, true, false, false, address(poolFactory));
         emit OwnerChanged({oldOwner: users.owner, newOwner: users.alice});
         poolFactory.setOwner({_owner: users.alice});

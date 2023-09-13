@@ -11,6 +11,10 @@ fs_permissions = [{ access = "read-write", path = "./"}]
 [profile.fuzz]
 runs = 1000
 
-[profile.test]
-block_number = 108376869
-block_timestamp = 1692352515
+[rpc_endpoints]
+optimism_goerli = "${OPTIMISM_GOERLI_RPC_URL}"
+optimism = "${OPTIMISM_RPC_URL}"
+
+[etherscan]
+optimism_goerli = { key = "${OPTIMISM_GOERLI_ETHERSCAN_API_KEY}", url = "${OPTIMISM_GOERLI_ETHERSCAN_VERIFIER_URL}" }
+optimism = { key = "${OPTIMISM_ETHERSCAN_API_KEY}", url = "${OPTIMISM_ETHERSCAN_VERIFIER_URL}" }

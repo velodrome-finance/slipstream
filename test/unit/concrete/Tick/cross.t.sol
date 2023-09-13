@@ -9,7 +9,7 @@ contract CrossTest is TickTestBase {
         super.setUp();
     }
 
-    function test_flipGrowthVariable() public {
+    function test_FlipGrowthVariable() public {
         Tick.Info memory tickInfo = Tick.Info({
             feeGrowthOutside0X128: 1,
             feeGrowthOutside1X128: 2,
@@ -47,7 +47,7 @@ contract CrossTest is TickTestBase {
         assertEq(rewardGrowthOutsideX128, 10);
     }
 
-    function test_twoFlipsAreNoOp() public {
+    function test_TwoFlipsAreNoOp() public {
         Tick.Info memory tickInfo = Tick.Info({
             feeGrowthOutside0X128: 1,
             feeGrowthOutside1X128: 2,

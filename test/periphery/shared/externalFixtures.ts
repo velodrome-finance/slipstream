@@ -2,6 +2,7 @@ import { Fixture } from 'ethereum-waffle'
 import { ethers, waffle } from 'hardhat'
 import { IUniswapV3Pool, IUniswapV3Factory, IWETH9, MockTimeSwapRouter, TestERC20 } from '../../../typechain'
 import { MockVoter } from '../../../typechain/MockVoter'
+import { MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
 import { constants } from 'ethers'
@@ -28,21 +29,28 @@ const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
   const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
+  const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
+  const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
 
   // voter & gauge factory set up
-  const mockVoter = (await MockVoterFactory.deploy(
-    rewardToken.address,
-    '0x0000000000000000000000000000000000000000' // fees voting manager stub, unused in hardhat tests
-  )) as MockVoter
+  const mockFactoryRegistry = await MockFactoryRegistryFactory.deploy()
+  const mockVoter = (await MockVoterFactory.deploy(rewardToken.address, mockFactoryRegistry.address)) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,
     gaugeImplementation.address,
     '0x0000000000000000000000000000000000000000' // nft position manager stub, unused in hardhat tests
   )) as CLGaugeFactory
-  await mockVoter.setGaugeFactory(gaugeFactory.address)
 
   const factory = (await Factory.deploy(mockVoter.address, pool.address)) as IUniswapV3Factory
+  // approve pool factory <=> gauge factory combination
+  const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory
+  await mockFactoryRegistry.approve(
+    factory.address,
+    mockVotingRewardsFactory.address, // unused in hardhat tests
+    gaugeFactory.address
+  )
+
   // backwards compatible with v3-periphery tests
   await factory['enableTickSpacing(int24,uint24)'](10, 500)
   await factory['enableTickSpacing(int24,uint24)'](60, 3000)

@@ -12,8 +12,13 @@ import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
 import {MockVoter} from "contracts/test/MockVoter.sol";
-import {MockFeesVotingReward} from "contracts/test/MockFeesVotingReward.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
+import {MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
+import {IVotingRewardsFactory} from "contracts/test/interfaces/IVotingRewardsFactory.sol";
+import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
+import {IVoter} from "contracts/core/interfaces/IVoter.sol";
+import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Constants} from "./utils/Constants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
@@ -22,7 +27,7 @@ import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 
-contract BaseFixture is Test, Constants, Events, PoolUtils {
+abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     UniswapV3Factory public poolFactory;
     UniswapV3Pool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
@@ -30,9 +35,11 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
     CLGaugeFactory public gaugeFactory;
     CLGauge public gaugeImplementation;
 
-    MockVoter public voter;
-    MockWETH public weth;
-    MockFeesVotingReward public feesVotingReward;
+    /// @dev mocks
+    IFactoryRegistry public factoryRegistry;
+    IVoter public voter;
+    IERC20 public weth;
+    IVotingRewardsFactory public votingRewardsFactory;
 
     ERC20 public rewardToken;
 
@@ -54,11 +61,10 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         });
 
         rewardToken = new ERC20("", "");
-        feesVotingReward = new MockFeesVotingReward();
 
-        weth = new MockWETH();
-        voter = new MockVoter(address(rewardToken), address(feesVotingReward));
+        deployDependencies();
 
+        // deploy pool and associated contracts
         poolImplementation = new UniswapV3Pool();
         poolFactory = new UniswapV3Factory({
             _voter: address(voter), 
@@ -79,6 +85,7 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
             _tokenDescriptor_: address(nftDescriptor)
         });
 
+        // deploy gauges and associated contracts
         gaugeImplementation = new CLGauge();
         gaugeFactory = new CLGaugeFactory({
             _voter: address(voter),
@@ -86,8 +93,15 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
             _nft: address(nft)
         });
 
-        voter.setGaugeFactory(address(gaugeFactory));
+        // approve gauge in factory registry
+        vm.prank(Ownable(address(factoryRegistry)).owner());
+        factoryRegistry.approve({
+            poolFactory: address(poolFactory),
+            votingRewardsFactory: address(votingRewardsFactory),
+            gaugeFactory: address(gaugeFactory)
+        });
 
+        // transfer residual permissions
         poolFactory.setOwner(users.owner);
         poolFactory.setFeeManager(users.feeManager);
 
@@ -112,6 +126,20 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.stopPrank();
 
         labelContracts();
+    }
+
+    /// @dev Deploys mocks of external dependencies
+    ///      Override if using a fork test
+    function deployDependencies() public virtual {
+        factoryRegistry = IFactoryRegistry(new MockFactoryRegistry());
+        votingRewardsFactory = IVotingRewardsFactory(new MockVotingRewardsFactory());
+        weth = IERC20(address(new MockWETH()));
+        voter = IVoter(
+            new MockVoter({
+            _rewardToken: address(rewardToken),
+            _factoryRegistry: address(factoryRegistry)
+            })
+        );
     }
 
     /// @dev Helper utility to forward time to next week
@@ -139,7 +167,6 @@ contract BaseFixture is Test, Constants, Events, PoolUtils {
     function labelContracts() internal virtual {
         vm.label({account: address(weth), newLabel: "WETH"});
         vm.label({account: address(voter), newLabel: "Voter"});
-        vm.label({account: address(feesVotingReward), newLabel: "Fees Voting Reward"});
         vm.label({account: address(nftDescriptor), newLabel: "NFT Descriptor"});
         vm.label({account: address(nft), newLabel: "NFT Manager"});
         vm.label({account: address(poolImplementation), newLabel: "Pool Implementation"});

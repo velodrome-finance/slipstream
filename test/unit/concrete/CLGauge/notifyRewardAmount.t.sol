@@ -10,6 +10,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
     UniswapV3Pool public pool;
     CLGauge public gauge;
+    address feesVotingReward;
 
     function setUp() public override {
         super.setUp();
@@ -19,13 +20,14 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         );
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
         gauge = CLGauge(voter.gauges(address(pool)));
+        feesVotingReward = voter.gaugeToFees(address(gauge));
 
         vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
     }
 
-    function test_notifyRewardAmountUpdatesGaugeStateCorrectly() public {
+    function test_NotifyRewardAmountUpdatesGaugeStateCorrectly() public {
         skip(1 days);
 
         uint256 reward = TOKEN_1;
@@ -49,7 +51,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(gauge.periodFinish(), block.timestamp + 6 days);
     }
 
-    function test_notifyRewardAmountUpdatesGaugeStateCorrectlyOnAdditionalRewardInSameEpoch() public {
+    function test_NotifyRewardAmountUpdatesGaugeStateCorrectlyOnAdditionalRewardInSameEpoch() public {
         skip(1 days);
 
         uint256 reward = TOKEN_1;
@@ -74,7 +76,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(gauge.periodFinish(), block.timestamp + 5 days);
     }
 
-    function test_notifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediaryFlashCorrectly() public {
+    function test_NotifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediaryFlashCorrectly() public {
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
 
@@ -102,7 +104,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(token1.balanceOf(address(feesVotingReward)), 6e15 - 1);
     }
 
-    function test_notifyRewardAmountCollectsFeesForPositionsPartiallyStakedWithIntermediaryFlashCorrectly() public {
+    function test_NotifyRewardAmountCollectsFeesForPositionsPartiallyStakedWithIntermediaryFlashCorrectly() public {
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
@@ -137,7 +139,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);
     }
 
-    function test_notifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediarySwapCorrectly() public {
+    function test_NotifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediarySwapCorrectly() public {
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -160,7 +162,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(token1.balanceOf(address(feesVotingReward)), 6e15);
     }
 
-    function test_notifyRewardAmountCollectsFeesForPositionsPartiallyStakedWithIntermediarySwapCorrectly() public {
+    function test_NotifyRewardAmountCollectsFeesForPositionsPartiallyStakedWithIntermediarySwapCorrectly() public {
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);

@@ -6,6 +6,7 @@ import { UniswapV3Factory } from '../../../typechain/UniswapV3Factory'
 import { TestUniswapV3Callee } from '../../../typechain/TestUniswapV3Callee'
 import { TestUniswapV3Router } from '../../../typechain/TestUniswapV3Router'
 import { MockVoter } from '../../../typechain/MockVoter'
+import { MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
 
@@ -56,25 +57,31 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
   const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
+  const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
+  const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
 
   // voter & gauge factory set up
-  const mockVoter = (await MockVoterFactory.deploy(
-    token2.address,
-    '0x0000000000000000000000000000000000000000' // fees voting manager stub, unused in hardhat tests
-  )) as MockVoter
+  const mockFactoryRegistry = await MockFactoryRegistryFactory.deploy()
+  const mockVoter = (await MockVoterFactory.deploy(token2.address, mockFactoryRegistry.address)) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,
     gaugeImplementation.address,
     '0x0000000000000000000000000000000000000000' // nft position manager stub, unused in hardhat tests
   )) as CLGaugeFactory
-  await mockVoter.setGaugeFactory(gaugeFactory.address)
 
   const mockTimePool = (await MockTimeUniswapV3PoolFactory.deploy()) as MockTimeUniswapV3Pool
   const mockTimePoolDeployer = (await MockTimeUniswapV3PoolDeployerFactory.deploy(
     mockVoter.address,
     mockTimePool.address
   )) as UniswapV3Factory
+  // approve pool factory <=> gauge factory combination
+  const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory
+  await mockFactoryRegistry.approve(
+    mockTimePoolDeployer.address,
+    mockVotingRewardsFactory.address, // unused in hardhat tests
+    gaugeFactory.address
+  )
 
   const calleeContractFactory = await ethers.getContractFactory('TestUniswapV3Callee')
   const routerContractFactory = await ethers.getContractFactory('TestUniswapV3Router')

@@ -6,7 +6,8 @@ import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract CreateGaugeTest is CLGaugeFactoryTest {
-    address pool;
+    address public pool;
+    address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
@@ -31,15 +32,8 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
     }
 
     function test_CreateGauge() public {
-        CLGauge gauge = CLGauge(
-            gaugeFactory.createGauge({
-                _forwarder: forwarder,
-                _pool: pool,
-                _feesVotingReward: address(feesVotingReward),
-                _rewardToken: address(rewardToken),
-                _isPool: true
-            })
-        );
+        CLGauge gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: pool}));
+        feesVotingReward = voter.gaugeToFees(address(gauge));
 
         assertEq(gauge.forwarder(), forwarder);
         assertEq(address(gauge.pool()), pool);

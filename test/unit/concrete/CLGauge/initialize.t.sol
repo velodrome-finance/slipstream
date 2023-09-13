@@ -9,12 +9,13 @@ contract InitializeTest is CLGaugeTest {
         address pool =
             poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: TICK_SPACING_LOW});
         address gauge = voter.gauges(pool);
+        address feesVotingReward = voter.gaugeToFees(gauge);
 
         vm.expectRevert(abi.encodePacked("AI"));
         CLGauge(gauge).initialize({
             _forwarder: forwarder,
             _pool: pool,
-            _feesVotingReward: address(feesVotingReward),
+            _feesVotingReward: feesVotingReward,
             _rewardToken: address(rewardToken),
             _voter: address(voter),
             _nft: address(nft),

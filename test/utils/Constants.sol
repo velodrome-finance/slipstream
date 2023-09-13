@@ -22,7 +22,7 @@ abstract contract Constants {
     uint160 public constant MIN_SQRT_RATIO = 4295128739;
     uint160 public constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342;
     // mock addresses used for testing gauge creation
-    address public forwarder = address(11);
+    address public constant forwarder = address(11);
 
     uint256 constant WEEK = 1 weeks;
 
