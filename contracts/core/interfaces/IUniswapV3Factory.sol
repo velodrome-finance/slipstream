@@ -11,15 +11,25 @@ interface IUniswapV3Factory {
     /// @param newOwner The owner after the owner was changed
     event OwnerChanged(address indexed oldOwner, address indexed newOwner);
 
-    /// @notice Emitted when the feeManager of the factory is changed
-    /// @param oldFeeManager The feeManager before the feeManager was changed
-    /// @param newFeeManager The feeManager after the feeManager was changed
-    event FeeManagerChanged(address indexed oldFeeManager, address indexed newFeeManager);
+    /// @notice Emitted when the swapFeeManager of the factory is changed
+    /// @param oldFeeManager The swapFeeManager before the swapFeeManager was changed
+    /// @param newFeeManager The swapFeeManager after the swapFeeManager was changed
+    event SwapFeeManagerChanged(address indexed oldFeeManager, address indexed newFeeManager);
 
-    /// @notice Emitted when the feeModule of the factory is changed
-    /// @param oldFeeModule The feeModule before the feeModule was changed
-    /// @param newFeeModule The feeModule after the feeModule was changed
-    event FeeModuleChanged(address indexed oldFeeModule, address indexed newFeeModule);
+    /// @notice Emitted when the swapFeeModule of the factory is changed
+    /// @param oldFeeModule The swapFeeModule before the swapFeeModule was changed
+    /// @param newFeeModule The swapFeeModule after the swapFeeModule was changed
+    event SwapFeeModuleChanged(address indexed oldFeeModule, address indexed newFeeModule);
+
+    /// @notice Emitted when the unstakedFeeManager of the factory is changed
+    /// @param oldFeeManager The unstakedFeeManager before the unstakedFeeManager was changed
+    /// @param newFeeManager The unstakedFeeManager after the unstakedFeeManager was changed
+    event UnstakedFeeManagerChanged(address indexed oldFeeManager, address indexed newFeeManager);
+
+    /// @notice Emitted when the unstakedFeeModule of the factory is changed
+    /// @param oldFeeModule The unstakedFeeModule before the unstakedFeeModule was changed
+    /// @param newFeeModule The unstakedFeeModule after the unstakedFeeModule was changed
+    event UnstakedFeeModuleChanged(address indexed oldFeeModule, address indexed newFeeModule);
 
     /// @notice Emitted when a pool is created
     /// @param token0 The first token of the pool by address sort order
@@ -46,15 +56,25 @@ interface IUniswapV3Factory {
     /// @return The address of the factory owner
     function owner() external view returns (address);
 
-    /// @notice Returns the current feeManager of the factory
-    /// @dev Can be changed by the current fee manager via setFeeManager
-    /// @return The address of the factory feeManager
-    function feeManager() external view returns (address);
+    /// @notice Returns the current swapFeeManager of the factory
+    /// @dev Can be changed by the current swap fee manager via setSwapFeeManager
+    /// @return The address of the factory swapFeeManager
+    function swapFeeManager() external view returns (address);
 
-    /// @notice Returns the current feeModule of the factory
-    /// @dev Can be changed by the current fee manager via setFeeModule
-    /// @return The address of the factory feeModule
-    function feeModule() external view returns (address);
+    /// @notice Returns the current swapFeeModule of the factory
+    /// @dev Can be changed by the current swap fee manager via setSwapFeeModule
+    /// @return The address of the factory swapFeeModule
+    function swapFeeModule() external view returns (address);
+
+    /// @notice Returns the current unstakedFeeManager of the factory
+    /// @dev Can be changed by the current unstaked fee manager via setUnstakedFeeManager
+    /// @return The address of the factory unstakedFeeManager
+    function unstakedFeeManager() external view returns (address);
+
+    /// @notice Returns the current unstakedFeeModule of the factory
+    /// @dev Can be changed by the current unstaked fee manager via setUnstakedFeeModule
+    /// @return The address of the factory unstakedFeeModule
+    function unstakedFeeModule() external view returns (address);
 
     /// @notice Returns a default fee for a tick spacing.
     /// @dev Use getFee for the most up to date fee for a given pool.
@@ -81,11 +101,17 @@ interface IUniswapV3Factory {
     /// @return Whether the pool is a valid pool of the factory
     function isPair(address pool) external view returns (bool);
 
-    /// @notice Get fee for a given pool. Accounts for default and dynamic fees
-    /// @dev Fee is denominated in bips.
-    /// @param pool The pool to get the fee for
-    /// @return The fee for the given pool
-    function getFee(address pool) external view returns (uint24);
+    /// @notice Get swap & flash fee for a given pool. Accounts for default and dynamic fees
+    /// @dev Swap & flash fee is denominated in bips. i.e. 1e-4
+    /// @param pool The pool to get the swap & flash fee for
+    /// @return The swap & flash fee for the given pool
+    function getSwapFee(address pool) external view returns (uint24);
+
+    /// @notice Get unstaked fee for a given pool. Accounts for default and dynamic fees
+    /// @dev Unstaked fee is denominated in bips. i.e. 1e-4
+    /// @param pool The pool to get the unstaked fee for
+    /// @return The unstaked fee for the given pool
+    function getUnstakedFee(address pool) external view returns (uint24);
 
     /// @notice Creates a pool for the given two tokens and fee
     /// @param tokenA One of the two tokens in the desired pool
@@ -101,15 +127,25 @@ interface IUniswapV3Factory {
     /// @param _owner The new owner of the factory
     function setOwner(address _owner) external;
 
-    /// @notice Updates the feeManager of the factory
-    /// @dev Must be called by the current fee manager
-    /// @param _feeManager The new feeManager of the factory
-    function setFeeManager(address _feeManager) external;
+    /// @notice Updates the swapFeeManager of the factory
+    /// @dev Must be called by the current swap fee manager
+    /// @param _swapFeeManager The new swapFeeManager of the factory
+    function setSwapFeeManager(address _swapFeeManager) external;
 
-    /// @notice Updates the feeModule of the factory
-    /// @dev Must be called by the current fee manager
-    /// @param _feeModule The new feeModule of the factory
-    function setFeeModule(address _feeModule) external;
+    /// @notice Updates the swapFeeModule of the factory
+    /// @dev Must be called by the current swap fee manager
+    /// @param _swapFeeModule The new swapFeeModule of the factory
+    function setSwapFeeModule(address _swapFeeModule) external;
+
+    /// @notice Updates the unstakedFeeManager of the factory
+    /// @dev Must be called by the current unstaked fee manager
+    /// @param _unstakedFeeManager The new unstakedFeeManager of the factory
+    function setUnstakedFeeManager(address _unstakedFeeManager) external;
+
+    /// @notice Updates the unstakedFeeModule of the factory
+    /// @dev Must be called by the current unstaked fee manager
+    /// @param _unstakedFeeModule The new unstakedFeeModule of the factory
+    function setUnstakedFeeModule(address _unstakedFeeModule) external;
 
     /// @notice Enables a certain tickSpacing
     /// @dev Tick spacings may never be removed once enabled

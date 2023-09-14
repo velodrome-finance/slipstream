@@ -17,9 +17,13 @@ contract UniswapV3Factory is IUniswapV3Factory {
     /// @inheritdoc IUniswapV3Factory
     address public override owner;
     /// @inheritdoc IUniswapV3Factory
-    address public override feeManager;
+    address public override swapFeeManager;
     /// @inheritdoc IUniswapV3Factory
-    address public override feeModule;
+    address public override swapFeeModule;
+    /// @inheritdoc IUniswapV3Factory
+    address public override unstakedFeeManager;
+    /// @inheritdoc IUniswapV3Factory
+    address public override unstakedFeeModule;
     /// @inheritdoc IUniswapV3Factory
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc IUniswapV3Factory
@@ -31,23 +35,25 @@ contract UniswapV3Factory is IUniswapV3Factory {
 
     constructor(address _voter, address _implementation) {
         owner = msg.sender;
-        feeManager = msg.sender;
+        swapFeeManager = msg.sender;
+        unstakedFeeManager = msg.sender;
         voter = IVoter(_voter);
         implementation = _implementation;
         emit OwnerChanged(address(0), msg.sender);
-        emit FeeManagerChanged(address(0), msg.sender);
+        emit SwapFeeManagerChanged(address(0), msg.sender);
+        emit UnstakedFeeManagerChanged(address(0), msg.sender);
 
         // TODO: tick spacing values are placeholders
         // currently using 3x uniswap defaults as placeholders
-        tickSpacingToFee[30] = 500;
+        tickSpacingToFee[30] = 5;
         _tickSpacings.push(30);
-        emit TickSpacingEnabled(30, 500);
-        tickSpacingToFee[180] = 3000;
+        emit TickSpacingEnabled(30, 5);
+        tickSpacingToFee[180] = 30;
         _tickSpacings.push(180);
-        emit TickSpacingEnabled(180, 3000);
-        tickSpacingToFee[600] = 10_000;
+        emit TickSpacingEnabled(180, 30);
+        tickSpacingToFee[600] = 100;
         _tickSpacings.push(600);
-        emit TickSpacingEnabled(600, 10_000);
+        emit TickSpacingEnabled(600, 100);
     }
 
     /// @inheritdoc IUniswapV3Factory
@@ -83,36 +89,64 @@ contract UniswapV3Factory is IUniswapV3Factory {
     }
 
     /// @inheritdoc IUniswapV3Factory
-    function setFeeManager(address _feeManager) external override {
-        require(msg.sender == feeManager);
-        require(_feeManager != address(0));
-        address oldFeeManager = feeManager;
-        feeManager = _feeManager;
-        emit FeeManagerChanged(oldFeeManager, _feeManager);
+    function setSwapFeeManager(address _swapFeeManager) external override {
+        require(msg.sender == swapFeeManager);
+        require(_swapFeeManager != address(0));
+        address oldFeeManager = swapFeeManager;
+        swapFeeManager = _swapFeeManager;
+        emit SwapFeeManagerChanged(oldFeeManager, _swapFeeManager);
     }
 
     /// @inheritdoc IUniswapV3Factory
-    function setFeeModule(address _feeModule) external override {
-        require(msg.sender == feeManager);
-        require(_feeModule != address(0));
-        address oldFeeModule = feeModule;
-        feeModule = _feeModule;
-        emit FeeModuleChanged(oldFeeModule, _feeModule);
+    function setUnstakedFeeManager(address _unstakedFeeManager) external override {
+        require(msg.sender == unstakedFeeManager);
+        require(_unstakedFeeManager != address(0));
+        address oldFeeManager = unstakedFeeManager;
+        unstakedFeeManager = _unstakedFeeManager;
+        emit UnstakedFeeManagerChanged(oldFeeManager, _unstakedFeeManager);
     }
 
     /// @inheritdoc IUniswapV3Factory
-    function getFee(address pool) external view override returns (uint24) {
-        if (feeModule != address(0)) {
-            return IFeeModule(feeModule).getFee(pool);
+    function setSwapFeeModule(address _swapFeeModule) external override {
+        require(msg.sender == swapFeeManager);
+        require(_swapFeeModule != address(0));
+        address oldFeeModule = swapFeeModule;
+        swapFeeModule = _swapFeeModule;
+        emit SwapFeeModuleChanged(oldFeeModule, _swapFeeModule);
+    }
+
+    /// @inheritdoc IUniswapV3Factory
+    function setUnstakedFeeModule(address _unstakedFeeModule) external override {
+        require(msg.sender == unstakedFeeManager);
+        require(_unstakedFeeModule != address(0));
+        address oldFeeModule = unstakedFeeModule;
+        unstakedFeeModule = _unstakedFeeModule;
+        emit UnstakedFeeModuleChanged(oldFeeModule, _unstakedFeeModule);
+    }
+
+    /// @inheritdoc IUniswapV3Factory
+    function getSwapFee(address pool) external view override returns (uint24) {
+        if (swapFeeModule != address(0)) {
+            return IFeeModule(swapFeeModule).getFee(pool);
         } else {
             return tickSpacingToFee[UniswapV3Pool(pool).tickSpacing()];
         }
     }
 
     /// @inheritdoc IUniswapV3Factory
+    function getUnstakedFee(address pool) external view override returns (uint24) {
+        if (unstakedFeeModule != address(0)) {
+            return IFeeModule(unstakedFeeModule).getFee(pool);
+        } else {
+            // Default unstaked fee is 10%
+            return 1_000;
+        }
+    }
+
+    /// @inheritdoc IUniswapV3Factory
     function enableTickSpacing(int24 tickSpacing, uint24 fee) public override {
         require(msg.sender == owner);
-        require(fee < 1000000);
+        require(fee <= 100);
         // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
         // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
         // 16384 ticks represents a >5x price change with ticks of 1 bips

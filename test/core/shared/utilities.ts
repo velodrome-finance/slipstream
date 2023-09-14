@@ -19,9 +19,9 @@ export const MIN_SQRT_RATIO = BigNumber.from('4295128739')
 export const MAX_SQRT_RATIO = BigNumber.from('1461446703485210103287273052203988822378723970342')
 
 export enum FeeAmount {
-  LOW = 500,
-  MEDIUM = 3000,
-  HIGH = 10000,
+  LOW = 5,
+  MEDIUM = 30,
+  HIGH = 100,
 }
 
 export const TICK_SPACINGS: { [amount in FeeAmount]: number } = {
@@ -172,15 +172,15 @@ export function createPoolFunctions({
     if (typeof pay0 === 'undefined') {
       pay0 = BigNumber.from(amount0)
         .mul(fee)
-        .add(1e6 - 1)
-        .div(1e6)
+        .add(1e4 - 1)
+        .div(1e4)
         .add(amount0)
     }
     if (typeof pay1 === 'undefined') {
       pay1 = BigNumber.from(amount1)
         .mul(fee)
-        .add(1e6 - 1)
-        .div(1e6)
+        .add(1e4 - 1)
+        .div(1e4)
         .add(amount1)
     }
     return swapTarget.flash(pool.address, typeof to === 'string' ? to : to.address, amount0, amount1, pay0, pay1)

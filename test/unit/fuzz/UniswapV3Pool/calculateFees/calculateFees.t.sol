@@ -22,6 +22,10 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         pool = UniswapV3Pool(
             poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
+
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);
@@ -130,12 +134,12 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         uint256 swapAmount3,
         uint256 swapAmount4
     ) public {
-        swapAmount1 = bound(swapAmount1, TOKEN_1, TOKEN_1 * 1000);
-        swapAmount2 = bound(swapAmount2, TOKEN_1, TOKEN_1 * 1000);
-        swapAmount3 = bound(swapAmount3, TOKEN_1, TOKEN_1 * 1000);
-        swapAmount4 = bound(swapAmount4, TOKEN_1, TOKEN_1 * 1000);
+        swapAmount1 = bound(swapAmount1, TOKEN_1, TOKEN_1 * 1_000);
+        swapAmount2 = bound(swapAmount2, TOKEN_1, TOKEN_1 * 1_000);
+        swapAmount3 = bound(swapAmount3, TOKEN_1, TOKEN_1 * 1_000);
+        swapAmount4 = bound(swapAmount4, TOKEN_1, TOKEN_1 * 1_000);
 
-        uint256 liquidity = TOKEN_1 * 10000;
+        uint256 liquidity = TOKEN_1 * 10_000;
 
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(liquidity, liquidity, users.alice);
 
@@ -150,7 +154,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), swapAmount1, users.alice, MIN_SQRT_RATIO + 1);
 
-        uint256 fee = FullMath.mulDiv(swapAmount1, 3000, 1e6);
+        uint256 fee = FullMath.mulDiv(swapAmount1, 30, 1e4);
 
         feeGrowthGlobal0X128 += calculateFeeGrowthX128(fee / 2, liquidity);
         assertFees(fee / 2, 0, feeGrowthGlobal0X128, 0);
@@ -160,7 +164,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), swapAmount2, users.alice, MIN_SQRT_RATIO + 1);
 
-        uint256 fee2 = FullMath.mulDiv(swapAmount2, 3000, 1e6);
+        uint256 fee2 = FullMath.mulDiv(swapAmount2, 30, 1e4);
 
         feeGrowthGlobal0X128 += calculateFeeGrowthX128(fee2, liquidity * 2);
         assertFees(fee / 2, 0, feeGrowthGlobal0X128, 0);
@@ -168,7 +172,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token1
         uniswapV3Callee.swapExact1For0(address(pool), swapAmount3, users.alice, MAX_SQRT_RATIO - 1);
 
-        uint256 fee3 = FullMath.mulDiv(swapAmount3, 3000, 1e6);
+        uint256 fee3 = FullMath.mulDiv(swapAmount3, 30, 1e4);
 
         feeGrowthGlobal1X128 += calculateFeeGrowthX128(fee3, liquidity * 2);
         assertFees(fee / 2, 0, feeGrowthGlobal0X128, feeGrowthGlobal1X128);
@@ -188,7 +192,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token1
         uniswapV3Callee.swapExact1For0(address(pool), swapAmount4, users.alice, MAX_SQRT_RATIO - 1);
 
-        uint256 fee4 = FullMath.mulDiv(swapAmount4, 3000, 1e6);
+        uint256 fee4 = FullMath.mulDiv(swapAmount4, 30, 1e4);
 
         feeGrowthGlobal1X128 += calculateFeeGrowthX128(fee4 / 2, liquidity);
 
@@ -238,10 +242,10 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         FuzzData memory fd = FuzzData(0, 0, 0, 0, 0, 0);
         fd.liquidity1 = bound(liquidity1, TOKEN_1 * 10, type(uint64).max);
         fd.liquidity2 = bound(liquidity2, TOKEN_1 * 10, type(uint64).max);
-        fd.swapAmount1 = bound(swapAmount1, 10000, 100000);
-        fd.swapAmount2 = bound(swapAmount2, 10000, 100000);
-        fd.swapAmount3 = bound(swapAmount3, 10000, 100000);
-        fd.swapAmount4 = bound(swapAmount4, 10000, 100000);
+        fd.swapAmount1 = bound(swapAmount1, 10_000, 100_000);
+        fd.swapAmount2 = bound(swapAmount2, 10_000, 100_000);
+        fd.swapAmount3 = bound(swapAmount3, 10_000, 100_000);
+        fd.swapAmount4 = bound(swapAmount4, 10_000, 100_000);
 
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(fd.liquidity1, fd.liquidity1, users.alice);
@@ -255,10 +259,10 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         FeeGrowth memory fg = FeeGrowth(0, 0);
 
         Fees memory fees = Fees(0, 0, 0, 0);
-        fees.fee1 = FullMath.mulDivRoundingUp(fd.swapAmount1, 3000, 1e6 - 3000);
-        fees.fee2 = FullMath.mulDivRoundingUp(fd.swapAmount2, 3000, 1e6 - 3000);
-        fees.fee3 = FullMath.mulDivRoundingUp(fd.swapAmount3, 3000, 1e6 - 3000);
-        fees.fee4 = FullMath.mulDivRoundingUp(fd.swapAmount4, 3000, 1e6 - 3000);
+        fees.fee1 = FullMath.mulDivRoundingUp(fd.swapAmount1, 30, 1e4 - 30);
+        fees.fee2 = FullMath.mulDivRoundingUp(fd.swapAmount2, 30, 1e4 - 30);
+        fees.fee3 = FullMath.mulDivRoundingUp(fd.swapAmount3, 30, 1e4 - 30);
+        fees.fee4 = FullMath.mulDivRoundingUp(fd.swapAmount4, 30, 1e4 - 30);
 
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), fd.swapAmount1, users.alice, MIN_SQRT_RATIO + 1);

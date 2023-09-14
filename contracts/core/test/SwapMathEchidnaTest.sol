@@ -14,7 +14,7 @@ contract SwapMathEchidnaTest {
         require(sqrtPriceRaw > 0);
         require(sqrtPriceTargetRaw > 0);
         require(feePips > 0);
-        require(feePips < 1e6);
+        require(feePips < 1e4);
 
         (uint160 sqrtQ, uint256 amountIn, uint256 amountOut, uint256 feeAmount) =
             SwapMath.computeSwapStep(sqrtPriceRaw, sqrtPriceTargetRaw, liquidity, amountRemaining, feePips);

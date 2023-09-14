@@ -23,6 +23,9 @@ contract FlashTest is UniswapV3PoolTest {
 
         gauge = CLGauge(voter.gauges(address(pool)));
 
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+
         vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
@@ -208,17 +211,133 @@ contract FlashTest is UniswapV3PoolTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        uint256 pay1 = 4000;
+        uint256 pay1 = 4_000;
         uint256 pay2 = 8844;
 
         uniswapV3Callee.flash(address(pool), users.alice, 0, 0, pay1, pay2);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
-        assertEq(_token0, 2000);
+        assertEq(_token0, 2_000);
         assertEq(_token1, 4422);
 
-        uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(2000, Q128, TOKEN_1);
+        uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(2_000, Q128, TOKEN_1);
         uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(4422, Q128, TOKEN_1);
+
+        assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
+        assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);
+    }
+
+    // Positions partially staked with unstaked fee != 0
+
+    function test_FlashIncreasesGaugeFeesByExpectedAmountPositionsPartiallyStakedUnstakedFeeIs15() public {
+        vm.stopPrank();
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        vm.startPrank(users.alice);
+
+        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // fee is 0.003
+        uint256 pay1 = TOKEN_1 + 3e15;
+        // fee is 0.006
+        uint256 pay2 = TOKEN_1 * 2 + 6e15;
+
+        uniswapV3Callee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1 * 2, pay1, pay2);
+
+        (uint256 _token0, uint256 _token1) = pool.gaugeFees();
+        assertEq(_token0, 1725e12);
+        assertEq(_token1, 345e13);
+
+        uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(1275e12, Q128, TOKEN_1);
+        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(255e13, Q128, TOKEN_1);
+
+        assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
+        assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);
+    }
+
+    function test_FlashAllowsDonatingToken0PositionsPartiallyStakedUnstakedFeeIs15() public {
+        vm.stopPrank();
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        vm.startPrank(users.alice);
+
+        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 pay1 = 1_000;
+
+        uniswapV3Callee.flash(address(pool), users.alice, 0, 0, pay1, 0);
+
+        (uint256 _token0, uint256 _token1) = pool.gaugeFees();
+        assertEq(_token0, 575);
+        assertEq(_token1, 0);
+
+        uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(425, Q128, TOKEN_1);
+
+        assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
+        assertEq(pool.feeGrowthGlobal1X128(), 0);
+    }
+
+    function test_FlashAllowsDonatingToken1PositionsPartiallyStakedUnstakedFeeIs15() public {
+        vm.stopPrank();
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        vm.startPrank(users.alice);
+
+        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 pay2 = 9_000;
+
+        uniswapV3Callee.flash(address(pool), users.alice, 0, 0, 0, pay2);
+
+        (uint256 _token0, uint256 _token1) = pool.gaugeFees();
+        assertEq(_token0, 0);
+        assertEq(_token1, 5175);
+
+        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(3825, Q128, TOKEN_1);
+
+        assertEq(pool.feeGrowthGlobal0X128(), 0);
+        assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);
+    }
+
+    function test_FlashAllowsDonatingToken0AndToken1PositionsPartiallyStakedUnstakedFeeIs15() public {
+        vm.stopPrank();
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        vm.startPrank(users.alice);
+
+        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 pay1 = 40_000;
+        uint256 pay2 = 88440;
+
+        uniswapV3Callee.flash(address(pool), users.alice, 0, 0, pay1, pay2);
+
+        (uint256 _token0, uint256 _token1) = pool.gaugeFees();
+        assertEq(_token0, 23_000);
+        assertEq(_token1, 50853);
+
+        uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(17_000, Q128, TOKEN_1);
+        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(37587, Q128, TOKEN_1);
 
         assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
         assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);

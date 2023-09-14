@@ -20,6 +20,10 @@ contract CalculateFeesTest is UniswapV3PoolTest {
         pool = UniswapV3Pool(
             poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
+
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);
@@ -283,7 +287,7 @@ contract CalculateFeesTest is UniswapV3PoolTest {
             sqrtRatioAX96
         );
 
-        uint256 feeInStakedRange = FullMath.mulDivRoundingUp(amountIn, 3000, 1e6 - 3000);
+        uint256 feeInStakedRange = FullMath.mulDivRoundingUp(amountIn, 30, 1e4 - 30);
 
         uint256 feeGrowthGlobal0X128InStakedRange = calculateFeeGrowthX128(feeInStakedRange / 2, liquidity);
 
@@ -296,7 +300,7 @@ contract CalculateFeesTest is UniswapV3PoolTest {
         (sqrtRatioAX96,,,,,) = pool.slot0();
 
         // add 1 to get full precision
-        uint256 totalFeeOnSwap = FullMath.mulDivRoundingUp(86e16, 3000, 1e6) + 1;
+        uint256 totalFeeOnSwap = FullMath.mulDivRoundingUp(86e16, 30, 1e4) + 1;
 
         // // swapping 86e16 puts back the price into the range where both positions are active
         uniswapV3Callee.swapExact1For0(address(pool), 86e16, users.alice, MAX_SQRT_RATIO - 1);
@@ -308,7 +312,7 @@ contract CalculateFeesTest is UniswapV3PoolTest {
         // liquidity * (sqrt(upper) - sqrt(lower))
         amountIn = FullMath.mulDivRoundingUp(liquidity, sqrtRatioBX96 - sqrtRatioAX96, Q96);
 
-        uint256 feeInUnStakedRange = FullMath.mulDivRoundingUp(amountIn, 3000, 1e6 - 3000);
+        uint256 feeInUnStakedRange = FullMath.mulDivRoundingUp(amountIn, 30, 1e4 - 30);
 
         uint256 feeGrowthGlobal1X128InUnStakedRange = calculateFeeGrowthX128(feeInUnStakedRange, liquidity);
 

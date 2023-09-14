@@ -19,7 +19,7 @@ contract MediumFeeToken0LiquidityOnlyTest is UniswapV3PoolSwapTest {
 
         uint128 liquidity = 2e18;
 
-        positions.push(Position({tickLower: -2000 * tickSpacing, tickUpper: 0, liquidity: liquidity}));
+        positions.push(Position({tickLower: -2_000 * tickSpacing, tickUpper: 0, liquidity: liquidity}));
 
         uniswapV3Callee.mint(pool, users.alice, positions[0].tickLower, positions[0].tickUpper, positions[0].liquidity);
 

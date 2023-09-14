@@ -33,13 +33,13 @@ const createFixtureLoader = waffle.createFixtureLoader
 
 Decimal.config({ toExpNeg: -500, toExpPos: 500 })
 
-function applySqrtRatioBipsHundredthsDelta(sqrtRatio: BigNumber, bipsHundredths: number): BigNumber {
+function applySqrtRatioBipsDelta(sqrtRatio: BigNumber, bips: number): BigNumber {
   return BigNumber.from(
     new Decimal(
       sqrtRatio
         .mul(sqrtRatio)
-        .mul(1e6 + bipsHundredths)
-        .div(1e6)
+        .mul(1e4 + bips)
+        .div(1e4)
         .toString()
     )
       .sqrt()
@@ -202,14 +202,12 @@ describe('UniswapV3Pool arbitrage tests', () => {
 
                 const firstTickAboveMarginalPrice = zeroForOne
                   ? Math.ceil(
-                      (await tickMath.getTickAtSqrtRatio(
-                        applySqrtRatioBipsHundredthsDelta(executionPrice, feeAmount)
-                      )) / tickSpacing
+                      (await tickMath.getTickAtSqrtRatio(applySqrtRatioBipsDelta(executionPrice, feeAmount))) /
+                        tickSpacing
                     ) * tickSpacing
                   : Math.floor(
-                      (await tickMath.getTickAtSqrtRatio(
-                        applySqrtRatioBipsHundredthsDelta(executionPrice, -feeAmount)
-                      )) / tickSpacing
+                      (await tickMath.getTickAtSqrtRatio(applySqrtRatioBipsDelta(executionPrice, -feeAmount))) /
+                        tickSpacing
                     ) * tickSpacing
                 const tickAfterFirstTickAboveMarginPrice = zeroForOne
                   ? firstTickAboveMarginalPrice - tickSpacing
@@ -279,8 +277,8 @@ describe('UniswapV3Pool arbitrage tests', () => {
 
                 // backrun the swap to true price, i.e. swap to the marginal price = true price
                 const priceToSwapTo = zeroForOne
-                  ? applySqrtRatioBipsHundredthsDelta(assumedTruePriceAfterSwap, -feeAmount)
-                  : applySqrtRatioBipsHundredthsDelta(assumedTruePriceAfterSwap, feeAmount)
+                  ? applySqrtRatioBipsDelta(assumedTruePriceAfterSwap, -feeAmount)
+                  : applySqrtRatioBipsDelta(assumedTruePriceAfterSwap, feeAmount)
                 const {
                   amount0Delta: backrunDelta0,
                   amount1Delta: backrunDelta1,
@@ -335,8 +333,8 @@ describe('UniswapV3Pool arbitrage tests', () => {
 
                 // swap to the marginal price = true price
                 const priceToSwapTo = zeroForOne
-                  ? applySqrtRatioBipsHundredthsDelta(assumedTruePriceAfterSwap, -feeAmount)
-                  : applySqrtRatioBipsHundredthsDelta(assumedTruePriceAfterSwap, feeAmount)
+                  ? applySqrtRatioBipsDelta(assumedTruePriceAfterSwap, -feeAmount)
+                  : applySqrtRatioBipsDelta(assumedTruePriceAfterSwap, feeAmount)
                 const {
                   amount0Delta: backrunDelta0,
                   amount1Delta: backrunDelta1,

@@ -26,6 +26,7 @@ import {Users} from "./utils/Users.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
+import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 
 abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     UniswapV3Factory public poolFactory;
@@ -51,6 +52,8 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     TestUniswapV3Callee public uniswapV3Callee;
     NFTManagerCallee public nftCallee;
 
+    CustomUnstakedFeeModule public customUnstakedFeeModule;
+
     function setUp() public virtual {
         users = Users({
             owner: createUser("Owner"),
@@ -71,9 +74,9 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             _implementation: address(poolImplementation)
         });
         // backward compatibility with the original uniV3 fee structure and tick spacing
-        poolFactory.enableTickSpacing(10, 500);
-        poolFactory.enableTickSpacing(60, 3000);
-        poolFactory.enableTickSpacing(200, 10000);
+        poolFactory.enableTickSpacing(10, 5);
+        poolFactory.enableTickSpacing(60, 30);
+        poolFactory.enableTickSpacing(200, 100);
 
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),
@@ -103,7 +106,12 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
 
         // transfer residual permissions
         poolFactory.setOwner(users.owner);
-        poolFactory.setFeeManager(users.feeManager);
+        poolFactory.setSwapFeeManager(users.feeManager);
+        poolFactory.setUnstakedFeeManager(users.feeManager);
+
+        customUnstakedFeeModule = new CustomUnstakedFeeModule(address(poolFactory));
+        vm.prank(users.feeManager);
+        poolFactory.setUnstakedFeeModule(address(customUnstakedFeeModule));
 
         ERC20 tokenA = new ERC20("", "");
         ERC20 tokenB = new ERC20("", "");
@@ -175,10 +183,11 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.label({account: address(token1), newLabel: "Token 1"});
         vm.label({account: address(rewardToken), newLabel: "Reward Token"});
         vm.label({account: address(gaugeFactory), newLabel: "Gauge Factory"});
+        vm.label({account: address(customUnstakedFeeModule), newLabel: "Custom Unstaked Fee Module"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {
         user = payable(makeAddr({name: name}));
-        vm.deal({account: user, newBalance: TOKEN_1 * 1000});
+        vm.deal({account: user, newBalance: TOKEN_1 * 1_000});
     }
 }

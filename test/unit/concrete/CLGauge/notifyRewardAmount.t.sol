@@ -19,6 +19,10 @@ contract NotifyRewardAmountTest is CLGaugeTest {
             poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+
         gauge = CLGauge(voter.gauges(address(pool)));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 

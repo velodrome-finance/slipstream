@@ -52,9 +52,9 @@ const v3CoreFactoryFixture: Fixture<IUniswapV3Factory> = async ([wallet]) => {
   )
 
   // backwards compatible with v3-periphery tests
-  await factory['enableTickSpacing(int24,uint24)'](10, 500)
-  await factory['enableTickSpacing(int24,uint24)'](60, 3000)
-  await factory['enableTickSpacing(int24,uint24)'](200, 10_000)
+  await factory['enableTickSpacing(int24,uint24)'](10, 5)
+  await factory['enableTickSpacing(int24,uint24)'](60, 30)
+  await factory['enableTickSpacing(int24,uint24)'](200, 100)
   return factory
 }
 

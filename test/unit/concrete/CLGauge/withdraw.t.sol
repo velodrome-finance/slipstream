@@ -16,6 +16,10 @@ contract WithdrawTest is CLGaugeTest {
         pool = UniswapV3Pool(
             poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
         );
+
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);

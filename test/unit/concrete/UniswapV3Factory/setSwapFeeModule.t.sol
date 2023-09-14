@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import {UniswapV3FactoryTest} from "./UniswapV3Factory.t.sol";
 
-contract SetFeeManagerTest is UniswapV3FactoryTest {
+contract SetSwapFeeModule is UniswapV3FactoryTest {
     function setUp() public override {
         super.setUp();
 
@@ -13,19 +13,19 @@ contract SetFeeManagerTest is UniswapV3FactoryTest {
     function test_RevertIf_NotFeeManager() public {
         vm.expectRevert();
         changePrank({msgSender: users.charlie});
-        poolFactory.setFeeManager({_feeManager: users.charlie});
+        poolFactory.setSwapFeeModule({_swapFeeModule: users.charlie});
     }
 
     function test_RevertIf_ZeroAddress() public {
         vm.expectRevert();
-        poolFactory.setFeeManager({_feeManager: address(0)});
+        poolFactory.setSwapFeeModule({_swapFeeModule: address(0)});
     }
 
-    function test_SetFeeManager() public {
+    function test_SetSwapFeeModule() public {
         vm.expectEmit(true, true, false, false, address(poolFactory));
-        emit FeeManagerChanged({oldFeeManager: users.feeManager, newFeeManager: users.alice});
-        poolFactory.setFeeManager({_feeManager: users.alice});
+        emit SwapFeeModuleChanged({oldFeeModule: address(0), newFeeModule: users.alice});
+        poolFactory.setSwapFeeModule({_swapFeeModule: users.alice});
 
-        assertEq(poolFactory.feeManager(), users.alice);
+        assertEq(poolFactory.swapFeeModule(), users.alice);
     }
 }

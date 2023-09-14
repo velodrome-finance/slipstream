@@ -281,7 +281,7 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
         string memory swapName = "swap_exactly_0point0000000000000010000_token0_for_token1";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
 
-        uint256 amount0 = 1000;
+        uint256 amount0 = 1_000;
         uint160 sqrtPriceLimitX96 = MIN_SQRT_RATIO + 1;
 
         vm.recordLogs();
@@ -305,7 +305,7 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
         string memory swapName = "swap_exactly_0point0000000000000010000_token1_for_token0";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
 
-        uint256 amount1 = 1000;
+        uint256 amount1 = 1_000;
         uint160 sqrtPriceLimitX96 = MAX_SQRT_RATIO - 1;
 
         vm.recordLogs();
@@ -329,7 +329,7 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
         string memory swapName = "swap_token0_for_exactly_0point0000000000000010000_token1";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
 
-        uint256 amount1 = 1000;
+        uint256 amount1 = 1_000;
         uint160 sqrtPriceLimitX96 = MIN_SQRT_RATIO + 1;
 
         vm.recordLogs();
@@ -353,7 +353,7 @@ contract UniswapV3PoolSwapTest is UniswapV3PoolTest {
         string memory swapName = "swap_token1_for_exactly_0point0000000000000010000_token0";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
 
-        uint256 amount0 = 1000;
+        uint256 amount0 = 1_000;
         uint160 sqrtPriceLimitX96 = MAX_SQRT_RATIO - 1;
 
         vm.recordLogs();

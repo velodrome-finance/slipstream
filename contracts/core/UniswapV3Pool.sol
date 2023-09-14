@@ -149,7 +149,11 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     function fee() public view override returns (uint24) {
-        return IUniswapV3Factory(factory).getFee(address(this));
+        return IUniswapV3Factory(factory).getSwapFee(address(this));
+    }
+
+    function unstakedFee() public view override returns (uint24) {
+        return IUniswapV3Factory(factory).getUnstakedFee(address(this));
     }
 
     /// @dev Common checks for valid tick inputs.
@@ -818,8 +822,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint128 _liquidity = liquidity;
         require(_liquidity > 0, "L");
 
-        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee(), 1e6);
-        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee(), 1e6);
+        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee(), 1e4);
+        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee(), 1e4);
         uint256 balance0Before = balance0();
         uint256 balance1Before = balance1();
 
@@ -898,18 +902,22 @@ contract UniswapV3Pool is IUniswapV3Pool {
     // calculates the fee for staked & unstaked liquidity
     function splitFees(uint256 feeAmount, uint128 _liquidity, uint128 _stakedLiquidity)
         internal
-        pure
+        view
         returns (uint256 unstakedFeeAmount, uint256 stakedFeeAmount)
     {
         // Protocol takes 100% fees for staked liquidity
         stakedFeeAmount = FullMath.mulDiv(feeAmount, _stakedLiquidity, _liquidity);
         unstakedFeeAmount = feeAmount - stakedFeeAmount;
+        // There is an unstaked fee for regular LPers
+        uint256 _unstakedFee = unstakedFeeAmount * unstakedFee() / 10_000;
+        unstakedFeeAmount -= _unstakedFee;
+        stakedFeeAmount += _unstakedFee;
     }
 
     // calculates the fee growths for unstaked liquidity and returns it with the staked fee amount
     function calculateFees(uint256 feeAmount, uint128 _liquidity, uint128 _stakedLiquidity)
         internal
-        pure
+        view
         returns (uint256 feeGrowthGlobalX128, uint256 stakedFeeAmount)
     {
         // if there is only staked liquidity
