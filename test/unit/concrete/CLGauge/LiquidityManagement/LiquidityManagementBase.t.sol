@@ -16,6 +16,9 @@ contract LiquidityManagementBase is CLGaugeTest {
 
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
+        vm.prank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+
         gauge = CLGauge(voter.gauges(address(pool)));
 
         vm.startPrank(users.alice);

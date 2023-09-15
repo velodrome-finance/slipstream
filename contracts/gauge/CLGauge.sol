@@ -152,7 +152,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
 
-        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper);
+        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper, true);
 
         emit Deposit(msg.sender, tokenId, liquidityToStake);
     }
@@ -174,7 +174,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
         _getReward(tickLower, tickUpper, liquidityToStake, tokenId, msg.sender);
 
-        pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper);
+        pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper, true);
 
         _stakes[msg.sender].remove(tokenId);
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
@@ -182,7 +182,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         emit Withdraw(msg.sender, tokenId, liquidityToStake);
     }
 
-    // TODO need to be updated, currently not working properly
     /// @inheritdoc ICLGauge
     function increaseStakedLiquidity(
         uint256 tokenId,
@@ -216,7 +215,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         );
 
         (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
-        pool.stake(liquidity.toInt128(), tickLower, tickUpper);
+        pool.stake(liquidity.toInt128(), tickLower, tickUpper, false);
 
         uint256 amount0Surplus = amount0Desired - amount0;
         uint256 amount1Surplus = amount1Desired - amount1;
@@ -229,7 +228,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         }
     }
 
-    // TODO need to be updated, currently not working properly
     /// @inheritdoc ICLGauge
     function decreaseStakedLiquidity(
         uint256 tokenId,
@@ -251,7 +249,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         );
 
         (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
-        pool.stake(-liquidity.toInt128(), tickLower, tickUpper);
+        pool.stake(-liquidity.toInt128(), tickLower, tickUpper, false);
 
         nft.collect(
             INonfungiblePositionManager.CollectParams({

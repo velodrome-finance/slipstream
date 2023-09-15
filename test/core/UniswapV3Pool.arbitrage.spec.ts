@@ -262,10 +262,9 @@ describe('UniswapV3Pool arbitrage tests', () => {
                 arbBalance1 = arbBalance1.add(amount1Burn)
 
                 // add the fees as well
-                const {
-                  amount0: amount0CollectAndBurn,
-                  amount1: amount1CollectAndBurn,
-                } = await pool.callStatic.collect(arbitrageur.address, tickLower, tickUpper, MaxUint128, MaxUint128)
+                const { amount0: amount0CollectAndBurn, amount1: amount1CollectAndBurn } = await pool.callStatic[
+                  'collect(address,int24,int24,uint128,uint128)'
+                ](arbitrageur.address, tickLower, tickUpper, MaxUint128, MaxUint128)
                 const [amount0Collect, amount1Collect] = [
                   amount0CollectAndBurn.sub(amount0Burn),
                   amount1CollectAndBurn.sub(amount1Burn),

@@ -131,12 +131,15 @@ contract NonfungiblePositionManager is
         checkDeadline(params.deadline)
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
     {
-        IUniswapV3Pool pool;
-        (liquidity, amount0, amount1, pool) = addLiquidity(
+        PoolAddress.PoolKey memory poolKey =
+            PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing});
+
+        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+
+        (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
-                token0: params.token0,
-                token1: params.token1,
-                tickSpacing: params.tickSpacing,
+                poolAddress: address(pool),
+                poolKey: poolKey,
                 recipient: address(this),
                 tickLower: params.tickLower,
                 tickUpper: params.tickUpper,
@@ -153,10 +156,7 @@ contract NonfungiblePositionManager is
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
 
         // idempotent set
-        uint80 poolId = cachePoolKey(
-            address(pool),
-            PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing})
-        );
+        uint80 poolId = cachePoolKey(address(pool), poolKey);
 
         _positions[tokenId] = Position({
             nonce: 0,
@@ -199,26 +199,28 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
-        IUniswapV3Pool pool;
-        (liquidity, amount0, amount1, pool) = addLiquidity(
+        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+
+        address _gauge = pool.gauge();
+        bool isStaked = ownerOf(params.tokenId) == _gauge;
+        if (isStaked) require(msg.sender == _gauge, "NG");
+
+        (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
-                token0: poolKey.token0,
-                token1: poolKey.token1,
-                tickSpacing: poolKey.tickSpacing,
+                poolAddress: address(pool),
+                poolKey: poolKey,
                 tickLower: position.tickLower,
                 tickUpper: position.tickUpper,
                 amount0Desired: params.amount0Desired,
                 amount1Desired: params.amount1Desired,
                 amount0Min: params.amount0Min,
                 amount1Min: params.amount1Min,
-                recipient: address(this)
+                recipient: isStaked ? _gauge : address(this)
             })
         );
 
-        bool isStaked = ownerOf(params.tokenId) == pool.gauge();
-        if (isStaked) require(msg.sender == pool.gauge(), "NG");
-
-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
+        bytes32 positionKey =
+            PositionKey.compute(isStaked ? _gauge : address(this), position.tickLower, position.tickUpper);
 
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
@@ -260,18 +262,25 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
         IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
-        (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
+
+        address _gauge = pool.gauge();
+        bool isStaked = ownerOf(params.tokenId) == _gauge;
+        if (!isStaked) {
+            (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity, address(this));
+        } else {
+            (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity, _gauge);
+        }
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");
 
-        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
+        bytes32 positionKey =
+            PositionKey.compute(isStaked ? _gauge : address(this), position.tickLower, position.tickUpper);
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
 
         position.tokensOwed0 += uint128(amount0);
         position.tokensOwed1 += uint128(amount1);
 
-        bool isStaked = ownerOf(params.tokenId) == pool.gauge();
         if (!isStaked) {
             position.tokensOwed0 += uint128(
                 FullMath.mulDiv(
@@ -321,7 +330,7 @@ contract NonfungiblePositionManager is
             uint256 feeGrowthInside0LastX128;
             uint256 feeGrowthInside1LastX128;
             if (!isStaked) {
-                pool.burn(position.tickLower, position.tickUpper, 0);
+                pool.burn(position.tickLower, position.tickUpper, 0, address(this));
 
                 (, feeGrowthInside0LastX128, feeGrowthInside1LastX128,,) =
                     pool.positions(PositionKey.compute(address(this), position.tickLower, position.tickUpper));
@@ -351,23 +360,27 @@ contract NonfungiblePositionManager is
             position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
         }
 
-        if (!isStaked) {
-            // compute the arguments to give to the pool#collect method
-            (uint128 amount0Collect, uint128 amount1Collect) = (
-                params.amount0Max > tokensOwed0 ? tokensOwed0 : params.amount0Max,
-                params.amount1Max > tokensOwed1 ? tokensOwed1 : params.amount1Max
-            );
+        // compute the arguments to give to the pool#collect method
+        (uint128 amount0Collect, uint128 amount1Collect) = (
+            params.amount0Max > tokensOwed0 ? tokensOwed0 : params.amount0Max,
+            params.amount1Max > tokensOwed1 ? tokensOwed1 : params.amount1Max
+        );
 
-            // the actual amounts collected are returned
-            (amount0, amount1) =
-                pool.collect(recipient, position.tickLower, position.tickUpper, amount0Collect, amount1Collect);
+        // the actual amounts collected are returned
+        (amount0, amount1) = pool.collect(
+            recipient,
+            position.tickLower,
+            position.tickUpper,
+            amount0Collect,
+            amount1Collect,
+            isStaked ? _gauge : address(this)
+        );
 
-            // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
-            // instead of the actual amount so we can burn the token
-            (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
+        // sometimes there will be a few less wei than expected due to rounding down in core, but we just subtract the full amount expected
+        // instead of the actual amount so we can burn the token
+        (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
 
-            emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
-        }
+        emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
     }
 
     /// @inheritdoc INonfungiblePositionManager

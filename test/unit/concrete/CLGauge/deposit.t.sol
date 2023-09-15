@@ -105,6 +105,14 @@ contract DepositTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, liquidity.toInt128());
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
+
+        (uint128 gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, liquidity);
+
+        (uint128 nftLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(nft), -TICK_SPACING_60, TICK_SPACING_60)));
+        assertEqUint(nftLiquidity, 0);
     }
 
     function test_DepositWithPositionRightOfCurrentPrice() public {
@@ -142,6 +150,14 @@ contract DepositTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, liquidity.toInt128());
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
+
+        (uint128 gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), TICK_SPACING_60, 2 * TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, liquidity);
+
+        (uint128 nftLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(nft), TICK_SPACING_60, 2 * TICK_SPACING_60)));
+        assertEqUint(nftLiquidity, 0);
     }
 
     function test_DepositWithPositionLeftOfCurrentPrice() public {
@@ -179,6 +195,14 @@ contract DepositTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, liquidity.toInt128());
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
+
+        (uint128 gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, liquidity);
+
+        (uint128 nftLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(nft), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
+        assertEqUint(nftLiquidity, 0);
     }
 
     function test_DepositCollectsAlreadyAccumulatedFees() public {
@@ -204,5 +228,15 @@ contract DepositTest is CLGaugeTest {
 
         assertApproxEqAbs(aliceBalanceAfter0 - aliceBalanceBefore0, 3e15, 1);
         assertApproxEqAbs(aliceBalanceAfter1 - aliceBalanceBefore1, 3e15, 1);
+
+        (uint128 gaugeLiquidity,,,,) = pool.positions(
+            keccak256(abi.encodePacked(address(gauge), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
+        );
+        assertEqUint(gaugeLiquidity, TOKEN_1 * 10);
+
+        (uint128 nftLiquidity,,,,) = pool.positions(
+            keccak256(abi.encodePacked(address(nft), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
+        );
+        assertEqUint(nftLiquidity, 0);
     }
 }

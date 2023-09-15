@@ -286,7 +286,15 @@ describe('UniswapV3Pool gas tests', () => {
           await mint(wallet.address, tickLower, tickUpper, expandTo18Decimals(1))
           await swapExact0For1(expandTo18Decimals(1).div(100), wallet.address)
           await pool['burn(int24,int24,uint128)'](tickLower, tickUpper, 0) // poke to accumulate fees
-          await snapshotGasCost(pool.collect(wallet.address, tickLower, tickUpper, MaxUint128, MaxUint128))
+          await snapshotGasCost(
+            pool['collect(address,int24,int24,uint128,uint128)'](
+              wallet.address,
+              tickLower,
+              tickUpper,
+              MaxUint128,
+              MaxUint128
+            )
+          )
         })
       })
 

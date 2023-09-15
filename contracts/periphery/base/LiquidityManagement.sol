@@ -31,9 +31,8 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
     }
 
     struct AddLiquidityParams {
-        address token0;
-        address token1;
-        int24 tickSpacing;
+        address poolAddress;
+        PoolAddress.PoolKey poolKey;
         address recipient;
         int24 tickLower;
         int24 tickUpper;
@@ -46,12 +45,9 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
     /// @notice Add liquidity to an initialized pool
     function addLiquidity(AddLiquidityParams memory params)
         internal
-        returns (uint128 liquidity, uint256 amount0, uint256 amount1, IUniswapV3Pool pool)
+        returns (uint128 liquidity, uint256 amount0, uint256 amount1)
     {
-        PoolAddress.PoolKey memory poolKey =
-            PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing});
-
-        pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        IUniswapV3Pool pool = IUniswapV3Pool(params.poolAddress);
 
         // compute the liquidity amount
         {
@@ -69,7 +65,7 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
             params.tickLower,
             params.tickUpper,
             liquidity,
-            abi.encode(MintCallbackData({poolKey: poolKey, payer: msg.sender}))
+            abi.encode(MintCallbackData({poolKey: params.poolKey, payer: msg.sender}))
         );
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");

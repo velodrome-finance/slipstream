@@ -276,7 +276,13 @@ describe('UniswapV3Pool', () => {
           it('removing works', async () => {
             await mint(wallet.address, -240, 0, 10000)
             await pool['burn(int24,int24,uint128)'](-240, 0, 10000)
-            const { amount0, amount1 } = await pool.callStatic.collect(wallet.address, -240, 0, MaxUint128, MaxUint128)
+            const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
+              wallet.address,
+              -240,
+              0,
+              MaxUint128,
+              MaxUint128
+            )
             expect(amount0, 'amount0').to.eq(120)
             expect(amount1, 'amount1').to.eq(0)
           })
@@ -393,7 +399,7 @@ describe('UniswapV3Pool', () => {
           it('removing works', async () => {
             await mint(wallet.address, minTick + tickSpacing, maxTick - tickSpacing, 100)
             await pool['burn(int24,int24,uint128)'](minTick + tickSpacing, maxTick - tickSpacing, 100)
-            const { amount0, amount1 } = await pool.callStatic.collect(
+            const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
               wallet.address,
               minTick + tickSpacing,
               maxTick - tickSpacing,
@@ -449,7 +455,7 @@ describe('UniswapV3Pool', () => {
           it('removing works', async () => {
             await mint(wallet.address, -46080, -46020, 10000)
             await pool['burn(int24,int24,uint128)'](-46080, -46020, 10000)
-            const { amount0, amount1 } = await pool.callStatic.collect(
+            const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
               wallet.address,
               -46080,
               -46020,
@@ -736,10 +742,16 @@ describe('UniswapV3Pool', () => {
       const token1BalanceBeforeWallet = await token1.balanceOf(wallet.address)
 
       await pool['burn(int24,int24,uint128)'](lowerTick, upperTick, 0)
-      await pool.collect(wallet.address, lowerTick, upperTick, MaxUint128, MaxUint128)
+      await pool['collect(address,int24,int24,uint128,uint128)'](
+        wallet.address,
+        lowerTick,
+        upperTick,
+        MaxUint128,
+        MaxUint128
+      )
 
       await pool['burn(int24,int24,uint128)'](lowerTick, upperTick, 0)
-      const { amount0: fees0, amount1: fees1 } = await pool.callStatic.collect(
+      const { amount0: fees0, amount1: fees1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
         wallet.address,
         lowerTick,
         upperTick,
@@ -847,7 +859,7 @@ describe('UniswapV3Pool', () => {
         .withArgs(wallet.address, 0, 120, expandTo18Decimals(1), 0, '6017734268818165')
         .to.not.emit(token0, 'Transfer')
         .to.not.emit(token1, 'Transfer')
-      await expect(pool.collect(wallet.address, 0, 120, MaxUint128, MaxUint128))
+      await expect(pool['collect(address,int24,int24,uint128,uint128)'](wallet.address, 0, 120, MaxUint128, MaxUint128))
         .to.emit(token1, 'Transfer')
         .withArgs(pool.address, wallet.address, BigNumber.from('6017734268818165').add('18107525382602')) // roughly 0.3% despite other liquidity
         .to.not.emit(token0, 'Transfer')
@@ -864,7 +876,9 @@ describe('UniswapV3Pool', () => {
         .withArgs(wallet.address, -120, 0, expandTo18Decimals(1), '6017734268818165', 0)
         .to.not.emit(token0, 'Transfer')
         .to.not.emit(token1, 'Transfer')
-      await expect(pool.collect(wallet.address, -120, 0, MaxUint128, MaxUint128))
+      await expect(
+        pool['collect(address,int24,int24,uint128,uint128)'](wallet.address, -120, 0, MaxUint128, MaxUint128)
+      )
         .to.emit(token0, 'Transfer')
         .withArgs(pool.address, wallet.address, BigNumber.from('6017734268818165').add('18107525382602')) // roughly 0.3% despite other liquidity
       expect((await pool.slot0()).tick).to.be.lt(-120)
@@ -948,7 +962,7 @@ describe('UniswapV3Pool', () => {
       it('token0', async () => {
         await swapExact0For1(expandTo18Decimals(1), wallet.address)
         await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-        const { amount0, amount1 } = await pool.callStatic.collect(
+        const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
           wallet.address,
           minTick,
           maxTick,
@@ -961,7 +975,7 @@ describe('UniswapV3Pool', () => {
       it('token1', async () => {
         await swapExact1For0(expandTo18Decimals(1), wallet.address)
         await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-        const { amount0, amount1 } = await pool.callStatic.collect(
+        const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
           wallet.address,
           minTick,
           maxTick,
@@ -975,7 +989,7 @@ describe('UniswapV3Pool', () => {
         await swapExact0For1(expandTo18Decimals(1), wallet.address)
         await swapExact1For0(expandTo18Decimals(1), wallet.address)
         await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-        const { amount0, amount1 } = await pool.callStatic.collect(
+        const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
           wallet.address,
           minTick,
           maxTick,
@@ -1432,7 +1446,7 @@ describe('UniswapV3Pool', () => {
       expect(feeGrowthGlobal0X128).to.eq(MaxUint128.shl(128))
       expect(feeGrowthGlobal1X128).to.eq(MaxUint128.shl(128))
       await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-      const { amount0, amount1 } = await pool.callStatic.collect(
+      const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
         wallet.address,
         minTick,
         maxTick,
@@ -1457,7 +1471,7 @@ describe('UniswapV3Pool', () => {
       expect(feeGrowthGlobal0X128).to.eq(0)
       expect(feeGrowthGlobal1X128).to.eq(0)
       await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-      const { amount0, amount1 } = await pool.callStatic.collect(
+      const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
         wallet.address,
         minTick,
         maxTick,
@@ -1477,7 +1491,7 @@ describe('UniswapV3Pool', () => {
       await flash(0, 0, wallet.address, 1, 1)
       await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
 
-      const { amount0, amount1 } = await pool.callStatic.collect(
+      const { amount0, amount1 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
         wallet.address,
         minTick,
         maxTick,
@@ -1500,11 +1514,23 @@ describe('UniswapV3Pool', () => {
       await flash(0, 0, wallet.address, 2, 0)
       await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
       await pool.connect(other)['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-      let { amount0 } = await pool.callStatic.collect(wallet.address, minTick, maxTick, MaxUint128, MaxUint128)
+      let { amount0 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
+        wallet.address,
+        minTick,
+        maxTick,
+        MaxUint128,
+        MaxUint128
+      )
       expect(amount0, 'amount0 of wallet').to.eq(0)
       ;({ amount0 } = await pool
         .connect(other)
-        .callStatic.collect(other.address, minTick, maxTick, MaxUint128, MaxUint128))
+        .callStatic['collect(address,int24,int24,uint128,uint128)'](
+          other.address,
+          minTick,
+          maxTick,
+          MaxUint128,
+          MaxUint128
+        ))
       expect(amount0, 'amount0 of other').to.eq(0)
     })
 
@@ -1520,11 +1546,23 @@ describe('UniswapV3Pool', () => {
       await flash(0, 0, wallet.address, 2, 0)
       await pool['burn(int24,int24,uint128)'](minTick, maxTick, 0)
       await pool.connect(other)['burn(int24,int24,uint128)'](minTick, maxTick, 0)
-      let { amount0 } = await pool.callStatic.collect(wallet.address, minTick, maxTick, MaxUint128, MaxUint128)
+      let { amount0 } = await pool.callStatic['collect(address,int24,int24,uint128,uint128)'](
+        wallet.address,
+        minTick,
+        maxTick,
+        MaxUint128,
+        MaxUint128
+      )
       expect(amount0, 'amount0 of wallet').to.eq(1)
       ;({ amount0 } = await pool
         .connect(other)
-        .callStatic.collect(other.address, minTick, maxTick, MaxUint128, MaxUint128))
+        .callStatic['collect(address,int24,int24,uint128,uint128)'](
+          other.address,
+          minTick,
+          maxTick,
+          MaxUint128,
+          MaxUint128
+        ))
       expect(amount0, 'amount0 of other').to.eq(0)
     })
   })

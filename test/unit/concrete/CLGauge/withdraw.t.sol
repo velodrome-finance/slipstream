@@ -71,6 +71,10 @@ contract WithdrawTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});
 
+        (uint128 gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, liquidity);
+
         vm.expectEmit(true, true, true, false, address(gauge));
         emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.withdraw({tokenId: tokenId});
@@ -87,6 +91,14 @@ contract WithdrawTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, 0);
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
+
+        (uint128 nftLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(nft), -TICK_SPACING_60, TICK_SPACING_60)));
+        assertEqUint(nftLiquidity, liquidity);
+
+        (gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, 0);
     }
 
     function test_WithdrawWithPositionRightOfCurrentPrice() public {
@@ -109,6 +121,10 @@ contract WithdrawTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});
 
+        (uint128 gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), TICK_SPACING_60, 2 * TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, liquidity);
+
         vm.expectEmit(true, true, true, false, address(gauge));
         emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.withdraw({tokenId: tokenId});
@@ -125,6 +141,14 @@ contract WithdrawTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, 0);
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(2 * TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
+
+        (uint128 nftLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(nft), TICK_SPACING_60, 2 * TICK_SPACING_60)));
+        assertEqUint(nftLiquidity, liquidity);
+
+        (gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), TICK_SPACING_60, 2 * TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, 0);
     }
 
     function test_WithdrawWithPositionLeftOfCurrentPrice() public {
@@ -147,6 +171,10 @@ contract WithdrawTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});
 
+        (uint128 gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, liquidity);
+
         vm.expectEmit(true, true, true, false, address(gauge));
         emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.withdraw({tokenId: tokenId});
@@ -163,6 +191,14 @@ contract WithdrawTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, 0);
         (,, stakedLiquidityNet,,,,,,,) = pool.ticks(-TICK_SPACING_60);
         assertEq(stakedLiquidityNet, 0);
+
+        (uint128 nftLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(nft), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
+        assertEqUint(nftLiquidity, liquidity);
+
+        (gaugeLiquidity,,,,) =
+            pool.positions(keccak256(abi.encodePacked(address(gauge), -2 * TICK_SPACING_60, -TICK_SPACING_60)));
+        assertEqUint(gaugeLiquidity, 0);
     }
 
     function test_WithdrawCollectsRewards() public {
@@ -236,20 +272,21 @@ contract WithdrawTest is CLGaugeTest {
         // call collect to trigger update on the nft position
         nftCallee.collectOneAndOneForTokenId(tokenId, users.alice);
 
-        (
-            ,
-            uint256 feeGrowthInside0LastX128Gauge,
-            uint256 feeGrowthInside1LastX128Gauge,
-            uint128 tokensOwed0Gauge,
-            uint128 tokensOwed1Gauge
-        ) = pool.positions(
+        Position.Info memory gp = Position.Info(0, 0, 0, 0, 0);
+
+        (gp.liquidity, gp.feeGrowthInside0LastX128, gp.feeGrowthInside1LastX128, gp.tokensOwed0, gp.tokensOwed1) = pool
+            .positions(
             keccak256(abi.encodePacked(address(gauge), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
         );
 
-        (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128, uint128 tokensOwed0, uint128 tokensOwed1)
-        = pool.positions(
-            keccak256(abi.encodePacked(address(nft), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
-        );
+        assertEqUint(gp.liquidity, 0);
+
+        Position.Info memory np = Position.Info(0, 0, 0, 0, 0);
+
+        (np.liquidity, np.feeGrowthInside0LastX128, np.feeGrowthInside1LastX128, np.tokensOwed0, np.tokensOwed1) = pool
+            .positions(keccak256(abi.encodePacked(address(nft), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60))));
+
+        assertEqUint(np.liquidity, TOKEN_1 * 10);
 
         (
             ,
@@ -266,17 +303,17 @@ contract WithdrawTest is CLGaugeTest {
             uint128 tokensOwed1NFT
         ) = nft.positions(tokenId);
 
-        assertEq(feeGrowthInside0LastX128, feeGrowthInside0LastX128NFT);
-        assertEq(feeGrowthInside1LastX128, feeGrowthInside1LastX128NFT);
-        assertEq(feeGrowthInside0LastX128Gauge, feeGrowthInside0LastX128NFT);
-        assertEq(feeGrowthInside1LastX128Gauge, feeGrowthInside1LastX128NFT);
+        assertEq(gp.feeGrowthInside0LastX128, feeGrowthInside0LastX128NFT);
+        assertEq(gp.feeGrowthInside1LastX128, feeGrowthInside1LastX128NFT);
+        assertEq(np.feeGrowthInside0LastX128, feeGrowthInside0LastX128NFT);
+        assertEq(np.feeGrowthInside1LastX128, feeGrowthInside1LastX128NFT);
         assertEqUint(tokensOwed0NFT, 0);
         assertEqUint(tokensOwed1NFT, 0);
-        assertEqUint(tokensOwed0, 0);
-        assertEqUint(tokensOwed1, 0);
+        assertEqUint(gp.tokensOwed0, 0);
+        assertEqUint(gp.tokensOwed1, 0);
         // tokensOwed should be 0 in all cases for gauge
-        assertEqUint(tokensOwed0Gauge, 0);
-        assertEqUint(tokensOwed1Gauge, 0);
+        assertEqUint(np.tokensOwed0, 0);
+        assertEqUint(np.tokensOwed1, 0);
     }
 
     function test_WithdrawUpdatesPositionCorrectlyWithUnstakedPositions() public {

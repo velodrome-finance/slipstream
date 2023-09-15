@@ -53,6 +53,28 @@ interface IUniswapV3PoolActions {
         uint128 amount1Requested
     ) external returns (uint128 amount0, uint128 amount1);
 
+    /// @notice Collects tokens owed to a position
+    /// @dev Does not recompute fees earned, which must be done either via mint or burn of any amount of liquidity.
+    /// Collect must be called by the position owner. To withdraw only token0 or only token1, amount0Requested or
+    /// amount1Requested may be set to zero. To withdraw all tokens owed, caller may pass any value greater than the
+    /// actual tokens owed, e.g. type(uint128).max. Tokens owed may be from accumulated swap fees or burned liquidity.
+    /// @param recipient The address which should receive the fees collected
+    /// @param tickLower The lower tick of the position for which to collect fees
+    /// @param tickUpper The upper tick of the position for which to collect fees
+    /// @param amount0Requested How much token0 should be withdrawn from the fees owed
+    /// @param amount1Requested How much token1 should be withdrawn from the fees owed
+    /// @param owner Owner of the position in the pool (nft manager or gauge)
+    /// @return amount0 The amount of fees collected in token0
+    /// @return amount1 The amount of fees collected in token1
+    function collect(
+        address recipient,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 amount0Requested,
+        uint128 amount1Requested,
+        address owner
+    ) external returns (uint128 amount0, uint128 amount1);
+
     /// @notice Burn liquidity from the sender and account tokens owed for the liquidity to the position
     /// @dev Can be used to trigger a recalculation of fees owed to a position by calling with an amount of 0
     /// @dev Fees must be collected separately via a call to #collect
@@ -83,7 +105,8 @@ interface IUniswapV3PoolActions {
     /// @param stakedLiquidityDelta The amount by which to increase or decrease the staked liquidity
     /// @param tickLower The lower tick of the position for which to stake liquidity
     /// @param tickUpper The upper tick of the position for which to stake liquidity
-    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper) external;
+    /// @param positionUpdate If the nft and gauge position should be updated
+    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper, bool positionUpdate) external;
 
     /// @notice Swap token0 for token1, or token1 for token0
     /// @dev The caller of this method receives a callback in the form of IUniswapV3SwapCallback#uniswapV3SwapCallback
