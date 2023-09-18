@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, Wallet } from 'ethers'
 import { ethers } from 'hardhat'
 import { MockTimeUniswapV3Pool } from '../../../typechain/MockTimeUniswapV3Pool'
 import { CoreTestERC20 } from '../../../typechain/CoreTestERC20'
@@ -50,6 +50,8 @@ interface PoolFixture extends TokensAndFactoryFixture {
 export const TEST_POOL_START_TIME = 1601906400
 
 export const poolFixture: Fixture<PoolFixture> = async function (): Promise<PoolFixture> {
+  let wallet: Wallet
+  ;[wallet] = await (ethers as any).getSigners()
   const { token0, token1, token2 } = await tokensFixture()
 
   const MockTimeUniswapV3PoolDeployerFactory = await ethers.getContractFactory('UniswapV3Factory')
@@ -59,10 +61,16 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
   const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
   const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
+  const MockVotingEscrowFactory = await ethers.getContractFactory('MockVotingEscrow')
 
   // voter & gauge factory set up
+  const mockVotingEscrow = await MockVotingEscrowFactory.deploy(wallet.address)
   const mockFactoryRegistry = await MockFactoryRegistryFactory.deploy()
-  const mockVoter = (await MockVoterFactory.deploy(token2.address, mockFactoryRegistry.address)) as MockVoter
+  const mockVoter = (await MockVoterFactory.deploy(
+    token2.address,
+    mockFactoryRegistry.address,
+    mockVotingEscrow.address
+  )) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
     mockVoter.address,

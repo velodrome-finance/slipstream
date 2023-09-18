@@ -2,7 +2,7 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 struct Users {
-    // UniswapV3Factory owner
+    // UniswapV3Factory owner / general purpose admin
     address payable owner;
     // UniswapV3Factory fee manager
     address payable feeManager;

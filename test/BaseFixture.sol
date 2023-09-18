@@ -11,12 +11,10 @@ import {
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
-import {MockVoter} from "contracts/test/MockVoter.sol";
-import {MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
-import {MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
-import {IVotingRewardsFactory} from "contracts/test/interfaces/IVotingRewardsFactory.sol";
-import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
-import {IVoter} from "contracts/core/interfaces/IVoter.sol";
+import {IVoter, MockVoter} from "contracts/test/MockVoter.sol";
+import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
+import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
+import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Constants} from "./utils/Constants.sol";
@@ -39,6 +37,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     /// @dev mocks
     IFactoryRegistry public factoryRegistry;
     IVoter public voter;
+    IVotingEscrow public escrow;
     IERC20 public weth;
     IVotingRewardsFactory public votingRewardsFactory;
 
@@ -142,10 +141,12 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         factoryRegistry = IFactoryRegistry(new MockFactoryRegistry());
         votingRewardsFactory = IVotingRewardsFactory(new MockVotingRewardsFactory());
         weth = IERC20(address(new MockWETH()));
+        escrow = IVotingEscrow(new MockVotingEscrow(users.owner));
         voter = IVoter(
             new MockVoter({
             _rewardToken: address(rewardToken),
-            _factoryRegistry: address(factoryRegistry)
+            _factoryRegistry: address(factoryRegistry),
+            _ve: address(escrow)
             })
         );
     }

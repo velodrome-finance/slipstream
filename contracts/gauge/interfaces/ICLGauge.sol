@@ -90,7 +90,14 @@ interface ICLGauge {
     function getReward(uint256 tokenId) external;
 
     /// @notice Notifies gauge of gauge rewards.
+    /// @param amount Amount of gauge rewards (emissions) to notify.
     function notifyRewardAmount(uint256 amount) external;
+
+    /// @dev Notifies gauge of gauge rewards without distributing its fees.
+    ///      Assumes gauge reward tokens is 18 decimals.
+    ///      If not 18 decimals, rewardRate may have rounding issues.
+    /// @param amount Amount of gauge rewards (emissions) to notify.
+    function notifyRewardWithoutClaim(uint256 amount) external;
 
     /// @notice Used to deposit a UniswapV3 position into the gauge
     /// @notice Allows the user to receive emissions instead of fees

@@ -10,7 +10,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
     UniswapV3Pool public pool;
     CLGauge public gauge;
-    address feesVotingReward;
+    address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
@@ -26,9 +26,19 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         gauge = CLGauge(voter.gauges(address(pool)));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 
-        vm.startPrank(users.alice);
-
         skipToNextEpoch(0);
+    }
+
+    function test_RevertIf_NotTeam() public {
+        vm.startPrank(users.charlie);
+        vm.expectRevert(abi.encodePacked("NV"));
+        gauge.notifyRewardAmount(TOKEN_1);
+    }
+
+    function test_RevertIf_ZeroAmount() public {
+        vm.startPrank(address(voter));
+        vm.expectRevert(abi.encodePacked("ZR"));
+        gauge.notifyRewardAmount(0);
     }
 
     function test_NotifyRewardAmountUpdatesGaugeStateCorrectly() public {
@@ -81,6 +91,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
     }
 
     function test_NotifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediaryFlashCorrectly() public {
+        vm.startPrank(users.alice);
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
 
@@ -103,12 +114,13 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         uint256 reward = TOKEN_1;
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        // in collectFees() we substract 1 from the fee for gas optimalisation
+        // in collectFees() we substract 1 from the fee for gas optimization
         assertEq(token0.balanceOf(address(feesVotingReward)), 3e15 - 1);
         assertEq(token1.balanceOf(address(feesVotingReward)), 6e15 - 1);
     }
 
     function test_NotifyRewardAmountCollectsFeesForPositionsPartiallyStakedWithIntermediaryFlashCorrectly() public {
+        vm.startPrank(users.alice);
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
@@ -132,7 +144,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         uint256 reward = TOKEN_1;
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        // in collectFees() we substract 1 from the fee for gas optimalisation
+        // in collectFees() we substract 1 from the fee for gas optimization
         assertEq(token0.balanceOf(address(feesVotingReward)), 15e14 - 1);
         assertEq(token1.balanceOf(address(feesVotingReward)), 3e15 - 1);
 
@@ -144,14 +156,15 @@ contract NotifyRewardAmountTest is CLGaugeTest {
     }
 
     function test_NotifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediarySwapCorrectly() public {
+        vm.startPrank(users.alice);
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
-        uniswapV3Callee.swapExact1For0(address(pool), 2e18, users.alice, MAX_SQRT_RATIO - 1);
+        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        uniswapV3Callee.swapExact1For0(address(pool), TOKEN_1 * 2, users.alice, MAX_SQRT_RATIO - 1);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 3e15);
@@ -167,6 +180,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
     }
 
     function test_NotifyRewardAmountCollectsFeesForPositionsPartiallyStakedWithIntermediarySwapCorrectly() public {
+        vm.startPrank(users.alice);
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
@@ -174,8 +188,8 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
-        uniswapV3Callee.swapExact1For0(address(pool), 2e18, users.alice, MAX_SQRT_RATIO - 1);
+        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        uniswapV3Callee.swapExact1For0(address(pool), TOKEN_1 * 2, users.alice, MAX_SQRT_RATIO - 1);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 15e14);
@@ -194,5 +208,44 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
         assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);
+    }
+
+    function test_NotifyRewardAmountBeforeNotifyRewardWithoutClaim() public {
+        uint256 reward = TOKEN_1;
+        uint256 epochStart = block.timestamp;
+
+        // generate gauge fees
+        vm.startPrank(users.alice);
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+
+        skip(1 days);
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / (6 days));
+        assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days));
+        assertEq(gauge.periodFinish(), block.timestamp + (6 days));
+        (uint256 _token0, uint256 _token1) = pool.gaugeFees();
+        assertEq(_token0, 1);
+        assertEq(_token1, 0);
+        // in collectFees() we substract 1 from the fee for gas optimization
+        assertEq(token0.balanceOf(address(feesVotingReward)), 3e15 - 1);
+        assertEq(token1.balanceOf(address(feesVotingReward)), 0);
+
+        skip(1 days);
+        vm.startPrank(users.owner);
+        deal(address(rewardToken), users.owner, reward);
+        rewardToken.approve(address(gauge), reward);
+        gauge.notifyRewardWithoutClaim(reward);
+
+        assertEq(gauge.rewardRate(), reward / (6 days) + reward / (5 days));
+        assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days) + reward / (5 days));
+        assertEq(gauge.periodFinish(), block.timestamp + (5 days));
+        (_token0, _token1) = pool.gaugeFees();
+        assertEq(_token0, 1);
+        assertEq(_token1, 0);
     }
 }

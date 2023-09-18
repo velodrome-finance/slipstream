@@ -7,6 +7,7 @@ import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.so
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
+import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -277,23 +278,35 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         return _remaining * rewardRate;
     }
 
+    /// @inheritdoc ICLGauge
     function notifyRewardAmount(uint256 _amount) external override nonReentrant {
         address sender = msg.sender;
         require(sender == address(voter), "NV");
         require(_amount != 0, "ZR");
         _claimFees();
+        _notifyRewardAmount(sender, _amount);
+    }
 
+    /// @inheritdoc ICLGauge
+    function notifyRewardWithoutClaim(uint256 _amount) external override nonReentrant {
+        address sender = msg.sender;
+        require(sender == IVotingEscrow(voter.ve()).team(), "NT");
+        require(_amount != 0, "ZR");
+        _notifyRewardAmount(sender, _amount);
+    }
+
+    function _notifyRewardAmount(address _sender, uint256 _amount) internal {
         uint256 timestamp = block.timestamp;
         uint256 timeUntilNext = VelodromeTimeLibrary.epochNext(timestamp) - timestamp;
 
         if (timestamp >= periodFinish) {
-            IERC20(rewardToken).safeTransferFrom(sender, address(this), _amount);
+            IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
             rewardRate = _amount / timeUntilNext;
             pool.syncReward(rewardRate, _amount);
         } else {
             uint256 _remaining = periodFinish - timestamp;
             uint256 _leftover = _remaining * rewardRate;
-            IERC20(rewardToken).safeTransferFrom(sender, address(this), _amount);
+            IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
             rewardRate = (_amount + _leftover) / timeUntilNext;
             pool.syncReward(rewardRate, _amount + _leftover);
         }
@@ -307,7 +320,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
         lastUpdateTime = timestamp;
         periodFinish = timestamp + timeUntilNext;
-        emit NotifyReward(sender, _amount);
+        emit NotifyReward(_sender, _amount);
     }
 
     function _claimFees() internal {

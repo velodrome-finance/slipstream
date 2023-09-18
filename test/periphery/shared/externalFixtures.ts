@@ -36,6 +36,7 @@ const v3CoreFactoryFixture: Fixture<{
   const { weth9 } = await wethFixture([wallet], provider)
   const tokenFactory = await ethers.getContractFactory('TestERC20')
   const rewardToken: TestERC20 = (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20 // do not use maxu256 to avoid overflowing
+  ;[wallet] = await (ethers as any).getSigners()
 
   const tokens: [TestERC20, TestERC20, TestERC20] = [
     (await tokenFactory.deploy(constants.MaxUint256.div(2))) as TestERC20, // do not use maxu256 to avoid overflowing
@@ -54,12 +55,18 @@ const v3CoreFactoryFixture: Fixture<{
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
   const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
   const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
+  const MockVotingEscrowFactory = await ethers.getContractFactory('MockVotingEscrow')
 
   const positionManagerFactory = await ethers.getContractFactory('MockTimeNonfungiblePositionManager')
 
   // voter & gauge factory set up
+  const mockVotingEscrow = await MockVotingEscrowFactory.deploy(wallet.address)
   const mockFactoryRegistry = await MockFactoryRegistryFactory.deploy()
-  const mockVoter = (await MockVoterFactory.deploy(rewardToken.address, mockFactoryRegistry.address)) as MockVoter
+  const mockVoter = (await MockVoterFactory.deploy(
+    rewardToken.address,
+    mockFactoryRegistry.address,
+    mockVotingEscrow.address
+  )) as MockVoter
 
   const factory = (await Factory.deploy(mockVoter.address, pool.address)) as IUniswapV3Factory
 

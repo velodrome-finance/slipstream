@@ -26,6 +26,7 @@ contract LiquidityFlow is BaseFixture {
         voter = IVoter(vm.parseJsonAddress(addresses, ".Voter"));
         rewardToken = ERC20(vm.parseJsonAddress(addresses, ".Velo"));
         votingRewardsFactory = IVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
+        escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
     }
 
     function testStub() public {

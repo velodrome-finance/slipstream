@@ -4,6 +4,7 @@ pragma solidity =0.7.6;
 import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
+import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -26,10 +27,12 @@ contract MockVoter is IVoter {
 
     IERC20 internal immutable rewardToken;
     IFactoryRegistry public immutable factoryRegistry;
+    IVotingEscrow public immutable override ve;
 
-    constructor(address _rewardToken, address _factoryRegistry) {
+    constructor(address _rewardToken, address _factoryRegistry, address _ve) {
         rewardToken = IERC20(_rewardToken);
         factoryRegistry = IFactoryRegistry(_factoryRegistry);
+        ve = IVotingEscrow(_ve);
     }
 
     function createGauge(address _poolFactory, address _pool) external override returns (address) {
