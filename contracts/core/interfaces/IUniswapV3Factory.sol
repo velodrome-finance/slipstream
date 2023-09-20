@@ -102,13 +102,13 @@ interface IUniswapV3Factory {
     function isPair(address pool) external view returns (bool);
 
     /// @notice Get swap & flash fee for a given pool. Accounts for default and dynamic fees
-    /// @dev Swap & flash fee is denominated in bips. i.e. 1e-4
+    /// @dev Swap & flash fee is denominated in pips. i.e. 1e-6
     /// @param pool The pool to get the swap & flash fee for
     /// @return The swap & flash fee for the given pool
     function getSwapFee(address pool) external view returns (uint24);
 
     /// @notice Get unstaked fee for a given pool. Accounts for default and dynamic fees
-    /// @dev Unstaked fee is denominated in bips. i.e. 1e-4
+    /// @dev Unstaked fee is denominated in pips. i.e. 1e-6
     /// @param pool The pool to get the unstaked fee for
     /// @return The unstaked fee for the given pool
     function getUnstakedFee(address pool) external view returns (uint24);

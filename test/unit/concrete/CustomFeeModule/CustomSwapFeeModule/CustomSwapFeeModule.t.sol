@@ -18,7 +18,7 @@ contract CustomSwapFeeModuleTest is BaseFixture {
     }
 
     function test_InitialState() public {
-        assertEq(customSwapFeeModule.MAX_FEE(), 100);
+        assertEq(customSwapFeeModule.MAX_FEE(), 10_000);
         assertEq(address(customSwapFeeModule.factory()), address(poolFactory));
     }
 }

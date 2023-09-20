@@ -43,7 +43,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_LOW
         });
-        assertEqUint(poolFactory.getSwapFee(pool), 5);
+        assertEqUint(poolFactory.getSwapFee(pool), 500);
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         address feesVotingReward = voter.gaugeToFees(address(gauge));
@@ -62,7 +62,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_MEDIUM
         });
-        assertEqUint(poolFactory.getSwapFee(pool), 30);
+        assertEqUint(poolFactory.getSwapFee(pool), 3_000);
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         address feesVotingReward = voter.gaugeToFees(address(gauge));
@@ -81,7 +81,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_HIGH
         });
-        assertEqUint(poolFactory.getSwapFee(pool), 100);
+        assertEqUint(poolFactory.getSwapFee(pool), 10_000);
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         address feesVotingReward = voter.gaugeToFees(address(gauge));

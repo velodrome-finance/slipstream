@@ -862,8 +862,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint128 _liquidity = liquidity;
         require(_liquidity > 0, "L");
 
-        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee(), 1e4);
-        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee(), 1e4);
+        uint256 fee0 = FullMath.mulDivRoundingUp(amount0, fee(), 1e6);
+        uint256 fee1 = FullMath.mulDivRoundingUp(amount1, fee(), 1e6);
         uint256 balance0Before = balance0();
         uint256 balance1Before = balance1();
 
@@ -949,7 +949,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         stakedFeeAmount = FullMath.mulDiv(feeAmount, _stakedLiquidity, _liquidity);
         unstakedFeeAmount = feeAmount - stakedFeeAmount;
         // There is an unstaked fee for regular LPers
-        uint256 _unstakedFee = unstakedFeeAmount * unstakedFee() / 10_000;
+        uint256 _unstakedFee = unstakedFeeAmount * unstakedFee() / 1_000_000;
         unstakedFeeAmount -= _unstakedFee;
         stakedFeeAmount += _unstakedFee;
     }

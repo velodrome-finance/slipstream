@@ -13,7 +13,7 @@ library SwapMath {
     /// @param sqrtRatioTargetX96 The price that cannot be exceeded, from which the direction of the swap is inferred
     /// @param liquidity The usable liquidity
     /// @param amountRemaining How much input or output amount is remaining to be swapped in/out
-    /// @param feePips The fee taken from the input amount, expressed in bips
+    /// @param feePips The fee taken from the input amount, expressed in pips
     /// @return sqrtRatioNextX96 The price after swapping the amount in/out, not to exceed the price target
     /// @return amountIn The amount to be swapped in, of either token0 or token1, based on the direction of the swap
     /// @return amountOut The amount to be received, of either token0 or token1, based on the direction of the swap
@@ -29,7 +29,7 @@ library SwapMath {
         bool exactIn = amountRemaining >= 0;
 
         if (exactIn) {
-            uint256 amountRemainingLessFee = FullMath.mulDiv(uint256(amountRemaining), 1e4 - feePips, 1e4);
+            uint256 amountRemainingLessFee = FullMath.mulDiv(uint256(amountRemaining), 1e6 - feePips, 1e6);
             amountIn = zeroForOne
                 ? SqrtPriceMath.getAmount0Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, true)
                 : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, true);
@@ -81,7 +81,7 @@ library SwapMath {
             // we didn't reach the target, so take the remainder of the maximum input as fee
             feeAmount = uint256(amountRemaining) - amountIn;
         } else {
-            feeAmount = FullMath.mulDivRoundingUp(amountIn, feePips, 1e4 - feePips);
+            feeAmount = FullMath.mulDivRoundingUp(amountIn, feePips, 1e6 - feePips);
         }
     }
 }

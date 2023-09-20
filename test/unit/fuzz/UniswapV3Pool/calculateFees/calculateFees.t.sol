@@ -154,7 +154,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), swapAmount1, users.alice, MIN_SQRT_RATIO + 1);
 
-        uint256 fee = FullMath.mulDiv(swapAmount1, 30, 1e4);
+        uint256 fee = FullMath.mulDiv(swapAmount1, 3_000, 1e6);
 
         feeGrowthGlobal0X128 += calculateFeeGrowthX128(fee / 2, liquidity);
         assertFees(fee / 2, 0, feeGrowthGlobal0X128, 0);
@@ -164,7 +164,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), swapAmount2, users.alice, MIN_SQRT_RATIO + 1);
 
-        uint256 fee2 = FullMath.mulDiv(swapAmount2, 30, 1e4);
+        uint256 fee2 = FullMath.mulDiv(swapAmount2, 3_000, 1e6);
 
         feeGrowthGlobal0X128 += calculateFeeGrowthX128(fee2, liquidity * 2);
         assertFees(fee / 2, 0, feeGrowthGlobal0X128, 0);
@@ -172,7 +172,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token1
         uniswapV3Callee.swapExact1For0(address(pool), swapAmount3, users.alice, MAX_SQRT_RATIO - 1);
 
-        uint256 fee3 = FullMath.mulDiv(swapAmount3, 30, 1e4);
+        uint256 fee3 = FullMath.mulDiv(swapAmount3, 3_000, 1e6);
 
         feeGrowthGlobal1X128 += calculateFeeGrowthX128(fee3, liquidity * 2);
         assertFees(fee / 2, 0, feeGrowthGlobal0X128, feeGrowthGlobal1X128);
@@ -192,7 +192,7 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         // swap token1
         uniswapV3Callee.swapExact1For0(address(pool), swapAmount4, users.alice, MAX_SQRT_RATIO - 1);
 
-        uint256 fee4 = FullMath.mulDiv(swapAmount4, 30, 1e4);
+        uint256 fee4 = FullMath.mulDiv(swapAmount4, 3_000, 1e6);
 
         feeGrowthGlobal1X128 += calculateFeeGrowthX128(fee4 / 2, liquidity);
 
@@ -259,10 +259,10 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         FeeGrowth memory fg = FeeGrowth(0, 0);
 
         Fees memory fees = Fees(0, 0, 0, 0);
-        fees.fee1 = FullMath.mulDivRoundingUp(fd.swapAmount1, 30, 1e4 - 30);
-        fees.fee2 = FullMath.mulDivRoundingUp(fd.swapAmount2, 30, 1e4 - 30);
-        fees.fee3 = FullMath.mulDivRoundingUp(fd.swapAmount3, 30, 1e4 - 30);
-        fees.fee4 = FullMath.mulDivRoundingUp(fd.swapAmount4, 30, 1e4 - 30);
+        fees.fee1 = FullMath.mulDivRoundingUp(fd.swapAmount1, 3_000, 1e6 - 3_000);
+        fees.fee2 = FullMath.mulDivRoundingUp(fd.swapAmount2, 3_000, 1e6 - 3_000);
+        fees.fee3 = FullMath.mulDivRoundingUp(fd.swapAmount3, 3_000, 1e6 - 3_000);
+        fees.fee4 = FullMath.mulDivRoundingUp(fd.swapAmount4, 3_000, 1e6 - 3_000);
 
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), fd.swapAmount1, users.alice, MIN_SQRT_RATIO + 1);

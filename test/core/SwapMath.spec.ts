@@ -23,7 +23,7 @@ describe('SwapMath', () => {
       const priceTarget = encodePriceSqrt(101, 100)
       const liquidity = expandTo18Decimals(2)
       const amount = expandTo18Decimals(1)
-      const fee = 6
+      const fee = 600
       const zeroForOne = false
 
       const { amountIn, amountOut, sqrtQ, feeAmount } = await swapMath.computeSwapStep(
@@ -55,7 +55,7 @@ describe('SwapMath', () => {
       const priceTarget = encodePriceSqrt(101, 100)
       const liquidity = expandTo18Decimals(2)
       const amount = expandTo18Decimals(1).mul(-1)
-      const fee = 6
+      const fee = 600
       const zeroForOne = false
 
       const { amountIn, amountOut, sqrtQ, feeAmount } = await swapMath.computeSwapStep(
@@ -87,7 +87,7 @@ describe('SwapMath', () => {
       const priceTarget = encodePriceSqrt(1000, 100)
       const liquidity = expandTo18Decimals(2)
       const amount = expandTo18Decimals(1)
-      const fee = 6
+      const fee = 600
       const zeroForOne = false
 
       const { amountIn, amountOut, sqrtQ, feeAmount } = await swapMath.computeSwapStep(
@@ -119,7 +119,7 @@ describe('SwapMath', () => {
       const priceTarget = encodePriceSqrt(10000, 100)
       const liquidity = expandTo18Decimals(2)
       const amount = expandTo18Decimals(1).mul(-1)
-      const fee = 6
+      const fee = 600
       const zeroForOne = false
 
       const { amountIn, amountOut, sqrtQ, feeAmount } = await swapMath.computeSwapStep(
@@ -168,7 +168,7 @@ describe('SwapMath', () => {
         1
       )
       expect(amountIn).to.eq('39614081257132168796771975168')
-      expect(feeAmount).to.eq('3961804306143831262803478')
+      expect(feeAmount).to.eq('39614120871253040049813')
       expect(amountIn.add(feeAmount)).to.be.lte('3915081100057732413702495386755767')
       expect(amountOut).to.eq('0')
       expect(sqrtQ).to.eq('1')
@@ -195,7 +195,7 @@ describe('SwapMath', () => {
       // virtual reserves of one are only 4
       // https://www.wolframalpha.com/input/?i=1024+%2F+%2820282409603651670423947251286016+%2F+2**96%29
       const amountRemaining = -4
-      const feePips = 30
+      const feePips = 3000
       const { amountIn, amountOut, sqrtQ, feeAmount } = await swapMath.computeSwapStep(
         sqrtP,
         sqrtPTarget,
@@ -216,7 +216,7 @@ describe('SwapMath', () => {
       // virtual reserves of zero are only 262144
       // https://www.wolframalpha.com/input/?i=1024+*+%2820282409603651670423947251286016+%2F+2**96%29
       const amountRemaining = -263000
-      const feePips = 30
+      const feePips = 3000
       const { amountIn, amountOut, sqrtQ, feeAmount } = await swapMath.computeSwapStep(
         sqrtP,
         sqrtPTarget,

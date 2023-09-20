@@ -232,7 +232,7 @@ contract FlashTest is UniswapV3PoolTest {
     function test_FlashIncreasesGaugeFeesByExpectedAmountPositionsPartiallyStakedUnstakedFeeIs15() public {
         vm.stopPrank();
         vm.prank(users.feeManager);
-        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        customUnstakedFeeModule.setCustomFee(address(pool), 150_000);
         vm.startPrank(users.alice);
 
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
@@ -263,7 +263,7 @@ contract FlashTest is UniswapV3PoolTest {
     function test_FlashAllowsDonatingToken0PositionsPartiallyStakedUnstakedFeeIs15() public {
         vm.stopPrank();
         vm.prank(users.feeManager);
-        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        customUnstakedFeeModule.setCustomFee(address(pool), 150_000);
         vm.startPrank(users.alice);
 
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
@@ -290,7 +290,7 @@ contract FlashTest is UniswapV3PoolTest {
     function test_FlashAllowsDonatingToken1PositionsPartiallyStakedUnstakedFeeIs15() public {
         vm.stopPrank();
         vm.prank(users.feeManager);
-        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        customUnstakedFeeModule.setCustomFee(address(pool), 150_000);
         vm.startPrank(users.alice);
 
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
@@ -317,7 +317,7 @@ contract FlashTest is UniswapV3PoolTest {
     function test_FlashAllowsDonatingToken0AndToken1PositionsPartiallyStakedUnstakedFeeIs15() public {
         vm.stopPrank();
         vm.prank(users.feeManager);
-        customUnstakedFeeModule.setCustomFee(address(pool), 1500);
+        customUnstakedFeeModule.setCustomFee(address(pool), 150_000);
         vm.startPrank(users.alice);
 
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);

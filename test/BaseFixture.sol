@@ -73,9 +73,9 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             _implementation: address(poolImplementation)
         });
         // backward compatibility with the original uniV3 fee structure and tick spacing
-        poolFactory.enableTickSpacing(10, 5);
-        poolFactory.enableTickSpacing(60, 30);
-        poolFactory.enableTickSpacing(200, 100);
+        poolFactory.enableTickSpacing(10, 500);
+        poolFactory.enableTickSpacing(60, 3_000);
+        poolFactory.enableTickSpacing(200, 10_000);
 
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),

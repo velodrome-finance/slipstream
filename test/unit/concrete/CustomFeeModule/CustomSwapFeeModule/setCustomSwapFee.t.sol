@@ -13,7 +13,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
     function test_RevertIf_NotManager() public {
         vm.expectRevert();
         changePrank({msgSender: users.charlie});
-        customSwapFeeModule.setCustomFee({pool: address(1), fee: 50});
+        customSwapFeeModule.setCustomFee({pool: address(1), fee: 5_000});
     }
 
     function test_RevertIf_FeeTooHigh() public {
@@ -25,12 +25,12 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         });
 
         vm.expectRevert();
-        customSwapFeeModule.setCustomFee({pool: pool, fee: 101});
+        customSwapFeeModule.setCustomFee({pool: pool, fee: 10_001});
     }
 
     function test_RevertIf_NotPool() public {
         vm.expectRevert();
-        customSwapFeeModule.setCustomFee({pool: address(1), fee: 50});
+        customSwapFeeModule.setCustomFee({pool: address(1), fee: 5_000});
     }
 
     function test_SetCustomFee() public {
@@ -42,12 +42,12 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         });
 
         vm.expectEmit(true, true, false, false, address(customSwapFeeModule));
-        emit SetCustomFee({pool: pool, fee: 50});
-        customSwapFeeModule.setCustomFee({pool: pool, fee: 50});
+        emit SetCustomFee({pool: pool, fee: 5_000});
+        customSwapFeeModule.setCustomFee({pool: pool, fee: 5_000});
 
-        assertEqUint(customSwapFeeModule.customFee(pool), 50);
-        assertEqUint(customSwapFeeModule.getFee(pool), 50);
-        assertEqUint(poolFactory.getSwapFee(pool), 50);
+        assertEqUint(customSwapFeeModule.customFee(pool), 5_000);
+        assertEqUint(customSwapFeeModule.getFee(pool), 5_000);
+        assertEqUint(poolFactory.getSwapFee(pool), 5_000);
 
         // revert to default fee
         vm.expectEmit(true, true, false, false, address(customSwapFeeModule));
@@ -55,8 +55,8 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         customSwapFeeModule.setCustomFee({pool: pool, fee: 0});
 
         assertEqUint(customSwapFeeModule.customFee(pool), 0);
-        assertEqUint(customSwapFeeModule.getFee(pool), 5);
-        assertEqUint(poolFactory.getSwapFee(pool), 5);
+        assertEqUint(customSwapFeeModule.getFee(pool), 500);
+        assertEqUint(poolFactory.getSwapFee(pool), 500);
 
         // zero fee
         vm.expectEmit(true, true, false, false, address(customSwapFeeModule));

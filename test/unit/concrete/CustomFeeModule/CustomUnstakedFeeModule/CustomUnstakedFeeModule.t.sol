@@ -15,7 +15,7 @@ contract CustomUnstakedFeeModuleTest is BaseFixture {
     }
 
     function test_InitialState() public {
-        assertEq(customUnstakedFeeModule.MAX_FEE(), 2_000);
+        assertEq(customUnstakedFeeModule.MAX_FEE(), 200_000);
         assertEq(address(customUnstakedFeeModule.factory()), address(poolFactory));
     }
 }

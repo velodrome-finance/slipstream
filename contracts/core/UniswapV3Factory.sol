@@ -45,15 +45,15 @@ contract UniswapV3Factory is IUniswapV3Factory {
 
         // TODO: tick spacing values are placeholders
         // currently using 3x uniswap defaults as placeholders
-        tickSpacingToFee[30] = 5;
+        tickSpacingToFee[30] = 500;
         _tickSpacings.push(30);
-        emit TickSpacingEnabled(30, 5);
-        tickSpacingToFee[180] = 30;
+        emit TickSpacingEnabled(30, 500);
+        tickSpacingToFee[180] = 3_000;
         _tickSpacings.push(180);
-        emit TickSpacingEnabled(180, 30);
-        tickSpacingToFee[600] = 100;
+        emit TickSpacingEnabled(180, 3_000);
+        tickSpacingToFee[600] = 10_000;
         _tickSpacings.push(600);
-        emit TickSpacingEnabled(600, 100);
+        emit TickSpacingEnabled(600, 10_000);
     }
 
     /// @inheritdoc IUniswapV3Factory
@@ -139,14 +139,14 @@ contract UniswapV3Factory is IUniswapV3Factory {
             return IFeeModule(unstakedFeeModule).getFee(pool);
         } else {
             // Default unstaked fee is 10%
-            return 1_000;
+            return 100_000;
         }
     }
 
     /// @inheritdoc IUniswapV3Factory
     function enableTickSpacing(int24 tickSpacing, uint24 fee) public override {
         require(msg.sender == owner);
-        require(fee <= 100);
+        require(fee <= 100_000);
         // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
         // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
         // 16384 ticks represents a >5x price change with ticks of 1 bips
