@@ -30,6 +30,13 @@ contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
 
         uint256 reward = TOKEN_1;
 
+        vm.startPrank(users.alice);
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+        vm.stopPrank();
+
         deal(address(rewardToken), address(voter), reward);
         vm.startPrank(address(voter));
         rewardToken.approve(address(gauge), reward);

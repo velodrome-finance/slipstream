@@ -19,6 +19,16 @@ abstract contract BaseForkFixture is BaseFixture {
 
         // set up contracts after fork
         BaseFixture.setUp();
+
+        nftCallee = new NFTManagerCallee(address(weth), address(op), address(nft));
+
+        deal({token: address(op), to: users.alice, give: TOKEN_1 * 100});
+        deal({token: address(weth), to: users.alice, give: TOKEN_1 * 100});
+
+        vm.startPrank(users.alice);
+        op.approve(address(nftCallee), type(uint256).max);
+        weth.approve(address(nftCallee), type(uint256).max);
+        vm.stopPrank();
     }
 
     function deployDependencies() public virtual override {

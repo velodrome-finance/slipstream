@@ -62,6 +62,9 @@ interface IUniswapV3PoolState {
     /// @notice last time the rewardReserve and rewardRate were updated
     function lastUpdated() external view returns (uint32);
 
+    /// @notice tracks total time spent with no staked liquidity between calls to notifyRewardAmount by the gauge
+    function timeNoStakedLiquidity() external view returns (uint32);
+
     /// @notice The currently in range liquidity available to the pool
     /// @dev This value has no relationship to the total liquidity across all ticks
     /// @dev This value includes staked liquidity

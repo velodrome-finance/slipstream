@@ -26,7 +26,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         skipToNextEpoch(0);
     }
 
-    function mintNewFullRangePositionAndDepositIntoGauge(uint128 _amount0, uint128 _amount1, address _user)
+    function mintNewFullRangePositionAndDepositIntoGauge(uint256 _amount0, uint256 _amount1, address _user)
         internal
         returns (uint256)
     {
@@ -47,12 +47,10 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardDistributedAtTheStartOfTheEpoch() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // sanity checks
         assertEqUint(pool.liquidity(), liquidity);
@@ -73,7 +71,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
         // move one hour and mint new position and stake it as well to trigger update
         skip(1 hours);
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 rewardRate = pool.rewardRate();
         uint256 accumulatedReward = rewardRate * 1 hours;
@@ -88,11 +86,9 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     function test_RewardGrowthGlobalUpdatesCorrectlyWithDelayedRewardDistribute() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 delay = 1 hours;
         skip(delay);
@@ -106,7 +102,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
         // move one hour and mint new position and stake it as well to trigger update
         skip(1 hours);
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 rewardRate = pool.rewardRate();
         uint256 accumulatedReward = rewardRate * 1 hours;
@@ -121,11 +117,9 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     function test_DelayedDistributeUpdatesAccumulatorAtTheEndOfTheEpochCorrectlyComparedToOnTimeDistribute() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 reward = TOKEN_1 * 10;
 
@@ -136,7 +130,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         // move one week and trigger update by minting new position
         skip(WEEK);
         // mint new position and stake it as well to trigger update
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 rewardReserveNoDelay = pool.rewardReserve();
         uint256 rewardsForNoDelay = FullMath.mulDiv(pool.rewardGrowthGlobalX128(), stakedLiquidity, Q128);
@@ -155,7 +149,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         // moves time to epoch flip boundary
         skip(WEEK - 1 hours);
         // mint new position and stake it as well to trigger update
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         uint256 rewardReserveDelayed = pool.rewardReserve();
         uint256 rewardsForDelayed = FullMath.mulDiv(pool.rewardGrowthGlobalX128(), stakedLiquidity, Q128);
@@ -173,11 +167,9 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     function test_RewardGrowthGlobalUpdatesCorrectlyWithdrawPosition() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        uint256 tokenId = mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        uint256 tokenId = mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // needs to be 0 since there are no rewards
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
@@ -212,12 +204,10 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     function test_RewardGrowthGlobalUpdatesCorrectlyCrossingInitializedTicks() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // this takes 29953549559107810 tokens (0.0299...) from each
         uniswapV3Callee.mint(address(pool), users.alice, -tickSpacing, tickSpacing, liquidity);
@@ -276,15 +266,14 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         assertEqUint(pool.rewardReserve(), 1e18 - accumulatedReward);
     }
 
-    function test_RewardsGetStuckIfThereIsNoStakedLiquidityAtRewardDistribution() public {
+    function test_StuckRewardsRolledOverToNextEpochIfThereIsNoStakedLiquidityAtRewardDistribution() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
-        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(amount0, amount1, users.alice);
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // sanity checks
         assertEqUint(pool.liquidity(), liquidity);
@@ -317,19 +306,26 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(rewardRate, reward / WEEK);
         assertEqUint(pool.rewardReserve(), reward);
+        assertEqUint(pool.timeNoStakedLiquidity(), WEEK / 2);
 
-        skip(WEEK / 2);
+        skipToNextEpoch(0);
+
         // mint new position and stake it as well to trigger update
-        mintNewFullRangePositionAndDepositIntoGauge(amount0, amount1, users.alice);
+        uint256 tokenId2 =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId2);
+        gauge.deposit(tokenId2);
 
-        accumulatedReward = rewardRate * WEEK;
+        accumulatedReward = rewardRate * WEEK / 2;
         // stakedLiquidity will not contain the newly staked liq at this point
         rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
 
-        // we are validating an undesirabled state, probably will change
-        assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128 / 2);
+        // we are validating an undesirabled state, this should roll over to the next epoch
+        assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertApproxEqAbs(pool.rewardReserve(), reward / 2, 1e5);
 
+        assertEqUint(pool.timeNoStakedLiquidity(), WEEK / 2);
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
@@ -339,9 +335,34 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         // assert that emissions gots stuck in the gauge
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2, 1e5);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        rewardRate = pool.rewardRate();
+
+        // rewardRate and rewardReserve should account for stuck rewards from previous epoch
+        assertEqUint(rewardRate, (reward + reward / 2) / WEEK);
+        assertApproxEqAbs(pool.rewardReserve(), reward + reward / 2, 1e5);
+        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+
+        skipToNextEpoch(0);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        // we assert that the stuck rewards get rolled over to the next epoch correctly
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward / 2 + (reward + reward / 2) / 2, 1e6);
+
+        gauge.getReward(tokenId2);
+        uint256 aliceRewardBalanceTokenId2 = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalanceTokenId2, aliceRewardBalance + (reward + reward / 2) / 2, 1e6);
+
+        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
     }
 
-    function test_RewardsGetStuckIfThereAreHolesInStakedLiquidityWithDepositAndWithdraw() public {
+    function test_RewardsRolledOverIfThereAreHolesInStakedLiquidityWithDepositAndWithdraw() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
         // adding 29953549559107810 as amount0 and amount1 will be equal to ~10 liquidity
@@ -377,6 +398,8 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
+        assertEqUint(pool.timeNoStakedLiquidity(), 1 days);
+
         skipToNextEpoch(0);
 
         gauge.getReward(tokenId);
@@ -388,18 +411,37 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         // at the start of the new epoch reserves should be 1 day worth of reward
         assertApproxEqAbs(pool.rewardReserve(), reward / 7, 1e5);
 
-        // assert that emissions got stuck in the gauge, 1 day worth of reward
+        // assert that emissions got stuck in the gauge for the current epoch, 1 day worth of reward
+        // will be rolled over to next epoch
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7, 1e5);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        uint256 rewardRate = pool.rewardRate();
+
+        // rewardRate and rewardReserve should account for stuck rewards from previous epoch
+        assertEqUint(rewardRate, (reward + reward / 7) / WEEK);
+        assertApproxEqAbs(pool.rewardReserve(), reward + reward / 7, 1e5);
+        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+
+        skipToNextEpoch(0);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        // we assert that the stuck rewards get rolled over to the next epoch correctly
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward * 2, 1e6);
+
+        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
     }
 
-    function test_RewardsGetStuckIfThereAreHolesInStakedLiquidityWithSwap() public {
+    function test_RewardsRolledOverIfThereAreHolesInStakedLiquidityWithSwap() public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
-        uint128 amount0 = 10e18;
-        uint128 amount1 = 10e18;
-
-        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(amount0, amount1, users.alice);
+        nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // adding 29953549559107810 as amount0 and amount1 will be equal to ~10 liquidity
         uint256 tokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
@@ -421,6 +463,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
         assertEqUint(pool.stakedLiquidity(), 0);
 
+        // 1 day worth of rewards not accumulating
         skip(1 days);
 
         // swapping 86e16 puts back the price into the range where both positions are active
@@ -440,6 +483,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         // we are validating an undesirabled state, probably will change
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertApproxEqAbs(pool.rewardReserve(), reward / 7 * 3, 1e6);
+        assertEqUint(pool.timeNoStakedLiquidity(), 1 days);
 
         skipToNextEpoch(0);
 
@@ -448,21 +492,388 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         //assert that emissions gots stuck in the gauge
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7, 1e6);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(0);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        // we assert that the stuck rewards get rolled over to the next epoch correctly
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward * 2, 1e6);
+
+        gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
     }
 
-    function test_notifyRewardAmountUpdatesPoolStateCorrectlyOnAdditionalRewardInSameEpoch() public {
+    function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardReserveIsZeroAndRewardRateGreaterThanZeroUpdateTriggeredByWithdraw(
+    ) public {
         pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-        skip(1 days);
+
+        uint128 stakedLiquidity = 10e18;
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
 
         uint256 reward = TOKEN_1;
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        skip(1 days);
+        skipToNextEpoch(1);
+
+        // swap to update RewardGrowthGlobal
+        vm.startPrank(users.alice);
+        gauge.withdraw(tokenId);
+
+        // all rewardReserves should be accounted in the accumulator
+        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(reward, Q128, stakedLiquidity);
+
+        assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
+        assertEq(pool.rewardRate(), reward / WEEK);
+        assertEqUint(pool.rewardReserve(), 0);
+    }
+
+    function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardReserveIsZeroAndRewardRateGreaterThanZeroUpdateTriggeredByNextNotify(
+    ) public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint128 stakedLiquidity = 10e18;
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(1);
+
+        // add new rewards to update RewardGrowthGlobal
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        // all rewardReserves should be accounted in the accumulator
+        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(reward, Q128, stakedLiquidity);
+
+        assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
+        assertEq(pool.rewardRate(), reward / (WEEK - 1));
+        assertEqUint(pool.rewardReserve(), reward);
+    }
+
+    function test_RewardGrowthGlobalUpdatesCorrectlyWhenNoStakeLiquidityPresentForMoreThanOneEpoch() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(60);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        assertEq(pool.timeNoStakedLiquidity(), WEEK + 60);
 
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        assertEq(pool.rewardRate(), reward / 6 days + reward / 5 days);
-        assertEqUint(pool.rewardReserve(), reward + reward / 6 days * 5 days);
-        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+
+        assertEqUint(pool.rewardGrowthGlobalX128(), 0);
+        assertEq(pool.rewardRate(), (reward * 2) / (WEEK - 60));
+        assertApproxEqAbs(pool.rewardReserve(), reward * 2, 1e6);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, 0, 1e6);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward * 2, 1e6);
+    }
+
+    function test_RewardGrowthNoRollover() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / WEEK);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // roll half a week, then withdraw
+        skip(WEEK / 2);
+
+        gauge.withdraw(tokenId);
+
+        // no stake, nothing happens
+        skipToNextEpoch(0);
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (7 days));
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
+    }
+
+    function test_RewardGrowthDelayedRollover() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / WEEK);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // roll half a week, then withdraw
+        skip(WEEK / 2);
+
+        gauge.withdraw(tokenId);
+
+        // no stake, nothing happens
+        skipToNextEpoch(1 days);
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (6 days));
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
+    }
+
+    function test_RewardGrowthEpochSkipped() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / WEEK);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // roll half a week, then withdraw
+        skip(WEEK / 2);
+
+        gauge.withdraw(tokenId);
+
+        // no stake, nothing happens
+        skipToNextEpoch(0);
+        // one epoch skipped entirely
+        skipToNextEpoch(1 days);
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (6 days));
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
+    }
+
+    function test_RewardGrowthEpochSkippedNoDelay() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / WEEK);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // roll half a week, then withdraw
+        skip(WEEK / 2);
+
+        gauge.withdraw(tokenId);
+
+        // no stake, nothing happens
+        skipToNextEpoch(0);
+        // one epoch skipped entirely
+        skipToNextEpoch(0);
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (7 days));
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
+    }
+
+    function test_RewardGrowthMultipleEpochSkippedDelayed() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / WEEK);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // roll half a week, then withdraw
+        skip(WEEK / 2);
+
+        gauge.withdraw(tokenId);
+
+        // no stake, nothing happens
+        skipToNextEpoch(0);
+        // skip multiple epoch
+        skipToNextEpoch(0);
+        // one epoch skipped entirely
+        skipToNextEpoch(1 days);
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (6 days));
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
+    }
+
+    function test_RewardGrowthMultipleEpochSkippedNoDelay() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(gauge.rewardRate(), reward / WEEK);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        // roll half a week, then withdraw
+        skip(WEEK / 2);
+
+        gauge.withdraw(tokenId);
+
+        // no stake, nothing happens
+        skipToNextEpoch(0);
+        // skip multiple epoch
+        skipToNextEpoch(0);
+        // one epoch skipped entirely
+        skipToNextEpoch(0);
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEq(gauge.rewardRate(), (reward * 2 + reward / 2) / (7 days));
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 3, 1e6);
+    }
+
+    function test_RewardGrowthGlobalUpdatesCorrectlyWithUnstakedLiquidityBothAtTheStartAndEndOfTheEpoch() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(60);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skip(WEEK - 120);
+
+        vm.startPrank(users.alice);
+        gauge.withdraw(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward / WEEK * (WEEK - 120), 1e6);
+        assertApproxEqAbs(pool.rewardReserve(), reward / WEEK * 120, 1e6);
+        assertEqUint(pool.timeNoStakedLiquidity(), 60); // only 60 recorded so far
+
+        skipToNextEpoch(200);
+
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+        assertEq(pool.rewardRate(), (reward * 2 + reward / WEEK * 120) / (WEEK - 200));
+        assertApproxEqAbs(pool.rewardReserve(), (reward * 2 + reward / WEEK * 120), 1e6);
     }
 }

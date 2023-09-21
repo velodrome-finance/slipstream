@@ -245,4 +245,68 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(_token0, 1);
         assertEq(_token1, 0);
     }
+
+    function test_NotifyRewardAmountSkippedForOneEpoch() public {
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(0);
+        // no notifyRewardAmount happens for 1 entire epoch
+
+        uint256 tokenId2 =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId2);
+        gauge.deposit(tokenId2);
+
+        skipToNextEpoch(0);
+
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1, 1e6);
+
+        gauge.getReward(tokenId2);
+
+        // tokenId2 should not receive anything
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1, 1e6);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+        skipToNextEpoch(0);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 + TOKEN_1 / 2, 1e6);
+
+        gauge.getReward(tokenId2);
+
+        aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, TOKEN_1 * 2, 1e6);
+    }
+
+    function test_NotifyRewardAmountUpdatesPoolStateCorrectlyOnAdditionalRewardInSameEpoch() public {
+        skip(1 days);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(1 days);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEq(pool.rewardRate(), reward / 6 days + reward / 5 days);
+        assertEqUint(pool.rewardReserve(), reward + reward / 6 days * 5 days);
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+    }
 }

@@ -93,6 +93,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
     uint256 public override rewardReserve;
     /// @inheritdoc IUniswapV3PoolState
     uint32 public override lastUpdated;
+    /// @inheritdoc IUniswapV3PoolState
+    uint32 public override timeNoStakedLiquidity;
 
     /// @inheritdoc IUniswapV3PoolState
     uint128 public override liquidity;
@@ -920,21 +922,29 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint32 timestamp = _blockTimestamp();
         uint256 timeDelta = timestamp - lastUpdated;
 
-        if (timeDelta != 0 && stakedLiquidity > 0 && rewardRate > 0 && rewardReserve > 0) {
-            uint256 reward = rewardRate * timeDelta;
-            // ensures any remaining rewards for the past epoch are distributed
-            if (reward > rewardReserve) reward = rewardReserve;
-            rewardReserve -= reward;
-            rewardGrowthGlobalX128 += FullMath.mulDiv(reward, FixedPoint128.Q128, stakedLiquidity);
+        if (timeDelta != 0) {
+            if (rewardReserve > 0) {
+                if (stakedLiquidity > 0) {
+                    uint256 reward = rewardRate * timeDelta;
+                    // ensures any remaining rewards for the past epoch are distributed
+                    if (reward > rewardReserve) reward = rewardReserve;
+                    rewardReserve -= reward;
+                    rewardGrowthGlobalX128 += FullMath.mulDiv(reward, FixedPoint128.Q128, stakedLiquidity);
+                } else {
+                    // gauge can compute a different value and use that instead of the actual,
+                    // depending on unstaked time crossing epoch flips
+                    timeNoStakedLiquidity += uint32(timeDelta);
+                }
+            }
+            lastUpdated = timestamp;
         }
-        lastUpdated = timestamp;
     }
 
     /// @inheritdoc IUniswapV3PoolActions
     function syncReward(uint256 _rewardRate, uint256 _rewardReserve) external override lock onlyGauge {
-        _updateRewardsGrowthGlobal();
         rewardRate = _rewardRate;
         rewardReserve = _rewardReserve;
+        delete timeNoStakedLiquidity;
     }
 
     // calculates the fee for staked & unstaked liquidity

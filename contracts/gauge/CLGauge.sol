@@ -158,10 +158,10 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         _stakes[msg.sender].add(tokenId);
 
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
+        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper, true);
+
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
-
-        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper, true);
 
         emit Deposit(msg.sender, tokenId, liquidityToStake);
     }
@@ -306,9 +306,20 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     function _notifyRewardAmount(address _sender, uint256 _amount) internal {
         uint256 timestamp = block.timestamp;
         uint256 timeUntilNext = VelodromeTimeLibrary.epochNext(timestamp) - timestamp;
+        pool.updateRewardsGrowthGlobal();
 
         if (timestamp >= periodFinish) {
             IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
+            // rolling over stuck rewards from previous epoch (if any)
+            uint256 tnsl = pool.timeNoStakedLiquidity();
+            // we must only count tnsl for the previous epoch
+            if (tnsl + timeUntilNext > DURATION) {
+                tnsl -= (DURATION - timeUntilNext); // subtract time in current epoch
+                // skip epochs where no notify occurred, but account for case where no rewards
+                // distributed over one full epoch (unlikely)
+                if (tnsl != DURATION) tnsl %= DURATION;
+            }
+            _amount += tnsl * rewardRate;
             rewardRate = _amount / timeUntilNext;
             pool.syncReward(rewardRate, _amount);
         } else {
