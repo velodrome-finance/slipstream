@@ -11,7 +11,9 @@ interface IUniswapV3PoolActions {
     /// @param _token1 The second token of the pool by address sort order
     /// @param _tickSpacing The pool tick spacing
     /// @param _gauge The address of the gauge corresponding to this pool
-    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge) external;
+    /// @param _nft The address of the nonfungible position manager corresponding to this pool
+    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge, address _nft)
+        external;
 
     /// @notice Sets the initial price for the pool
     /// @dev Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value

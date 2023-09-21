@@ -6,6 +6,7 @@ import "./interfaces/fees/IFeeModule.sol";
 import "./interfaces/IVoter.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./UniswapV3Pool.sol";
+import "contracts/gauge/interfaces/ICLGaugeFactory.sol";
 
 /// @title Canonical Uniswap V3 factory
 /// @notice Deploys Uniswap V3 pools and manages ownership and control over pool protocol fees
@@ -13,7 +14,7 @@ contract UniswapV3Factory is IUniswapV3Factory {
     /// @inheritdoc IUniswapV3Factory
     IVoter public immutable override voter;
     /// @inheritdoc IUniswapV3Factory
-    address public immutable override implementation;
+    address public immutable override poolImplementation;
     /// @inheritdoc IUniswapV3Factory
     address public override owner;
     /// @inheritdoc IUniswapV3Factory
@@ -25,6 +26,12 @@ contract UniswapV3Factory is IUniswapV3Factory {
     /// @inheritdoc IUniswapV3Factory
     address public override unstakedFeeModule;
     /// @inheritdoc IUniswapV3Factory
+    address public override nft;
+    /// @inheritdoc IUniswapV3Factory
+    address public override gaugeFactory;
+    /// @inheritdoc IUniswapV3Factory
+    address public override gaugeImplementation;
+    /// @inheritdoc IUniswapV3Factory
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc IUniswapV3Factory
     mapping(address => mapping(address => mapping(int24 => address))) public override getPool;
@@ -33,12 +40,12 @@ contract UniswapV3Factory is IUniswapV3Factory {
 
     int24[] private _tickSpacings;
 
-    constructor(address _voter, address _implementation) {
+    constructor(address _voter, address _poolImplementation) {
         owner = msg.sender;
         swapFeeManager = msg.sender;
         unstakedFeeManager = msg.sender;
         voter = IVoter(_voter);
-        implementation = _implementation;
+        poolImplementation = _poolImplementation;
         emit OwnerChanged(address(0), msg.sender);
         emit SwapFeeManagerChanged(address(0), msg.sender);
         emit UnstakedFeeManagerChanged(address(0), msg.sender);
@@ -63,19 +70,23 @@ contract UniswapV3Factory is IUniswapV3Factory {
         require(token0 != address(0));
         require(tickSpacingToFee[tickSpacing] != 0);
         require(getPool[token0][token1][tickSpacing] == address(0));
-        pool = Clones.cloneDeterministic(implementation, keccak256(abi.encode(token0, token1, tickSpacing)));
-        _isPool[pool] = true;
-        getPool[token0][token1][tickSpacing] = pool;
-        // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
-        getPool[token1][token0][tickSpacing] = pool;
-        address gauge = voter.createGauge(address(this), pool);
+        bytes32 _salt = keccak256(abi.encode(token0, token1, tickSpacing));
+        pool = Clones.cloneDeterministic({master: poolImplementation, salt: _salt});
+        address gauge =
+            Clones.predictDeterministicAddress({master: gaugeImplementation, salt: _salt, deployer: gaugeFactory});
         UniswapV3Pool(pool).init({
             _factory: address(this),
             _token0: token0,
             _token1: token1,
             _tickSpacing: tickSpacing,
-            _gauge: gauge
+            _gauge: gauge,
+            _nft: nft
         });
+        _isPool[pool] = true;
+        getPool[token0][token1][tickSpacing] = pool;
+        // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
+        getPool[token1][token0][tickSpacing] = pool;
+        voter.createGauge(address(this), pool);
         emit PoolCreated(token0, token1, tickSpacing, pool);
     }
 
@@ -166,5 +177,13 @@ contract UniswapV3Factory is IUniswapV3Factory {
     /// @inheritdoc IUniswapV3Factory
     function isPair(address pool) external view override returns (bool) {
         return _isPool[pool];
+    }
+
+    /// @inheritdoc IUniswapV3Factory
+    function setGaugeFactoryAndNFT(address _gaugeFactory, address _nft) external override {
+        require(gaugeFactory == address(0), "AI");
+        gaugeFactory = _gaugeFactory;
+        gaugeImplementation = ICLGaugeFactory(gaugeFactory).implementation();
+        nft = _nft;
     }
 }

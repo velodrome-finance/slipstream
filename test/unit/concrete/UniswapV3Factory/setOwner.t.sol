@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import {UniswapV3FactoryTest} from "./UniswapV3Factory.t.sol";
 
-contract SetOwner is UniswapV3FactoryTest {
+contract SetOwnerTest is UniswapV3FactoryTest {
     function setUp() public override {
         super.setUp();
 

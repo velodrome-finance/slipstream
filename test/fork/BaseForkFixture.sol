@@ -4,10 +4,11 @@ pragma abicoder v2;
 import "forge-std/StdJson.sol";
 import "../BaseFixture.sol";
 
-contract LiquidityFlow is BaseFixture {
+abstract contract BaseForkFixture is BaseFixture {
     using stdJson for string;
 
     string public addresses;
+    IERC20 public op;
 
     function setUp() public virtual override {
         vm.createSelectFork({urlOrAlias: "optimism", blockNumber: 109241151});
@@ -23,13 +24,10 @@ contract LiquidityFlow is BaseFixture {
     function deployDependencies() public virtual override {
         factoryRegistry = IFactoryRegistry(vm.parseJsonAddress(addresses, ".FactoryRegistry"));
         weth = IERC20(vm.parseJsonAddress(addresses, ".WETH"));
+        op = IERC20(vm.parseJsonAddress(addresses, ".OP"));
         voter = IVoter(vm.parseJsonAddress(addresses, ".Voter"));
         rewardToken = ERC20(vm.parseJsonAddress(addresses, ".Velo"));
         votingRewardsFactory = IVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
         escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
-    }
-
-    function testStub() public {
-        console2.log("stub");
     }
 }

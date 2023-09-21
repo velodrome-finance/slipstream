@@ -30,7 +30,7 @@ library PoolAddress {
     function computeAddress(address factory, PoolKey memory key) internal view returns (address pool) {
         require(key.token0 < key.token1);
         pool = Clones.predictDeterministicAddress({
-            master: IUniswapV3Factory(factory).implementation(),
+            master: IUniswapV3Factory(factory).poolImplementation(),
             salt: keccak256(abi.encode(key.token0, key.token1, key.tickSpacing)),
             deployer: factory
         });

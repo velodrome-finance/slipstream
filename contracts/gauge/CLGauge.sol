@@ -56,6 +56,10 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     mapping(uint256 => uint256) public override rewardGrowthInside;
 
     /// @inheritdoc ICLGauge
+    address public override token0;
+    /// @inheritdoc ICLGauge
+    address public override token1;
+    /// @inheritdoc ICLGauge
     uint256 public override fees0;
     /// @inheritdoc ICLGauge
     uint256 public override fees1;
@@ -68,6 +72,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         address _rewardToken,
         address _voter,
         address _nft,
+        address _token0,
+        address _token1,
         bool _isPool
     ) external override {
         require(address(pool) == address(0), "AI");
@@ -77,6 +83,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         rewardToken = _rewardToken;
         voter = IVoter(_voter);
         nft = INonfungiblePositionManager(_nft);
+        token0 = _token0;
+        token1 = _token1;
         isPool = _isPool;
     }
 
@@ -194,15 +202,15 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     ) external override nonReentrant {
         address _nft = address(nft);
 
-        IERC20 token0 = IERC20(pool.token0());
-        IERC20 token1 = IERC20(pool.token1());
+        address _token0 = token0;
+        address _token1 = token1;
 
         // NFT manager will send these tokens to the pool
-        token0.safeIncreaseAllowance(_nft, amount0Desired);
-        token1.safeIncreaseAllowance(_nft, amount1Desired);
+        IERC20(_token0).safeIncreaseAllowance(_nft, amount0Desired);
+        IERC20(_token1).safeIncreaseAllowance(_nft, amount1Desired);
 
-        TransferHelper.safeTransferFrom(address(token0), msg.sender, address(this), amount0Desired);
-        TransferHelper.safeTransferFrom(address(token1), msg.sender, address(this), amount1Desired);
+        TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), amount0Desired);
+        TransferHelper.safeTransferFrom(_token1, msg.sender, address(this), amount1Desired);
 
         (uint128 liquidity, uint256 amount0, uint256 amount1) = nft.increaseLiquidity(
             INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -222,10 +230,10 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount1Surplus = amount1Desired - amount1;
 
         if (amount0Surplus > 0) {
-            TransferHelper.safeTransfer(pool.token0(), msg.sender, amount0Surplus);
+            TransferHelper.safeTransfer(_token0, msg.sender, amount0Surplus);
         }
         if (amount1Surplus > 0) {
-            TransferHelper.safeTransfer(pool.token1(), msg.sender, amount1Surplus);
+            TransferHelper.safeTransfer(_token1, msg.sender, amount1Surplus);
         }
     }
 
@@ -330,8 +338,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         if (claimed0 > 0 || claimed1 > 0) {
             uint256 _fees0 = fees0 + claimed0;
             uint256 _fees1 = fees1 + claimed1;
-            address _token0 = pool.token0();
-            address _token1 = pool.token1();
+            address _token0 = token0;
+            address _token1 = token1;
             if (_fees0 > DURATION) {
                 fees0 = 0;
                 IERC20(_token0).safeApprove(feesVotingReward, _fees0);

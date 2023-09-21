@@ -5,8 +5,6 @@ import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import "../../../../BaseFixture.sol";
 
 contract CustomSwapFeeModuleTest is BaseFixture {
-    CustomSwapFeeModule public customSwapFeeModule;
-
     function setUp() public virtual override {
         super.setUp();
         customSwapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});

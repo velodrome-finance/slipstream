@@ -16,7 +16,8 @@ contract InitTest is UniswapV3PoolTest {
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             _tickSpacing: TICK_SPACING_MEDIUM,
-            _gauge: gauge
+            _gauge: gauge,
+            _nft: address(nft)
         });
     }
 }

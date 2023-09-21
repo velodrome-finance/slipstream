@@ -39,6 +39,12 @@ interface ICLGauge {
     /// @notice View to see the rewardRate given the timestamp of the start of the epoch
     function rewardRateByEpoch(uint256) external view returns (uint256);
 
+    /// @notice Cached address of token0, corresponding to token0 of the pool
+    function token0() external view returns (address);
+
+    /// @notice Cached address of token1, corresponding to token1 of the pool
+    function token1() external view returns (address);
+
     /// @notice Cached amount of fees generated from the Pool linked to the Gauge of token0
     function fees0() external view returns (uint256);
 
@@ -66,6 +72,8 @@ interface ICLGauge {
     /// @param _rewardToken The address of the reward token
     /// @param _voter The address of the voter contract
     /// @param _nft The address of the nft position manager contract
+    /// @param _token0 The address of token0 of the pool
+    /// @param _token1 The address of token1 of the pool
     /// @param _isPool Whether the attached pool is a real pool or not
     function initialize(
         address _forwarder,
@@ -74,6 +82,8 @@ interface ICLGauge {
         address _rewardToken,
         address _voter,
         address _nft,
+        address _token0,
+        address _token1,
         bool _isPool
     ) external;
 
@@ -90,13 +100,13 @@ interface ICLGauge {
     function getReward(uint256 tokenId) external;
 
     /// @notice Notifies gauge of gauge rewards.
-    /// @param amount Amount of gauge rewards (emissions) to notify.
+    /// @param amount Amount of gauge rewards (emissions) to notify. Must be greater than 604_800.
     function notifyRewardAmount(uint256 amount) external;
 
     /// @dev Notifies gauge of gauge rewards without distributing its fees.
     ///      Assumes gauge reward tokens is 18 decimals.
     ///      If not 18 decimals, rewardRate may have rounding issues.
-    /// @param amount Amount of gauge rewards (emissions) to notify.
+    /// @param amount Amount of gauge rewards (emissions) to notify. Must be greater than 604_800.
     function notifyRewardWithoutClaim(uint256 amount) external;
 
     /// @notice Used to deposit a UniswapV3 position into the gauge

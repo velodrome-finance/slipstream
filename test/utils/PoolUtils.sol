@@ -17,7 +17,7 @@ abstract contract PoolUtils is Test, Constants, Events {
         returns (address _pool)
     {
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        address implementation = UniswapV3Factory(factory).implementation();
+        address implementation = UniswapV3Factory(factory).poolImplementation();
         return Clones.predictDeterministicAddress({
             master: address(implementation),
             salt: keccak256(abi.encode(token0, token1, tickSpacing)),

@@ -23,7 +23,7 @@ contract SetSwapFeeModule is UniswapV3FactoryTest {
 
     function test_SetSwapFeeModule() public {
         vm.expectEmit(true, true, false, false, address(poolFactory));
-        emit SwapFeeModuleChanged({oldFeeModule: address(0), newFeeModule: users.alice});
+        emit SwapFeeModuleChanged({oldFeeModule: address(customSwapFeeModule), newFeeModule: users.alice});
         poolFactory.setSwapFeeModule({_swapFeeModule: users.alice});
 
         assertEq(poolFactory.swapFeeModule(), users.alice);

@@ -28,11 +28,13 @@ contract MockVoter is IVoter {
     IERC20 internal immutable rewardToken;
     IFactoryRegistry public immutable factoryRegistry;
     IVotingEscrow public immutable override ve;
+    address public immutable override emergencyCouncil;
 
     constructor(address _rewardToken, address _factoryRegistry, address _ve) {
         rewardToken = IERC20(_rewardToken);
         factoryRegistry = IFactoryRegistry(_factoryRegistry);
         ve = IVotingEscrow(_ve);
+        emergencyCouncil = msg.sender;
     }
 
     function createGauge(address _poolFactory, address _pool) external override returns (address) {
@@ -62,5 +64,9 @@ contract MockVoter is IVoter {
             rewardToken.approve(gauge, _claimable);
             ICLGauge(gauge).notifyRewardAmount(rewardToken.balanceOf(address(this)));
         }
+    }
+
+    function killGauge(address gauge) external override {
+        isAlive[gauge] = false;
     }
 }

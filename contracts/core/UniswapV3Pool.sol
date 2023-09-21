@@ -24,8 +24,6 @@ import "./interfaces/callback/IUniswapV3MintCallback.sol";
 import "./interfaces/callback/IUniswapV3SwapCallback.sol";
 import "./interfaces/callback/IUniswapV3FlashCallback.sol";
 
-import "contracts/gauge/interfaces/ICLGauge.sol";
-
 contract UniswapV3Pool is IUniswapV3Pool {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
@@ -139,7 +137,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge)
+    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge, address _nft)
         external
         override
     {
@@ -149,7 +147,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         token1 = _token1;
         tickSpacing = _tickSpacing;
         gauge = _gauge;
-        nft = address(ICLGauge(_gauge).nft());
+        nft = _nft;
 
         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
     }

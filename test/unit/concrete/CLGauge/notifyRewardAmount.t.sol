@@ -5,9 +5,6 @@ import "./CLGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 
 contract NotifyRewardAmountTest is CLGaugeTest {
-    using stdStorage for StdStorage;
-    using SafeCast for uint128;
-
     UniswapV3Pool public pool;
     CLGauge public gauge;
     address public feesVotingReward;

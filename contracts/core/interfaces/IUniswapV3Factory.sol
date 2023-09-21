@@ -47,9 +47,9 @@ interface IUniswapV3Factory {
     /// @return The address of the voter contract
     function voter() external view returns (IVoter);
 
-    /// @notice The address of the implementation contract used to deploy proxies / clones
-    /// @return The address of the implementation contract
-    function implementation() external view returns (address);
+    /// @notice The address of the pool implementation contract used to deploy proxies / clones
+    /// @return The address of the pool implementation contract
+    function poolImplementation() external view returns (address);
 
     /// @notice Returns the current owner of the factory
     /// @dev Can be changed by the current owner via setOwner
@@ -75,6 +75,21 @@ interface IUniswapV3Factory {
     /// @dev Can be changed by the current unstaked fee manager via setUnstakedFeeModule
     /// @return The address of the factory unstakedFeeModule
     function unstakedFeeModule() external view returns (address);
+
+    /// @notice Returns the nonfungible position manager that will manage positions for the pools
+    /// @dev Set once on deployment only
+    /// @return The address of the nonfungible position manager
+    function nft() external view returns (address);
+
+    /// @notice Returns the gauge factory creating gauges for pools created by this factory
+    /// @dev Set once on deployment only
+    /// @return The address of the gauge factory
+    function gaugeFactory() external view returns (address);
+
+    /// @notice The address of the gauge implementation contract used to deploy proxies / clones
+    /// @dev Set once on deployment only
+    /// @return The address of the gauge implementation contract
+    function gaugeImplementation() external view returns (address);
 
     /// @notice Returns a default fee for a tick spacing.
     /// @dev Use getFee for the most up to date fee for a given pool.
@@ -152,4 +167,10 @@ interface IUniswapV3Factory {
     /// @param tickSpacing The spacing between ticks to be enforced in the pool
     /// @param fee The default fee associated with a given tick spacing
     function enableTickSpacing(int24 tickSpacing, uint24 fee) external;
+
+    /// @notice Set gauge factory
+    /// @dev Callable once only on initialize
+    /// @param _gaugeFactory The gauge factory that creates gauges for the pools created by this factory
+    /// @param _nft The nonfungible position manager that will manage positions for this pool
+    function setGaugeFactoryAndNFT(address _gaugeFactory, address _nft) external;
 }

@@ -25,6 +25,7 @@ import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
+import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 
 abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     UniswapV3Factory public poolFactory;
@@ -51,6 +52,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     TestUniswapV3Callee public uniswapV3Callee;
     NFTManagerCallee public nftCallee;
 
+    CustomSwapFeeModule public customSwapFeeModule;
     CustomUnstakedFeeModule public customUnstakedFeeModule;
 
     function setUp() public virtual {
@@ -70,7 +72,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         poolImplementation = new UniswapV3Pool();
         poolFactory = new UniswapV3Factory({
             _voter: address(voter), 
-            _implementation: address(poolImplementation)
+            _poolImplementation: address(poolImplementation)
         });
         // backward compatibility with the original uniV3 fee structure and tick spacing
         poolFactory.enableTickSpacing(10, 500);
@@ -94,6 +96,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             _implementation: address(gaugeImplementation),
             _nft: address(nft)
         });
+        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(gaugeFactory), _nft: address(nft)});
 
         // approve gauge in factory registry
         vm.prank(Ownable(address(factoryRegistry)).owner());
@@ -108,9 +111,12 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         poolFactory.setSwapFeeManager(users.feeManager);
         poolFactory.setUnstakedFeeManager(users.feeManager);
 
+        customSwapFeeModule = new CustomSwapFeeModule(address(poolFactory));
         customUnstakedFeeModule = new CustomUnstakedFeeModule(address(poolFactory));
-        vm.prank(users.feeManager);
+        vm.startPrank(users.feeManager);
+        poolFactory.setSwapFeeModule(address(customSwapFeeModule));
         poolFactory.setUnstakedFeeModule(address(customUnstakedFeeModule));
+        vm.stopPrank();
 
         ERC20 tokenA = new ERC20("", "");
         ERC20 tokenB = new ERC20("", "");
@@ -184,6 +190,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.label({account: address(token1), newLabel: "Token 1"});
         vm.label({account: address(rewardToken), newLabel: "Reward Token"});
         vm.label({account: address(gaugeFactory), newLabel: "Gauge Factory"});
+        vm.label({account: address(customSwapFeeModule), newLabel: "Custom Swap FeeModule"});
         vm.label({account: address(customUnstakedFeeModule), newLabel: "Custom Unstaked Fee Module"});
     }
 

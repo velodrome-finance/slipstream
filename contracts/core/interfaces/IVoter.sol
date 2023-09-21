@@ -17,4 +17,8 @@ interface IVoter {
     function distribute(address gauge) external;
 
     function isAlive(address _gauge) external view returns (bool);
+
+    function killGauge(address _gauge) external;
+
+    function emergencyCouncil() external view returns (address);
 }
