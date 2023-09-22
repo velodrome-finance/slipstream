@@ -24,6 +24,8 @@ import "./interfaces/callback/IUniswapV3MintCallback.sol";
 import "./interfaces/callback/IUniswapV3SwapCallback.sol";
 import "./interfaces/callback/IUniswapV3FlashCallback.sol";
 
+import "contracts/libraries/VelodromeTimeLibrary.sol";
+
 contract UniswapV3Pool is IUniswapV3Pool {
     using LowGasSafeMath for uint256;
     using LowGasSafeMath for int256;
@@ -920,11 +922,16 @@ contract UniswapV3Pool is IUniswapV3Pool {
     /// or when notifying rewards when there is no liquidity stake
     function _updateRewardsGrowthGlobal() internal {
         uint32 timestamp = _blockTimestamp();
-        uint256 timeDelta = timestamp - lastUpdated;
+        uint256 _lastUpdated = lastUpdated;
+        uint256 timeDelta = timestamp - _lastUpdated;
 
         if (timeDelta != 0) {
             if (rewardReserve > 0) {
                 if (stakedLiquidity > 0) {
+                    // in case of late notify we only account till the end of the epoch
+                    if (VelodromeTimeLibrary.epochStart(timestamp) != VelodromeTimeLibrary.epochStart(_lastUpdated)) {
+                        timeDelta = VelodromeTimeLibrary.epochNext(_lastUpdated) - _lastUpdated;
+                    }
                     uint256 reward = rewardRate * timeDelta;
                     // ensures any remaining rewards for the past epoch are distributed
                     if (reward > rewardReserve) reward = rewardReserve;

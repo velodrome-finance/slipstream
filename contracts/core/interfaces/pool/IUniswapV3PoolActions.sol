@@ -149,5 +149,7 @@ interface IUniswapV3PoolActions {
     function updateRewardsGrowthGlobal() external;
 
     /// @notice Syncs rewards with gauge
+    /// @param rewardRate the rate rewards being distributed during the epoch
+    /// @param rewardReserve the available rewards to be distributed during the epoch
     function syncReward(uint256 rewardRate, uint256 rewardReserve) external;
 }

@@ -525,16 +525,19 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
         skipToNextEpoch(1);
 
-        // swap to update RewardGrowthGlobal
+        // withdraw to update RewardGrowthGlobal
         vm.startPrank(users.alice);
         gauge.withdraw(tokenId);
 
+        // calculate the rewardRate by hand because we lose some precision during the division
+        uint256 rewardRate = reward / WEEK;
+        uint256 accumulatedReward = rewardRate * WEEK;
         // all rewardReserves should be accounted in the accumulator
-        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(reward, Q128, stakedLiquidity);
+        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
 
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertEq(pool.rewardRate(), reward / WEEK);
-        assertEqUint(pool.rewardReserve(), 0);
+        assertApproxEqAbs(pool.rewardReserve(), 0, 1e5);
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardReserveIsZeroAndRewardRateGreaterThanZeroUpdateTriggeredByNextNotify(
@@ -557,12 +560,26 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         // add new rewards to update RewardGrowthGlobal
         addRewardToGauge(address(voter), address(gauge), reward);
 
+        // calculate the rewardRate by hand because we lose some precision during the division
+        uint256 previousRewardRate = reward / WEEK;
+        uint256 accumulatedReward = previousRewardRate * WEEK;
+
         // all rewardReserves should be accounted in the accumulator
-        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(reward, Q128, stakedLiquidity);
+        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
 
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertEq(pool.rewardRate(), reward / (WEEK - 1));
         assertEqUint(pool.rewardReserve(), reward);
+
+        // sanity checks
+        uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
+        assertApproxEqAbs(gaugeRewardTokenBalance, reward * 2, 1e6);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, accumulatedReward, 1);
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenNoStakeLiquidityPresentForMoreThanOneEpoch() public {
@@ -784,7 +801,7 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         skipToNextEpoch(0);
         // skip multiple epoch
         skipToNextEpoch(0);
-        // one epoch skipped entirely
+        // delay
         skipToNextEpoch(1 days);
         addRewardToGauge(address(voter), address(gauge), reward * 2);
 
@@ -826,7 +843,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         skipToNextEpoch(0);
         // skip multiple epoch
         skipToNextEpoch(0);
-        // one epoch skipped entirely
         skipToNextEpoch(0);
         addRewardToGauge(address(voter), address(gauge), reward * 2);
 
@@ -875,5 +891,30 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         assertEqUint(pool.timeNoStakedLiquidity(), 0);
         assertEq(pool.rewardRate(), (reward * 2 + reward / WEEK * 120) / (WEEK - 200));
         assertApproxEqAbs(pool.rewardReserve(), (reward * 2 + reward / WEEK * 120), 1e6);
+    }
+
+    function test_RewardGrowthOnlyAccountRewardsTillTheEndOfTheEpochInCaseOfLateNotify() public {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(1 days);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(60);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, (reward / 7 * 6), 1e6);
+        assertApproxEqAbs(pool.rewardReserve(), (reward / 7), 1e6);
     }
 }
