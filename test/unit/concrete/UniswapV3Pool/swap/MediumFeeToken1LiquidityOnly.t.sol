@@ -36,5 +36,9 @@ contract MediumFeeToken0LiquidityOnlyTest is UniswapV3PoolSwapTest {
             sqrtPriceX96: sqrtPriceX96,
             tick: tick
         });
+
+        vm.startPrank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+        vm.startPrank(users.alice);
     }
 }

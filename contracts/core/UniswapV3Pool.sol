@@ -954,19 +954,34 @@ contract UniswapV3Pool is IUniswapV3Pool {
         delete timeNoStakedLiquidity;
     }
 
-    // calculates the fee for staked & unstaked liquidity
+    /// @notice Calculates the fees owed to staked liquidity, then calculates fee levied on unstaked liquidity
+    /// @param feeAmount Total fees
+    /// @param _liquidity Current liquidity in active tick
+    /// @param _stakedLiquidity Current staked liquidity in active tick
+    /// @return unstakedFeeAmount Fee amount for unstaked LPs after accounting for staked liquidity contribution and unstaked fee
+    /// @return stakedFeeAmount Fee amount for staked LPs consisting of staked liquidity contribution and unstaked fee
     function splitFees(uint256 feeAmount, uint128 _liquidity, uint128 _stakedLiquidity)
         internal
         view
         returns (uint256 unstakedFeeAmount, uint256 stakedFeeAmount)
     {
-        // Protocol takes 100% fees for staked liquidity
         stakedFeeAmount = FullMath.mulDiv(feeAmount, _stakedLiquidity, _liquidity);
-        unstakedFeeAmount = feeAmount - stakedFeeAmount;
-        // There is an unstaked fee for regular LPers
-        uint256 _unstakedFee = unstakedFeeAmount * unstakedFee() / 1_000_000;
-        unstakedFeeAmount -= _unstakedFee;
-        stakedFeeAmount += _unstakedFee;
+        (unstakedFeeAmount, stakedFeeAmount) = applyUnstakedFees(feeAmount - stakedFeeAmount, stakedFeeAmount);
+    }
+
+    /// @notice Calculates fee for levied on unstaked liquidity only
+    /// @param _unstakedFeeAmount Fee amount for unstaked LPs net of staked liquidity contribution
+    /// @param _stakedFeeAmount Fee amount for staked LPs consisting of staked liquidity contribution
+    /// @return unstakedFeeAmount Fee amount for unstaked LPs after accounting for staked liquidity contribution and unstaked fee
+    /// @return stakedFeeAmount Fee amount for staked LPs consisting of staked liquidity contribution and unstaked fee
+    function applyUnstakedFees(uint256 _unstakedFeeAmount, uint256 _stakedFeeAmount)
+        internal
+        view
+        returns (uint256 unstakedFeeAmount, uint256 stakedFeeAmount)
+    {
+        uint256 _stakedFee = _unstakedFeeAmount * unstakedFee() / 1_000_000;
+        unstakedFeeAmount = _unstakedFeeAmount - _stakedFee;
+        stakedFeeAmount = _stakedFeeAmount + _stakedFee;
     }
 
     // calculates the fee growths for unstaked liquidity and returns it with the staked fee amount
@@ -981,7 +996,9 @@ contract UniswapV3Pool is IUniswapV3Pool {
         }
         // if there is only unstaked liquidity
         else if (_stakedLiquidity == 0) {
-            feeGrowthGlobalX128 = FullMath.mulDiv(feeAmount, FixedPoint128.Q128, _liquidity);
+            (uint256 unstakedFeeAmount, uint256 _stakedFeeAmount) = applyUnstakedFees(feeAmount, 0);
+            feeGrowthGlobalX128 = FullMath.mulDiv(unstakedFeeAmount, FixedPoint128.Q128, _liquidity);
+            stakedFeeAmount = _stakedFeeAmount;
         }
         // if there are staked and unstaked liquidities
         else {

@@ -10,7 +10,7 @@ import {
   MockTimeNonfungiblePositionManager,
 } from '../../../typechain'
 import { MockVoter } from '../../../typechain/MockVoter'
-import { MockVotingRewardsFactory } from '../../../typechain'
+import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
 import { constants } from 'ethers'
@@ -48,6 +48,7 @@ const v3CoreFactoryFixture: Fixture<{
 
   const Pool = await ethers.getContractFactory('UniswapV3Pool')
   const Factory = await ethers.getContractFactory('UniswapV3Factory')
+  const CustomUnstakedFeeModuleFactory = await ethers.getContractFactory('CustomUnstakedFeeModule')
   const pool = (await Pool.deploy()) as IUniswapV3Pool
 
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
@@ -69,6 +70,10 @@ const v3CoreFactoryFixture: Fixture<{
   )) as MockVoter
 
   const factory = (await Factory.deploy(mockVoter.address, pool.address)) as IUniswapV3Factory
+  const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
+    factory.address
+  )) as CustomUnstakedFeeModule
+  await factory.setUnstakedFeeModule(customUnstakedFeeModule.address)
 
   const nftDescriptorLibraryFactory = await ethers.getContractFactory('NFTDescriptor')
   const nftDescriptorLibrary = await nftDescriptorLibraryFactory.deploy()

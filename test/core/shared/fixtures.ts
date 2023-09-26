@@ -6,7 +6,7 @@ import { UniswapV3Factory } from '../../../typechain/UniswapV3Factory'
 import { TestUniswapV3Callee } from '../../../typechain/TestUniswapV3Callee'
 import { TestUniswapV3Router } from '../../../typechain/TestUniswapV3Router'
 import { MockVoter } from '../../../typechain/MockVoter'
-import { MockVotingRewardsFactory } from '../../../typechain'
+import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
 
@@ -62,6 +62,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   const MockFactoryRegistryFactory = await ethers.getContractFactory('MockFactoryRegistry')
   const MockVotingRewardsFactoryFactory = await ethers.getContractFactory('MockVotingRewardsFactory')
   const MockVotingEscrowFactory = await ethers.getContractFactory('MockVotingEscrow')
+  const CustomUnstakedFeeModuleFactory = await ethers.getContractFactory('CustomUnstakedFeeModule')
 
   // voter & gauge factory set up
   const mockVotingEscrow = await MockVotingEscrowFactory.deploy(wallet.address)
@@ -83,6 +84,10 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     mockVoter.address,
     mockTimePool.address
   )) as UniswapV3Factory
+  const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
+    mockTimePoolDeployer.address
+  )) as CustomUnstakedFeeModule
+  await mockTimePoolDeployer.setUnstakedFeeModule(customUnstakedFeeModule.address)
   // approve pool factory <=> gauge factory combination
   const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory
   await mockFactoryRegistry.approve(
@@ -112,6 +117,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
       const poolAddress = receipt.events?.[0].args?.pool as string
       const pool = MockTimeUniswapV3PoolFactory.attach(poolAddress) as MockTimeUniswapV3Pool
       await pool.advanceTime(TEST_POOL_START_TIME)
+      customUnstakedFeeModule.setCustomFee(poolAddress, 420)
       return pool
     },
   }

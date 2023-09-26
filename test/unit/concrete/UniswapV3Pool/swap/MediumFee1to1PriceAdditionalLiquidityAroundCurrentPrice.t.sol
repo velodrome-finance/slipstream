@@ -48,5 +48,9 @@ contract MediumFee1to1PriceAdditionalLiquidityAroundCurrentPriceTest is UniswapV
             sqrtPriceX96: sqrtPriceX96,
             tick: tick
         });
+
+        vm.startPrank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
+        vm.startPrank(users.alice);
     }
 }

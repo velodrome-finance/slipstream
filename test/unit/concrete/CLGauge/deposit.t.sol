@@ -18,6 +18,8 @@ contract DepositTest is CLGaugeTest {
         );
         gauge = CLGauge(voter.gauges(address(pool)));
 
+        vm.startPrank(users.feeManager);
+        customUnstakedFeeModule.setCustomFee(address(pool), 420);
         vm.startPrank(users.alice);
     }
 

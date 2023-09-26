@@ -2,6 +2,7 @@ import { Fixture } from 'ethereum-waffle'
 import { BigNumberish, constants, Wallet } from 'ethers'
 import { ethers, waffle, artifacts } from 'hardhat'
 import {
+  CustomUnstakedFeeModule,
   IUniswapV3Factory,
   IWETH9,
   MockTimeNonfungiblePositionManager,
@@ -1208,6 +1209,18 @@ describe('NonfungiblePositionManager', () => {
         deadline: 1,
         recipient: wallet.address,
       })
+      const pool = poolAtAddress(
+        await computePoolAddress(
+          factory.address,
+          [tokens[0].address, tokens[1].address],
+          TICK_SPACINGS[FeeAmount.MEDIUM]
+        ),
+        wallet
+      )
+      const abi = artifacts.readArtifactSync('CustomUnstakedFeeModule').abi
+      const moduleAddress = await factory.unstakedFeeModule()
+      const customUnstakedFeeModule = new ethers.Contract(moduleAddress, abi, wallet) as CustomUnstakedFeeModule
+      await customUnstakedFeeModule.setCustomFee(pool.address, 420)
     })
 
     describe('10k of token0 fees collect', () => {
