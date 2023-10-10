@@ -55,6 +55,44 @@ contract NFTManagerCallee {
         );
     }
 
+    function mintNewCustomRangePositionForUserWithCustomTickSpacing(
+        uint256 amount0,
+        uint256 amount1,
+        int24 tickLower,
+        int24 tickUpper,
+        int24 tickSpacing,
+        address user
+    ) public returns (uint256) {
+        ERC20(token0).transferFrom(user, address(this), amount0);
+        ERC20(token1).transferFrom(user, address(this), amount1);
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: address(token0),
+            token1: address(token1),
+            tickSpacing: tickSpacing,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            recipient: user,
+            amount0Desired: amount0,
+            amount1Desired: amount1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: block.timestamp
+        });
+        (uint256 tokenId,,,) = INonfungiblePositionManager(nft).mint(params);
+        return tokenId;
+    }
+
+    function mintNewFullRangePositionForUserWithCustomTickSpacing(
+        uint256 amount0,
+        uint256 amount1,
+        int24 tickSpacing,
+        address user
+    ) external returns (uint256) {
+        return mintNewCustomRangePositionForUserWithCustomTickSpacing(
+            amount0, amount1, getMinTick(tickSpacing), getMaxTick(tickSpacing), tickSpacing, user
+        );
+    }
+
     function collectAllForTokenId(uint256 tokenId, address recipient) external returns (uint256, uint256) {
         return INonfungiblePositionManager(nft).collect(
             INonfungiblePositionManager.CollectParams({

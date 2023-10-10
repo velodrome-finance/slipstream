@@ -965,7 +965,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         view
         returns (uint256 unstakedFeeAmount, uint256 stakedFeeAmount)
     {
-        stakedFeeAmount = FullMath.mulDiv(feeAmount, _stakedLiquidity, _liquidity);
+        stakedFeeAmount = FullMath.mulDivRoundingUp(feeAmount, _stakedLiquidity, _liquidity);
         (unstakedFeeAmount, stakedFeeAmount) = applyUnstakedFees(feeAmount - stakedFeeAmount, stakedFeeAmount);
     }
 
@@ -979,7 +979,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         view
         returns (uint256 unstakedFeeAmount, uint256 stakedFeeAmount)
     {
-        uint256 _stakedFee = _unstakedFeeAmount * unstakedFee() / 1_000_000;
+        uint256 _stakedFee = FullMath.mulDivRoundingUp(_unstakedFeeAmount, unstakedFee(), 1_000_000);
         unstakedFeeAmount = _unstakedFeeAmount - _stakedFee;
         stakedFeeAmount = _stakedFeeAmount + _stakedFee;
     }

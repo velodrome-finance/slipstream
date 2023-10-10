@@ -259,10 +259,10 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         FeeGrowth memory fg = FeeGrowth(0, 0);
 
         Fees memory fees = Fees(0, 0, 0, 0);
-        fees.fee1 = FullMath.mulDivRoundingUp(fd.swapAmount1, 3_000, 1e6 - 3_000);
-        fees.fee2 = FullMath.mulDivRoundingUp(fd.swapAmount2, 3_000, 1e6 - 3_000);
-        fees.fee3 = FullMath.mulDivRoundingUp(fd.swapAmount3, 3_000, 1e6 - 3_000);
-        fees.fee4 = FullMath.mulDivRoundingUp(fd.swapAmount4, 3_000, 1e6 - 3_000);
+        fees.fee1 = FullMath.mulDivRoundingUp(fd.swapAmount1, 3_000, 1e6);
+        fees.fee2 = FullMath.mulDivRoundingUp(fd.swapAmount2, 3_000, 1e6);
+        fees.fee3 = FullMath.mulDivRoundingUp(fd.swapAmount3, 3_000, 1e6);
+        fees.fee4 = FullMath.mulDivRoundingUp(fd.swapAmount4, 3_000, 1e6);
 
         // swap token0
         uniswapV3Callee.swapExact0For1(address(pool), fd.swapAmount1, users.alice, MIN_SQRT_RATIO + 1);

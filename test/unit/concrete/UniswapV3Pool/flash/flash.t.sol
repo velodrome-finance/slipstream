@@ -150,10 +150,10 @@ contract FlashTest is UniswapV3PoolTest {
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 2);
-        assertEq(_token1, 3); // since we first calculate staked amount in splitFees() this is going to be lower
+        assertEq(_token1, 4); // we use mulDivRoundUp in splitFees
 
         uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(2, Q128, TOKEN_1);
-        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(4, Q128, TOKEN_1);
+        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(3, Q128, TOKEN_1);
 
         assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
         assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);

@@ -190,7 +190,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 15e14);
-        assertEq(_token1, 3e15);
+        assertApproxEqAbs(_token1, 3e15, 1);
 
         skipToNextEpoch(0);
 
@@ -201,10 +201,10 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertApproxEqAbs(token1.balanceOf(address(feesVotingReward)), 3e15, 1);
 
         uint256 feeGrowthGlobal0X128 = FullMath.mulDiv(15e14, Q128, TOKEN_1);
-        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(3e15 + 1, Q128, TOKEN_1);
+        uint256 feeGrowthGlobal1X128 = FullMath.mulDiv(3e15, Q128, TOKEN_1);
 
         assertEq(pool.feeGrowthGlobal0X128(), feeGrowthGlobal0X128);
-        assertEq(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128);
+        assertApproxEqAbs(pool.feeGrowthGlobal1X128(), feeGrowthGlobal1X128, 1);
     }
 
     function test_NotifyRewardAmountBeforeNotifyRewardWithoutClaim() public {

@@ -220,9 +220,9 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
             assertEq(np.feeGrowthInside0LastX128, feeGrowthInside0LastX128Position);
             assertEq(np.feeGrowthInside1LastX128, feeGrowthInside1LastX128Position);
             assertApproxEqAbs(uint256(tokensOwed0Position), 15e14, 2);
-            assertApproxEqAbs(uint256(tokensOwed1Position), 15e14, 1);
+            assertApproxEqAbs(uint256(tokensOwed1Position), 15e14, 2);
             assertApproxEqAbs(uint256(np.tokensOwed0), 15e14, 2);
-            assertApproxEqAbs(uint256(np.tokensOwed1), 15e14, 1);
+            assertApproxEqAbs(uint256(np.tokensOwed1), 15e14, 2);
         }
 
         // feeGrowthInsideXLastX128 should be the same for staked and unstaked in all cases
@@ -230,8 +230,8 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         assertEq(gp.feeGrowthInside1LastX128, np.feeGrowthInside1LastX128);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
-        assertEq(_token0, 15e14);
-        assertEq(_token1, 15e14);
+        assertApproxEqAbs(_token0, 15e14, 1);
+        assertApproxEqAbs(_token1, 15e14, 1);
     }
 
     function test_DecreaseStakedLiquidityUpdatesFeeGrowthInsideAndTokensOwedCorrectlyWithFlashLoanPositionsPartiallyStaked(
