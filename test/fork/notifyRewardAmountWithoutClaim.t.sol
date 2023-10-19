@@ -47,7 +47,7 @@ contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
         assertEq(gaugeRewardTokenBalance, reward);
 
         assertEq(gauge.rewardRate(), reward / 6 days);
-        assertEq(gauge.lastUpdateTime(), block.timestamp);
+        assertEq(gauge.lastUpdateTime(tokenId), block.timestamp);
         assertEq(gauge.periodFinish(), block.timestamp + 6 days);
 
         vm.prank(voter.emergencyCouncil());
@@ -61,7 +61,7 @@ contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
         gauge.notifyRewardWithoutClaim(604_800); // requires minimum value of 604800
 
         assertEq(gauge.rewardRate(), 1); // reset to token amount
-        assertEq(gauge.lastUpdateTime(), block.timestamp);
+        assertEq(gauge.lastUpdateTime(tokenId), block.timestamp - 6 days);
         assertEq(gauge.periodFinish(), block.timestamp + WEEK);
     }
 }

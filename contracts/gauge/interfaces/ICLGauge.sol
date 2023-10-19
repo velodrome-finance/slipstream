@@ -33,8 +33,11 @@ interface ICLGauge {
     /// @notice Current reward rate of rewardToken to distribute per second
     function rewardRate() external view returns (uint256);
 
-    /// @notice Most recent timestamp contract has updated state
-    function lastUpdateTime() external view returns (uint256);
+    /// @notice Claimable rewards by tokenId
+    function rewards(uint256 tokenId) external view returns (uint256);
+
+    /// @notice Most recent timestamp tokenId called updateRewards
+    function lastUpdateTime(uint256 tokenId) external view returns (uint256);
 
     /// @notice View to see the rewardRate given the timestamp of the start of the epoch
     function rewardRateByEpoch(uint256) external view returns (uint256);
@@ -89,6 +92,7 @@ interface ICLGauge {
 
     /// @notice Returns the claimable rewards for a given account and tokenId
     /// @dev Throws if account is not the position owner
+    /// @dev pool.updateRewardsGrowthGlobal() needs to be called first, to return the correct claimable rewards
     /// @param account The address of the user
     /// @param tokenId The tokenId of the position
     /// @return The amount of claimable reward

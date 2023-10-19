@@ -58,7 +58,6 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(gaugeRewardTokenBalance, reward);
 
         assertEq(gauge.rewardRate(), reward / 6 days);
-        assertEq(gauge.lastUpdateTime(), block.timestamp);
         assertEq(gauge.periodFinish(), block.timestamp + 6 days);
     }
 
@@ -83,7 +82,6 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         assertEq(gaugeRewardTokenBalance, reward * 2);
 
         assertEq(gauge.rewardRate(), reward / 6 days + reward / 5 days);
-        assertEq(gauge.lastUpdateTime(), block.timestamp);
         assertEq(gauge.periodFinish(), block.timestamp + 5 days);
     }
 

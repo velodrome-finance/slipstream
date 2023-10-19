@@ -37,8 +37,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     address public override feesVotingReward;
     /// @inheritdoc ICLGauge
     address public override rewardToken;
-    /// @inheritdoc ICLGauge
-    bool public override isPool;
 
     uint256 internal constant DURATION = 7 days; // rewards are released over 7 days
 
@@ -46,14 +44,17 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     uint256 public override periodFinish;
     /// @inheritdoc ICLGauge
     uint256 public override rewardRate;
-    /// @inheritdoc ICLGauge
-    uint256 public override lastUpdateTime; // TODO might be removed once we implement getReward
 
     mapping(uint256 => uint256) public override rewardRateByEpoch; // epochStart => rewardRate
     /// @dev The set of all staked nfts for a given address
     mapping(address => EnumerableSet.UintSet) internal _stakes;
     /// @inheritdoc ICLGauge
     mapping(uint256 => uint256) public override rewardGrowthInside;
+
+    /// @inheritdoc ICLGauge
+    mapping(uint256 => uint256) public override rewards;
+    /// @inheritdoc ICLGauge
+    mapping(uint256 => uint256) public override lastUpdateTime;
 
     /// @inheritdoc ICLGauge
     address public override token0;
@@ -63,6 +64,9 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     uint256 public override fees0;
     /// @inheritdoc ICLGauge
     uint256 public override fees1;
+
+    /// @inheritdoc ICLGauge
+    bool public override isPool;
 
     /// @inheritdoc ICLGauge
     function initialize(
@@ -88,6 +92,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         isPool = _isPool;
     }
 
+    // updates the claimable rewards and lastUpdateTime for tokenId
+    function updateRewards(uint256 tokenId) internal {
+        if (lastUpdateTime[tokenId] == block.timestamp) return;
+        pool.updateRewardsGrowthGlobal();
+        lastUpdateTime[tokenId] = block.timestamp;
+        rewards[tokenId] += _earned(tokenId);
+    }
+
     /// @inheritdoc ICLGauge
     function earned(address account, uint256 tokenId) external view override returns (uint256) {
         require(_stakes[account].contains(tokenId), "NA");
@@ -96,12 +108,17 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     function _earned(uint256 tokenId) internal view returns (uint256) {
-        uint256 timeDelta = block.timestamp - pool.lastUpdated();
+        uint256 lastUpdated = pool.lastUpdated();
+
+        uint256 timeDelta = block.timestamp - lastUpdated;
 
         uint256 rewardGrowthGlobalX128 = pool.rewardGrowthGlobalX128();
         uint256 rewardReserve = pool.rewardReserve();
 
-        if (timeDelta != 0 && pool.stakedLiquidity() > 0 && rewardRate > 0 && rewardReserve > 0) {
+        if (timeDelta != 0 && pool.stakedLiquidity() > 0 && rewardReserve > 0) {
+            if (VelodromeTimeLibrary.epochStart(block.timestamp) != VelodromeTimeLibrary.epochStart(lastUpdated)) {
+                timeDelta = VelodromeTimeLibrary.epochNext(lastUpdated) - lastUpdated;
+            }
             uint256 reward = rewardRate * timeDelta;
             if (reward > rewardReserve) reward = rewardReserve;
 
@@ -127,16 +144,16 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     function _getReward(int24 tickLower, int24 tickUpper, uint128 liquidity, uint256 tokenId, address owner) internal {
-        pool.updateRewardsGrowthGlobal();
-        uint256 rewardPerTokenInsideInitialX128 = rewardGrowthInside[tokenId];
-        uint256 rewardPerTokenInsideX128 = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
-        uint256 reward =
-            FullMath.mulDiv(rewardPerTokenInsideX128 - rewardPerTokenInsideInitialX128, liquidity, FixedPoint128.Q128);
+        updateRewards(tokenId);
+
+        uint256 reward = rewards[tokenId];
+        rewardGrowthInside[tokenId] = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
+
         if (reward > 0) {
+            delete rewards[tokenId];
             IERC20(rewardToken).safeTransfer(owner, reward);
             emit ClaimRewards(owner, reward);
         }
-        rewardGrowthInside[tokenId] = rewardPerTokenInsideX128;
     }
 
     /// @inheritdoc ICLGauge
@@ -162,6 +179,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
+        lastUpdateTime[tokenId] = block.timestamp;
 
         emit Deposit(msg.sender, tokenId, liquidityToStake);
     }
@@ -200,10 +218,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount1Min,
         uint256 deadline
     ) external override nonReentrant {
+        require(_stakes[msg.sender].contains(tokenId), "NA");
+
         address _nft = address(nft);
 
         address _token0 = token0;
         address _token1 = token1;
+
+        updateRewards(tokenId);
 
         // NFT manager will send these tokens to the pool
         IERC20(_token0).safeIncreaseAllowance(_nft, amount0Desired);
@@ -246,6 +268,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 deadline
     ) external override nonReentrant {
         require(_stakes[msg.sender].contains(tokenId), "NA");
+
+        updateRewards(tokenId);
 
         (uint256 amount0, uint256 amount1) = nft.decreaseLiquidity(
             INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -337,7 +361,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 balance = IERC20(rewardToken).balanceOf(address(this));
         require(rewardRate <= balance / timeUntilNext, "RRH");
 
-        lastUpdateTime = timestamp;
         periodFinish = timestamp + timeUntilNext;
         emit NotifyReward(_sender, _amount);
     }

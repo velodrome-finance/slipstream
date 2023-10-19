@@ -21,11 +21,25 @@ contract LiquidityManagementBase is CLGaugeTest {
 
         gauge = CLGauge(voter.gauges(address(pool)));
 
+        deal({token: address(token0), to: users.bob, give: TOKEN_1 * 100});
+        deal({token: address(token1), to: users.bob, give: TOKEN_1 * 100});
+
+        vm.startPrank(users.bob);
+        token0.approve(address(gauge), type(uint256).max);
+        token1.approve(address(gauge), type(uint256).max);
+        token0.approve(address(nft), type(uint256).max);
+        token1.approve(address(nft), type(uint256).max);
+        token0.approve(address(nftCallee), type(uint256).max);
+        token1.approve(address(nftCallee), type(uint256).max);
+        vm.stopPrank();
+
         vm.startPrank(users.alice);
         token0.approve(address(gauge), type(uint256).max);
         token1.approve(address(gauge), type(uint256).max);
 
         vm.label({account: address(gauge), newLabel: "Gauge"});
         vm.label({account: address(pool), newLabel: "Pool"});
+
+        skipToNextEpoch(0);
     }
 }

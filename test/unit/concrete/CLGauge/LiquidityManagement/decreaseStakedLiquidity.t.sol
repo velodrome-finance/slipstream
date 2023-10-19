@@ -334,4 +334,44 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         assertEq(_token0, 15e14);
         assertEq(_token1, 15e14);
     }
+
+    function test_DecreaseStakedLiquidityUpdatesCollectableRewards() public {
+        uint256 aliceTokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
+
+        (,,,,,,, uint128 positionLiquidity,,,,) = nft.positions(aliceTokenId);
+
+        nft.approve(address(gauge), aliceTokenId);
+        gauge.deposit(aliceTokenId);
+
+        vm.startPrank(users.bob);
+        uint256 bobTokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.bob);
+
+        nft.approve(address(gauge), bobTokenId);
+        gauge.deposit(bobTokenId);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(0);
+
+        uint256 aliceBalanceBefore = rewardToken.balanceOf(users.alice);
+        uint256 bobBalanceBefore = rewardToken.balanceOf(users.bob);
+
+        vm.prank(users.alice);
+        gauge.decreaseStakedLiquidity(aliceTokenId, positionLiquidity - 10, 0, 0, block.timestamp);
+
+        vm.prank(users.alice);
+        gauge.getReward(aliceTokenId);
+
+        vm.prank(users.bob);
+        gauge.getReward(bobTokenId);
+
+        uint256 aliceBalanceAfter = rewardToken.balanceOf(users.alice);
+        uint256 bobBalanceAfter = rewardToken.balanceOf(users.bob);
+
+        assertApproxEqAbs(aliceBalanceAfter - aliceBalanceBefore, TOKEN_1 / 2, 1e5);
+        assertApproxEqAbs(bobBalanceAfter - bobBalanceBefore, TOKEN_1 / 2, 1e5);
+    }
 }

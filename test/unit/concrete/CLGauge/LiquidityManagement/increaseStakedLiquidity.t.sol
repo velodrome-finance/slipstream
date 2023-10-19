@@ -12,7 +12,7 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
         gauge.deposit(tokenId);
 
         changePrank(users.bob);
-        vm.expectRevert(abi.encodePacked("STF"));
+        vm.expectRevert(abi.encodePacked("NA"));
         gauge.increaseStakedLiquidity(tokenId, TOKEN_1, TOKEN_1, 0, 0, block.timestamp);
     }
 
@@ -421,5 +421,43 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 15e14);
         assertEq(_token1, 15e14);
+    }
+
+    function test_IncreaseStakedLiquidityUpdatesCollectableRewards() public {
+        uint256 aliceTokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
+
+        nft.approve(address(gauge), aliceTokenId);
+        gauge.deposit(aliceTokenId);
+
+        vm.startPrank(users.bob);
+        uint256 bobTokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.bob);
+
+        nft.approve(address(gauge), bobTokenId);
+        gauge.deposit(bobTokenId);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(0);
+
+        uint256 aliceBalanceBefore = rewardToken.balanceOf(users.alice);
+        uint256 bobBalanceBefore = rewardToken.balanceOf(users.bob);
+
+        vm.prank(users.alice);
+        gauge.increaseStakedLiquidity(aliceTokenId, TOKEN_1 * 1, TOKEN_1 * 1, 0, 0, block.timestamp);
+
+        vm.prank(users.alice);
+        gauge.getReward(aliceTokenId);
+
+        vm.prank(users.bob);
+        gauge.getReward(bobTokenId);
+
+        uint256 aliceBalanceAfter = rewardToken.balanceOf(users.alice);
+        uint256 bobBalanceAfter = rewardToken.balanceOf(users.bob);
+
+        assertApproxEqAbs(aliceBalanceAfter - aliceBalanceBefore, TOKEN_1 / 2, 1e5);
+        assertApproxEqAbs(bobBalanceAfter - bobBalanceBefore, TOKEN_1 / 2, 1e5);
     }
 }
