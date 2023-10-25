@@ -1,4 +1,4 @@
-checkAsserts: true
+testMode: "assertion"
 coverage: true
 codeSize: 0x60000
 corpusDir: echidna_other_corpus

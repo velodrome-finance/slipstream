@@ -917,4 +917,41 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         assertApproxEqAbs(aliceRewardBalance, (reward / 7 * 6), 1e6);
         assertApproxEqAbs(pool.rewardReserve(), (reward / 7), 1e6);
     }
+
+    function test_RewardGrowthGlobalUpdatesCorrectlyWithMultipleCallsToUpdateRewardsGrowthGlobalAfterEpochFlip()
+        public
+    {
+        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        // tnsl
+        skip(1 days);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        // the delay being accounted as well in case of tnsl
+        skip(1 days);
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(0);
+
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        assertApproxEqAbs(aliceRewardBalance, reward * 2, 1e6);
+        assertApproxEqAbs(pool.rewardReserve(), 0, 1e6);
+    }
 }

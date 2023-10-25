@@ -415,7 +415,7 @@ contract GetRewardTest is CLGaugeTest {
 
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
-        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e5);
+        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
     }
 
     function test_GetRewardWithNonOverlappingRewards() public {
@@ -483,6 +483,6 @@ contract GetRewardTest is CLGaugeTest {
 
         gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
-        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e5);
+        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
     }
 }

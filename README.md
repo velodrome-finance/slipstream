@@ -10,6 +10,17 @@ This repository contains the core smart contracts for the Uniswap V3 Protocol.
 For higher level contracts, see the [uniswap-v3-periphery](https://github.com/Uniswap/uniswap-v3-periphery)
 repository.
 
+## Testing
+
+### Invariants
+
+To run the invariant tests, echidna must be installed. The following instructions require additional installations (e.g. of solc-select). 
+
+```
+echidna test/invariants/E2E_mint_burn.sol --config test/invariants/E2E_mint_burn.config.yaml --contract E2E_mint_burn
+echidna test/invariants/E2E_swap.sol --config test/invariants/E2E_swap.config.yaml --contract E2E_swap
+```
+
 ## Bug bounty
 
 This repository is subject to the Uniswap V3 bug bounty program, per the terms defined [here](./bug-bounty.md).

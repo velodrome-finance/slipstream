@@ -1,11 +1,11 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import './Setup.sol';
-import '../../../../../contracts/test/TestERC20.sol';
-import '../../../../../contracts/libraries/TickMath.sol';
-import '../../../../../contracts/UniswapV3Pool.sol';
-import '../../../../../contracts/libraries/Position.sol';
+import "./Setup.sol";
+import {CoreTestERC20} from "contracts/core/test/CoreTestERC20.sol";
+import "contracts/core/libraries/TickMath.sol";
+import "contracts/core/UniswapV3Pool.sol";
+import "contracts/core/libraries/Position.sol";
 
 // import 'hardhat/console.sol';
 
@@ -15,8 +15,8 @@ contract E2E_mint_burn {
 
     UniswapV3Pool pool;
 
-    TestERC20 token0;
-    TestERC20 token1;
+    CoreTestERC20 token0;
+    CoreTestERC20 token1;
 
     UniswapMinter minter;
     UniswapSwapper swapper;
@@ -45,7 +45,7 @@ contract E2E_mint_burn {
 
     PoolParams poolParams;
 
-    constructor() public {
+    constructor() {
         tokens = new SetupTokens();
         token0 = tokens.token0();
         token1 = tokens.token1();
@@ -64,8 +64,11 @@ contract E2E_mint_burn {
     // Helpers
     //
     //
-
-    function _getRandomPositionIdx(uint128 _seed, uint256 _positionsCount) internal view returns (uint128 positionIdx) {
+    function _getRandomPositionIdx(uint128 _seed, uint256 _positionsCount)
+        internal
+        view
+        returns (uint128 positionIdx)
+    {
         positionIdx = _seed % uint128(_positionsCount);
     }
 
@@ -103,12 +106,11 @@ contract E2E_mint_burn {
     }
 
     // use the _amount as _seed to create a random but valid position
-    function forgePosition(
-        uint128 _seed,
-        int24 _poolTickSpacing,
-        uint24 _poolTickCount,
-        int24 _poolMaxTick
-    ) internal view returns (int24 tickLower, int24 tickUpper) {
+    function forgePosition(uint128 _seed, int24 _poolTickSpacing, uint24 _poolTickCount, int24 _poolMaxTick)
+        internal
+        view
+        returns (int24 tickLower, int24 tickUpper)
+    {
         int24 randomTick1 = int24((_seed % uint128(_poolTickCount)) * uint128(_poolTickSpacing));
 
         if (_seed % 2 == 0) {
@@ -144,15 +146,12 @@ contract E2E_mint_burn {
     // Invariants
     //
     //
-
     function check_liquidityNet_invariant() internal {
         int128 liquidityNet = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
-            (, int128 tickLiquidityNet, , ) = pool.ticks(usedTicks[i]);
+            (, int128 tickLiquidityNet,,,,,,,,) = pool.ticks(usedTicks[i]);
             int128 result = liquidityNet + tickLiquidityNet;
-            assert(
-                (tickLiquidityNet >= 0 && result >= liquidityNet) || (tickLiquidityNet < 0 && result < liquidityNet)
-            );
+            assert((tickLiquidityNet >= 0 && result >= liquidityNet) || (tickLiquidityNet < 0 && result < liquidityNet));
             liquidityNet = result;
         }
 
@@ -161,14 +160,14 @@ contract E2E_mint_burn {
     }
 
     function check_liquidity_invariant() internal {
-        (, int24 currentTick, , , , ) = pool.slot0();
+        (, int24 currentTick,,,,) = pool.slot0();
 
         int128 liquidity = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
             int24 tick = usedTicks[i];
 
             if (tick <= currentTick) {
-                (, int128 tickLiquidityNet, , ) = pool.ticks(tick);
+                (, int128 tickLiquidityNet,,,,,,,,) = pool.ticks(tick);
 
                 int128 result = liquidity + tickLiquidityNet;
                 assert((tickLiquidityNet >= 0 && result >= liquidity) || (tickLiquidityNet < 0 && result < liquidity));
@@ -182,15 +181,15 @@ contract E2E_mint_burn {
     }
 
     function check_tick_feegrowth_invariant() internal {
-        (, int24 currentTick, , , , ) = pool.slot0();
+        (, int24 currentTick,,,,) = pool.slot0();
 
         if (currentTick == poolParams.maxTick || currentTick == poolParams.minTick) return;
 
         int24 tickBelow = currentTick - poolParams.tickSpacing;
         int24 tickAbove = currentTick + poolParams.tickSpacing;
 
-        (, , uint256 tB_feeGrowthOutside0X128, uint256 tB_feeGrowthOutside1X128) = pool.ticks(tickBelow);
-        (, , uint256 tA_feeGrowthOutside0X128, uint256 tA_feeGrowthOutside1X128) = pool.ticks(tickAbove);
+        (,,, uint256 tB_feeGrowthOutside0X128, uint256 tB_feeGrowthOutside1X128,,,,,) = pool.ticks(tickBelow);
+        (,,, uint256 tA_feeGrowthOutside0X128, uint256 tA_feeGrowthOutside1X128,,,,,) = pool.ticks(tickAbove);
 
         // prop #22
         assert(tB_feeGrowthOutside0X128 + tA_feeGrowthOutside0X128 <= pool.feeGrowthGlobal0X128());
@@ -205,7 +204,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory bfre,
         UniswapMinter.MinterStats memory aftr
     ) internal {
-        (, int24 currentTick, , , , ) = pool.slot0();
+        (, int24 currentTick,,,,) = pool.slot0();
 
         // prop #1
         if (currentTick >= _tickLower && currentTick < _tickUpper) {
@@ -235,7 +234,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory bfre,
         UniswapMinter.MinterStats memory aftr
     ) internal {
-        (, int24 currentTick, , , , ) = pool.slot0();
+        (, int24 currentTick,,,,) = pool.slot0();
 
         if (_burnAmount > 0) {
             // prop #7
@@ -262,7 +261,7 @@ contract E2E_mint_burn {
         assert(aftr.tU_liqNet >= bfre.tU_liqNet);
 
         bytes32 positionKey = keccak256(abi.encodePacked(address(minter), _tickLower, _tickUpper));
-        (uint128 positionLiquidity, , , , ) = pool.positions(positionKey);
+        (uint128 positionLiquidity,,,,) = pool.positions(positionKey);
 
         // prop #27
         assert(positionLiquidity == _newPosAmount);
@@ -273,24 +272,14 @@ contract E2E_mint_burn {
     // Helper to reconstruct the "random" init setup of the pool
     //
     //
-
     function viewInitRandomPoolParams(uint128 _seed) public view returns (PoolParams memory _poolParams) {
         _poolParams = forgePoolParams(_seed);
     }
 
-    function viewMintRandomNewPosition(
-        uint128 _seed,
-        int24 _poolTickSpacing,
-        uint24 _poolTickCount,
-        int24 _poolMaxTick
-    )
+    function viewMintRandomNewPosition(uint128 _seed, int24 _poolTickSpacing, uint24 _poolTickCount, int24 _poolMaxTick)
         public
         view
-        returns (
-            int24 tickLower,
-            int24 tickUpper,
-            uint128 amount
-        )
+        returns (int24 tickLower, int24 tickUpper, uint128 amount)
     {
         (tickLower, tickUpper) = forgePosition(_seed, _poolTickSpacing, _poolTickCount, _poolMaxTick);
         amount = _seed;
@@ -317,7 +306,6 @@ contract E2E_mint_burn {
     // Setup functions
     //
     //
-
     function forgePoolParams(uint128 _seed) internal view returns (PoolParams memory _poolParams) {
         //
         // decide on one of the three fees, and corresponding tickSpacing
@@ -363,7 +351,7 @@ contract E2E_mint_burn {
         //
         // deploy the pool
         //
-        uniswap.createPool(poolParams.fee, poolParams.startPrice);
+        uniswap.createPool(poolParams.tickSpacing, poolParams.startPrice);
         pool = uniswap.pool();
 
         //
@@ -379,8 +367,7 @@ contract E2E_mint_burn {
     // Functions to fuzz
     //
     //
-
-    function test_mint(uint128 _amount) public {
+    function testEchidna_mint(uint128 _amount) public {
         if (!inited) _init(_amount);
         (int24 _tL, int24 _tU) =
             forgePosition(_amount, poolParams.tickSpacing, poolParams.tickCount, poolParams.maxTick);
@@ -412,7 +399,7 @@ contract E2E_mint_burn {
         }
     }
 
-    function test_burn_partial(uint128 _amount) public {
+    function testEchidna_burn_partial(uint128 _amount) public {
         require(positions.length > 0);
 
         (uint128 posIdx, uint128 burnAmount) = _getRandomPositionIdxAndBurnAmount(_amount);
@@ -424,8 +411,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory aftr;
 
         try minter.doBurn(pos.tickLower, pos.tickUpper, burnAmount) returns (
-            UniswapMinter.MinterStats memory bfre_burn,
-            UniswapMinter.MinterStats memory aftr_burn
+            UniswapMinter.MinterStats memory bfre_burn, UniswapMinter.MinterStats memory aftr_burn
         ) {
             bfre = bfre_burn;
             aftr = aftr_burn;
@@ -443,7 +429,7 @@ contract E2E_mint_burn {
         pos.amount = pos.amount - burnAmount;
     }
 
-    function test_burn_full(uint128 _amount) public {
+    function testEchidna_burn_full(uint128 _amount) public {
         require(positions.length > 0);
 
         uint128 posIdx = _getRandomPositionIdx(_amount, positions.length);
@@ -454,8 +440,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory aftr;
 
         try minter.doBurn(pos.tickLower, pos.tickUpper, pos.amount) returns (
-            UniswapMinter.MinterStats memory bfre_burn,
-            UniswapMinter.MinterStats memory aftr_burn
+            UniswapMinter.MinterStats memory bfre_burn, UniswapMinter.MinterStats memory aftr_burn
         ) {
             bfre = bfre_burn;
             aftr = aftr_burn;
@@ -473,7 +458,7 @@ contract E2E_mint_burn {
         removePosition(posIdx);
     }
 
-    function test_burn_zero(uint128 _amount) public {
+    function testEchidna_burn_zero(uint128 _amount) public {
         require(positions.length > 0);
 
         uint128 posIdx = _getRandomPositionIdx(_amount, positions.length);
@@ -484,8 +469,7 @@ contract E2E_mint_burn {
         UniswapMinter.MinterStats memory aftr;
 
         try minter.doBurn(pos.tickLower, pos.tickUpper, 0) returns (
-            UniswapMinter.MinterStats memory bfre_burn,
-            UniswapMinter.MinterStats memory aftr_burn
+            UniswapMinter.MinterStats memory bfre_burn, UniswapMinter.MinterStats memory aftr_burn
         ) {
             bfre = bfre_burn;
             aftr = aftr_burn;

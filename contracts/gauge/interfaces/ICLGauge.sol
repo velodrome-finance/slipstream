@@ -131,6 +131,9 @@ interface ICLGauge {
     /// @param amount0Min The minimum amount of token0 to spend, which serves as a slippage check,
     /// @param amount1Min The minimum amount of token1 to spend, which serves as a slippage check,
     /// @param deadline The time by which the transaction must be included to effect the change
+    /// @return liquidity The new liquidity amount as a result of the increase
+    /// @return amount0 The amount of token0 required to obtain new liquidity amount
+    /// @return amount1 The amount of token1 required to obtain new liquidity amount
     function increaseStakedLiquidity(
         uint256 tokenId,
         uint256 amount0Desired,
@@ -138,7 +141,7 @@ interface ICLGauge {
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external;
+    ) external returns (uint128 liquidity, uint256 amount0, uint256 amount1);
 
     /// @notice Used to decrease liquidity of a staked position
     /// @param tokenId The tokenId of the position
@@ -146,13 +149,15 @@ interface ICLGauge {
     /// @param amount0Min The minimum amount of token0 that should be accounted for the burned liquidity,
     /// @param amount1Min The minimum amount of token1 that should be accounted for the burned liquidity,
     /// @param deadline The time by which the transaction must be included to effect the change
+    /// @return amount0 The amount of token0 decreased from position
+    /// @return amount1 The amount of token1 decreased from position
     function decreaseStakedLiquidity(
         uint256 tokenId,
         uint128 liquidity,
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external;
+    ) external returns (uint256 amount0, uint256 amount1);
 
     /// @notice Check whether a position is staked in the gauge by a certain user
     /// @param depositor The address of the user

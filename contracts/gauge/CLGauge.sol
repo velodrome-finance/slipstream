@@ -93,11 +93,12 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     // updates the claimable rewards and lastUpdateTime for tokenId
-    function updateRewards(uint256 tokenId) internal {
+    function updateRewards(uint256 tokenId, int24 tickLower, int24 tickUpper) internal {
         if (lastUpdateTime[tokenId] == block.timestamp) return;
         pool.updateRewardsGrowthGlobal();
         lastUpdateTime[tokenId] = block.timestamp;
         rewards[tokenId] += _earned(tokenId);
+        rewardGrowthInside[tokenId] = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
     }
 
     /// @inheritdoc ICLGauge
@@ -139,15 +140,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     function getReward(uint256 tokenId) external override nonReentrant {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
-        (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) = nft.positions(tokenId);
-        _getReward(tickLower, tickUpper, liquidity, tokenId, msg.sender);
+        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
+        _getReward(tickLower, tickUpper, tokenId, msg.sender);
     }
 
-    function _getReward(int24 tickLower, int24 tickUpper, uint128 liquidity, uint256 tokenId, address owner) internal {
-        updateRewards(tokenId);
+    function _getReward(int24 tickLower, int24 tickUpper, uint256 tokenId, address owner) internal {
+        updateRewards(tokenId, tickLower, tickUpper);
 
         uint256 reward = rewards[tokenId];
-        rewardGrowthInside[tokenId] = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
 
         if (reward > 0) {
             delete rewards[tokenId];
@@ -199,7 +199,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         );
 
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
-        _getReward(tickLower, tickUpper, liquidityToStake, tokenId, msg.sender);
+        _getReward(tickLower, tickUpper, tokenId, msg.sender);
 
         pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper, true);
 
@@ -217,24 +217,20 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external override nonReentrant {
+    ) external override nonReentrant returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
-        address _nft = address(nft);
-
-        address _token0 = token0;
-        address _token1 = token1;
-
-        updateRewards(tokenId);
-
         // NFT manager will send these tokens to the pool
-        IERC20(_token0).safeIncreaseAllowance(_nft, amount0Desired);
-        IERC20(_token1).safeIncreaseAllowance(_nft, amount1Desired);
+        IERC20(token0).safeIncreaseAllowance(address(nft), amount0Desired);
+        IERC20(token1).safeIncreaseAllowance(address(nft), amount1Desired);
 
-        TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), amount0Desired);
-        TransferHelper.safeTransferFrom(_token1, msg.sender, address(this), amount1Desired);
+        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amount0Desired);
+        TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amount1Desired);
 
-        (uint128 liquidity, uint256 amount0, uint256 amount1) = nft.increaseLiquidity(
+        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
+        updateRewards(tokenId, tickLower, tickUpper);
+
+        (liquidity, amount0, amount1) = nft.increaseLiquidity(
             INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: tokenId,
                 amount0Desired: amount0Desired,
@@ -245,17 +241,16 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             })
         );
 
-        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
         pool.stake(liquidity.toInt128(), tickLower, tickUpper, false);
 
         uint256 amount0Surplus = amount0Desired - amount0;
         uint256 amount1Surplus = amount1Desired - amount1;
 
         if (amount0Surplus > 0) {
-            TransferHelper.safeTransfer(_token0, msg.sender, amount0Surplus);
+            TransferHelper.safeTransfer(token0, msg.sender, amount0Surplus);
         }
         if (amount1Surplus > 0) {
-            TransferHelper.safeTransfer(_token1, msg.sender, amount1Surplus);
+            TransferHelper.safeTransfer(token1, msg.sender, amount1Surplus);
         }
     }
 
@@ -266,12 +261,13 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external override nonReentrant {
+    ) external override nonReentrant returns (uint256 amount0, uint256 amount1) {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
-        updateRewards(tokenId);
+        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
+        updateRewards(tokenId, tickLower, tickUpper);
 
-        (uint256 amount0, uint256 amount1) = nft.decreaseLiquidity(
+        (amount0, amount1) = nft.decreaseLiquidity(
             INonfungiblePositionManager.DecreaseLiquidityParams({
                 tokenId: tokenId,
                 liquidity: liquidity,
@@ -281,7 +277,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             })
         );
 
-        (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
         pool.stake(-liquidity.toInt128(), tickLower, tickUpper, false);
 
         nft.collect(

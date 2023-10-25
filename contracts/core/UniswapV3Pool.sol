@@ -25,6 +25,7 @@ import "./interfaces/callback/IUniswapV3SwapCallback.sol";
 import "./interfaces/callback/IUniswapV3FlashCallback.sol";
 
 import "contracts/libraries/VelodromeTimeLibrary.sol";
+import "contracts/gauge/interfaces/ICLGauge.sol";
 
 contract UniswapV3Pool is IUniswapV3Pool {
     using LowGasSafeMath for uint256;
@@ -931,6 +932,9 @@ contract UniswapV3Pool is IUniswapV3Pool {
                     // in case of late notify we only account till the end of the epoch
                     if (VelodromeTimeLibrary.epochStart(timestamp) != VelodromeTimeLibrary.epochStart(_lastUpdated)) {
                         timeDelta = VelodromeTimeLibrary.epochNext(_lastUpdated) - _lastUpdated;
+                    } else if (ICLGauge(gauge).periodFinish() == VelodromeTimeLibrary.epochStart(timestamp)) {
+                        // new epoch, notify has yet to be called so we skip the update
+                        timeDelta = 0;
                     }
                     uint256 reward = rewardRate * timeDelta;
                     // ensures any remaining rewards for the past epoch are distributed

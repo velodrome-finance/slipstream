@@ -1,0 +1,16 @@
+testMode: "assertion"
+coverage: true
+codeSize: 0x60000
+corpusDir: echidna_e2e_swap_corpus
+seqLen: 20
+testLimit: 100000
+timeout: 3600 # 1 hour
+
+maxTimeDelay: 0 # time is increased manually
+maxBlockDelay: 0
+
+# blacklist
+filterFunctions: ['E2E_swap.viewRandomInit(uint128)']
+
+cryticArgs: ["--solc-args=--optimize", "--solc-remaps", "@openzeppelin/=lib/openzeppelin-contracts/ @uniswap/=lib/solidity-lib/ base64-sol/=lib/base64/"]
+
