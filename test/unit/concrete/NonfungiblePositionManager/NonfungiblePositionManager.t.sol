@@ -19,4 +19,9 @@ contract NonfungiblePositionManagerTest is BaseFixture {
         token0.approve(address(gauge), type(uint256).max);
         token1.approve(address(gauge), type(uint256).max);
     }
+
+    function test_InitialState() public {
+        assertEq(nft.factory(), address(poolFactory));
+        assertEq(nft.WETH9(), address(weth));
+    }
 }

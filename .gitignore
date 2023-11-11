@@ -5,6 +5,7 @@ crytic-export/
 node_modules/
 typechain/
 out/
+broadcast
 
 .vscode
 .env
