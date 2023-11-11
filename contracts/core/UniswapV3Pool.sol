@@ -69,8 +69,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
         // whether the pool is locked
         bool unlocked;
     }
-    /// @inheritdoc IUniswapV3PoolState
 
+    /// @inheritdoc IUniswapV3PoolState
     Slot0 public override slot0;
 
     /// @inheritdoc IUniswapV3PoolState
@@ -121,12 +121,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
         slot0.unlocked = false;
         _;
         slot0.unlocked = true;
-    }
-
-    /// @dev Prevents calling a function from anyone except the address returned by IUniswapV3Factory#owner()
-    modifier onlyFactoryOwner() {
-        require(msg.sender == IUniswapV3Factory(factory).owner());
-        _;
     }
 
     /// @dev Prevents calling a function from anyone except the gauge associated with this pool
@@ -487,22 +481,14 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint128 amount0Requested,
         uint128 amount1Requested
     ) external override lock returns (uint128 amount0, uint128 amount1) {
-        // we don't need to checkTicks here, because invalid positions will never have non-zero tokensOwed{0,1}
-        Position.Info storage position = positions.get(msg.sender, tickLower, tickUpper);
-
-        amount0 = amount0Requested > position.tokensOwed0 ? position.tokensOwed0 : amount0Requested;
-        amount1 = amount1Requested > position.tokensOwed1 ? position.tokensOwed1 : amount1Requested;
-
-        if (amount0 > 0) {
-            position.tokensOwed0 -= amount0;
-            TransferHelper.safeTransfer(token0, recipient, amount0);
-        }
-        if (amount1 > 0) {
-            position.tokensOwed1 -= amount1;
-            TransferHelper.safeTransfer(token1, recipient, amount1);
-        }
-
-        emit Collect(msg.sender, recipient, tickLower, tickUpper, amount0, amount1);
+        (amount0, amount1) = _collect({
+            recipient: recipient,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            amount0Requested: amount0Requested,
+            amount1Requested: amount1Requested,
+            owner: msg.sender
+        });
     }
 
     /// @inheritdoc IUniswapV3PoolActions
@@ -514,6 +500,24 @@ contract UniswapV3Pool is IUniswapV3Pool {
         uint128 amount1Requested,
         address owner
     ) external override lock onlyNftManager returns (uint128 amount0, uint128 amount1) {
+        (amount0, amount1) = _collect({
+            recipient: recipient,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            amount0Requested: amount0Requested,
+            amount1Requested: amount1Requested,
+            owner: owner
+        });
+    }
+
+    function _collect(
+        address recipient,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 amount0Requested,
+        uint128 amount1Requested,
+        address owner
+    ) private returns (uint128 amount0, uint128 amount1) {
         // we don't need to checkTicks here, because invalid positions will never have non-zero tokensOwed{0,1}
         Position.Info storage position = positions.get(owner, tickLower, tickUpper);
 
@@ -529,7 +533,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
             TransferHelper.safeTransfer(token1, recipient, amount1);
         }
 
-        emit Collect(msg.sender, recipient, tickLower, tickUpper, amount0, amount1);
+        emit Collect(owner, recipient, tickLower, tickUpper, amount0, amount1);
     }
 
     /// @inheritdoc IUniswapV3PoolActions
@@ -539,24 +543,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
         lock
         returns (uint256 amount0, uint256 amount1)
     {
-        (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
-            ModifyPositionParams({
-                owner: msg.sender,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                liquidityDelta: -int256(amount).toInt128()
-            })
-        );
-
-        amount0 = uint256(-amount0Int);
-        amount1 = uint256(-amount1Int);
-
-        if (amount0 > 0 || amount1 > 0) {
-            (position.tokensOwed0, position.tokensOwed1) =
-                (position.tokensOwed0 + uint128(amount0), position.tokensOwed1 + uint128(amount1));
-        }
-
-        emit Burn(msg.sender, tickLower, tickUpper, amount, amount0, amount1);
+        (amount0, amount1) = _burn({tickLower: tickLower, tickUpper: tickUpper, amount: amount, owner: msg.sender});
     }
 
     /// @inheritdoc IUniswapV3PoolActions
@@ -565,6 +552,13 @@ contract UniswapV3Pool is IUniswapV3Pool {
         override
         lock
         onlyNftManager
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (amount0, amount1) = _burn({tickLower: tickLower, tickUpper: tickUpper, amount: amount, owner: owner});
+    }
+
+    function _burn(int24 tickLower, int24 tickUpper, uint128 amount, address owner)
+        private
         returns (uint256 amount0, uint256 amount1)
     {
         (Position.Info storage position, int256 amount0Int, int256 amount1Int) = _modifyPosition(
