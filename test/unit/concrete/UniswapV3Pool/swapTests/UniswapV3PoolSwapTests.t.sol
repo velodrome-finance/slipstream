@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import "../UniswapV3Pool.t.sol";
 
-contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
+abstract contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     using stdJson for string;
 
     string jsonConstants;
@@ -55,11 +55,6 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
         int24 tick;
     }
 
-    modifier isPoolInitialized() {
-        if (poolSetup.pool == address(0)) return;
-        _;
-    }
-
     function labelContracts() internal override {
         super.labelContracts();
         vm.label({account: address(uniswapV3Callee), newLabel: "Test UniswapV3 Callee"});
@@ -88,7 +83,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     function burnPosition() internal virtual {}
 
     // swap exactly 1.0000 token0 for token1
-    function test_swap_exactly_1_token0_for_token1() public isPoolInitialized {
+    function test_swap_exactly_1_token0_for_token1() public {
         bool zeroForOne = true;
         string memory swapName = "swap_exactly_1_token0_for_token1";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -112,7 +107,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap exactly 1.0000 token1 for token0
-    function test_swap_exactly_1_token1_for_token0() public isPoolInitialized {
+    function test_swap_exactly_1_token1_for_token0() public {
         bool zeroForOne = false;
         string memory swapName = "swap_exactly_1_token1_for_token0";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -136,7 +131,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token0 for exactly 1.0000 token1
-    function test_swap_token0_for_exactly_1_token1() public isPoolInitialized {
+    function test_swap_token0_for_exactly_1_token1() public {
         bool zeroForOne = true;
         string memory swapName = "swap_token0_for_exactly_1_token1";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -160,7 +155,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token1 for exactly 1.0000 token0
-    function test_swap_token1_for_exactly_1_token0() public isPoolInitialized {
+    function test_swap_token1_for_exactly_1_token0() public {
         bool zeroForOne = false;
         string memory swapName = "swap_token1_for_exactly_1_token0";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -184,7 +179,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap exactly 1.0000 token0 for token1 to price 0.5
-    function test_swap_exactly_1_token0_for_token1_to_price_0point5() public isPoolInitialized {
+    function test_swap_exactly_1_token0_for_token1_to_price_0point5() public {
         bool zeroForOne = true;
         string memory swapName = "swap_exactly_1_token0_for_token1_to_price_0point5";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -208,7 +203,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap exactly 1.0000 token1 for token0 to price 2
-    function test_swap_exactly_1_token1_for_token0_to_price_2() public isPoolInitialized {
+    function test_swap_exactly_1_token1_for_token0_to_price_2() public {
         bool zeroForOne = false;
         string memory swapName = "swap_exactly_1_token1_for_token0_to_price_2";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -232,7 +227,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token0 for exactly 1.0000 token1 to price 0.5
-    function test_swap_token0_for_exactly_1_token1_to_price_0point5() public isPoolInitialized {
+    function test_swap_token0_for_exactly_1_token1_to_price_0point5() public {
         bool zeroForOne = true;
         string memory swapName = "swap_token0_for_exactly_1_token1_to_price_0point5";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -256,7 +251,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token1 for exactly 1.0000 token0 to price 2
-    function test_swap_token1_for_exactly_1_token0_to_price_2() public isPoolInitialized {
+    function test_swap_token1_for_exactly_1_token0_to_price_2() public {
         bool zeroForOne = false;
         string memory swapName = "swap_token1_for_exactly_1_token0_to_price_2";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -280,7 +275,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap exactly 0point0000000000000010000 token0 for token1
-    function test_swap_exactly_0point0000000000000010000_token0_for_token1() public isPoolInitialized {
+    function test_swap_exactly_0point0000000000000010000_token0_for_token1() public {
         bool zeroForOne = true;
         string memory swapName = "swap_exactly_0point0000000000000010000_token0_for_token1";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -304,7 +299,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap exactly 0point0000000000000010000 token1 for token0
-    function test_swap_exactly_0point0000000000000010000_token1_for_token0() public isPoolInitialized {
+    function test_swap_exactly_0point0000000000000010000_token1_for_token0() public {
         bool zeroForOne = false;
         string memory swapName = "swap_exactly_0point0000000000000010000_token1_for_token0";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -328,7 +323,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token0 for exactly 0point0000000000000010000 token1
-    function test_swap_token0_for_exactly_0point0000000000000010000_token1() public isPoolInitialized {
+    function test_swap_token0_for_exactly_0point0000000000000010000_token1() public {
         bool zeroForOne = true;
         string memory swapName = "swap_token0_for_exactly_0point0000000000000010000_token1";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -352,7 +347,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token1 for exactly 0point0000000000000010000 token0
-    function test_swap_token1_for_exactly_0point0000000000000010000_token0() public isPoolInitialized {
+    function test_swap_token1_for_exactly_0point0000000000000010000_token0() public {
         bool zeroForOne = false;
         string memory swapName = "swap_token1_for_exactly_0point0000000000000010000_token0";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -376,7 +371,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token1 for token0 to price 2.5000
-    function test_swap_token1_for_token0_to_price_2point5() public isPoolInitialized {
+    function test_swap_token1_for_token0_to_price_2point5() public {
         bool zeroForOne = false;
         string memory swapName = "swap_token1_for_token0_to_price_2point5";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -399,7 +394,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token0 for token1 to price 0.4
-    function test_swap_token0_for_token1_to_price_0point4() public isPoolInitialized {
+    function test_swap_token0_for_token1_to_price_0point4() public {
         bool zeroForOne = true;
         string memory swapName = "swap_token0_for_token1_to_price_0point4";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -422,7 +417,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token0 for token1 to price 2.5000
-    function test_swap_token0_for_token1_to_price_2point5() public isPoolInitialized {
+    function test_swap_token0_for_token1_to_price_2point5() public {
         bool zeroForOne = true;
         string memory swapName = "swap_token0_for_token1_to_price_2point5";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));
@@ -445,7 +440,7 @@ contract UniswapV3PoolSwapTests is UniswapV3PoolTest {
     }
 
     // swap token1 for token0 to price 0.4
-    function test_swap_token1_for_token0_to_price_0point4() public isPoolInitialized {
+    function test_swap_token1_for_token0_to_price_0point4() public {
         bool zeroForOne = false;
         string memory swapName = "swap_token1_for_token0_to_price_0point4";
         string memory assertKey = string(abi.encodePacked(poolSetup.poolName, "_", swapName));

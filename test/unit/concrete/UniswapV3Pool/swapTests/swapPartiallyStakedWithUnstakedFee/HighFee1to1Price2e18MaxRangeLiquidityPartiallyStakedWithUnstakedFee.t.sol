@@ -36,8 +36,9 @@ contract HighFee1to1Price2e18MaxRangeLiquidityPartiallyStakedWithUnstakedFeeTest
 
         vm.stopPrank();
 
-        // set zero unstaked fee
-        vm.prank(users.feeManager);
+        // set default univ3 pool fee, zero unstaked fee
+        vm.startPrank(users.feeManager);
+        customSwapFeeModule.setCustomFee(address(pool), 10_000);
         customUnstakedFeeModule.setCustomFee(pool, 125_000);
 
         vm.startPrank(users.alice);

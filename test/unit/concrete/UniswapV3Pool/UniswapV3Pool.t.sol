@@ -3,4 +3,4 @@ pragma abicoder v2;
 
 import "../../../BaseFixture.sol";
 
-contract UniswapV3PoolTest is BaseFixture {}
+abstract contract UniswapV3PoolTest is BaseFixture {}

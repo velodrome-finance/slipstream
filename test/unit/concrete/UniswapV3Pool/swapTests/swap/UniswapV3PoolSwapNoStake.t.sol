@@ -8,7 +8,7 @@ import {UniswapV3PoolSwapTests} from "../UniswapV3PoolSwapTests.t.sol";
 /// Changes of note: execution price was scaled by 10**39 as Solidity has no native support for decimals.
 /// Execution price is a string field as it also contains "-Infinity" and "NaN" values
 /// poolPriceAfter and poolPriceBefore are stored as X96 pool price values (not sqrtPrice)
-contract UniswapV3PoolSwapNoStakeTest is UniswapV3PoolSwapTests {
+abstract contract UniswapV3PoolSwapNoStakeTest is UniswapV3PoolSwapTests {
     function setUp() public virtual override {
         super.setUp();
 

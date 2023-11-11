@@ -16,8 +16,10 @@ contract UniswapV3FactoryTest is BaseFixture {
         assertEq(poolFactory.gaugeFactory(), address(gaugeFactory));
         assertEq(poolFactory.gaugeImplementation(), address(gaugeImplementation));
 
+        assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_STABLE), 100);
         assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_LOW), 500);
-        assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_MEDIUM), 3_000);
-        assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_HIGH), 10_000);
+        assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_MEDIUM), 500);
+        assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_HIGH), 3_000);
+        assertEqUint(poolFactory.tickSpacingToFee(TICK_SPACING_VOLATILE), 10_000);
     }
 }

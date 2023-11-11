@@ -2,9 +2,11 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 abstract contract Constants {
-    int24 public constant TICK_SPACING_LOW = 30;
-    int24 public constant TICK_SPACING_MEDIUM = 180;
-    int24 public constant TICK_SPACING_HIGH = 600;
+    int24 public constant TICK_SPACING_STABLE = 1;
+    int24 public constant TICK_SPACING_LOW = 50;
+    int24 public constant TICK_SPACING_MEDIUM = 100;
+    int24 public constant TICK_SPACING_HIGH = 200;
+    int24 public constant TICK_SPACING_VOLATILE = 2_000;
 
     // taken to provide backwards compatibility with UniswapV3 tests
     int24 public constant TICK_SPACING_10 = 10;

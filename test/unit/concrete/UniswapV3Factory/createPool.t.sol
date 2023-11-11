@@ -36,6 +36,25 @@ contract CreatePoolTest is UniswapV3FactoryTest {
         });
     }
 
+    function test_CreatePoolWithTickSpacingStable() public {
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_STABLE
+        });
+        assertEqUint(poolFactory.getSwapFee(pool), 100);
+
+        CLGauge gauge = CLGauge(voter.gauges(pool));
+        address feesVotingReward = voter.gaugeToFees(address(gauge));
+        assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
+        assertEq(address(gauge.pool()), address(pool));
+        assertEq(gauge.forwarder(), forwarder);
+        assertEq(gauge.feesVotingReward(), address(feesVotingReward));
+        assertEq(gauge.rewardToken(), address(rewardToken));
+        assertTrue(gauge.isPool());
+    }
+
     function test_CreatePoolWithTickSpacingLow() public {
         address pool = createAndCheckPool({
             factory: poolFactory,
@@ -62,7 +81,7 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_MEDIUM
         });
-        assertEqUint(poolFactory.getSwapFee(pool), 3_000);
+        assertEqUint(poolFactory.getSwapFee(pool), 500);
 
         CLGauge gauge = CLGauge(voter.gauges(pool));
         address feesVotingReward = voter.gaugeToFees(address(gauge));
@@ -80,6 +99,25 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
             tickSpacing: TICK_SPACING_HIGH
+        });
+        assertEqUint(poolFactory.getSwapFee(pool), 3_000);
+
+        CLGauge gauge = CLGauge(voter.gauges(pool));
+        address feesVotingReward = voter.gaugeToFees(address(gauge));
+        assertEq(UniswapV3Pool(pool).gauge(), address(gauge));
+        assertEq(address(gauge.pool()), address(pool));
+        assertEq(gauge.forwarder(), forwarder);
+        assertEq(gauge.feesVotingReward(), address(feesVotingReward));
+        assertEq(gauge.rewardToken(), address(rewardToken));
+        assertTrue(gauge.isPool());
+    }
+
+    function test_CreatePoolWithTickSpacingVolatile() public {
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_VOLATILE
         });
         assertEqUint(poolFactory.getSwapFee(pool), 10_000);
 

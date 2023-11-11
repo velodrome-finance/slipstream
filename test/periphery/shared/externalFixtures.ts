@@ -113,7 +113,6 @@ const v3CoreFactoryFixture: Fixture<{
   // backwards compatible with v3-periphery tests
   await factory['enableTickSpacing(int24,uint24)'](10, 500)
   await factory['enableTickSpacing(int24,uint24)'](60, 3_000)
-  await factory['enableTickSpacing(int24,uint24)'](200, 10_000)
   return { factory, gaugeFactory, nft, weth9, tokens, nftDescriptor }
 }
 

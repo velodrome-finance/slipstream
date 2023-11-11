@@ -47,6 +47,7 @@ contract HighFee1to1Price2e18MaxRangeLiquidityTest is UniswapV3PoolSwapNoStakeTe
         });
 
         vm.startPrank(users.feeManager);
+        customSwapFeeModule.setCustomFee(address(pool), 10_000);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
         vm.startPrank(users.alice);
     }

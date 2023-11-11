@@ -120,7 +120,7 @@ contract SetupUniswap {
 
         poolFactory.enableTickSpacing(10, 500);
         poolFactory.enableTickSpacing(60, 3_000);
-        poolFactory.enableTickSpacing(200, 10_000);
+        // manually override fee in pool creation for tick spacing 200
 
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
@@ -165,6 +165,8 @@ contract SetupUniswap {
         hevm.prank(address(voter));
         rewardToken.approve(address(gauge), 1000000000e18);
 
+        // manually override fee to match fee used in univ3 test
+        if (_tickSpacing == 200) customSwapFeeModule.setCustomFee(address(pool), 10_000);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
     }
 }

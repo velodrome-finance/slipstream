@@ -10,7 +10,7 @@ import {CLGauge} from "contracts/gauge/CLGauge.sol";
 /// Changes of note: execution price was scaled by 10**39 as Solidity has no native support for decimals.
 /// Execution price is a string field as it also contains "-Infinity" and "NaN" values
 /// poolPriceAfter and poolPriceBefore are stored as X96 pool price values (not sqrtPrice)
-contract UniswapV3PoolSwapPartiallyStakedNoUnstakeFeeTest is UniswapV3PoolSwapTests {
+abstract contract UniswapV3PoolSwapPartiallyStakedNoUnstakeFeeTest is UniswapV3PoolSwapTests {
     using stdJson for string;
 
     function setUp() public virtual override {

@@ -50,17 +50,21 @@ contract UniswapV3Factory is IUniswapV3Factory {
         emit SwapFeeManagerChanged(address(0), msg.sender);
         emit UnstakedFeeManagerChanged(address(0), msg.sender);
 
-        // TODO: tick spacing values are placeholders
-        // currently using 3x uniswap defaults as placeholders
-        tickSpacingToFee[30] = 500;
-        _tickSpacings.push(30);
-        emit TickSpacingEnabled(30, 500);
-        tickSpacingToFee[180] = 3_000;
-        _tickSpacings.push(180);
-        emit TickSpacingEnabled(180, 3_000);
-        tickSpacingToFee[600] = 10_000;
-        _tickSpacings.push(600);
-        emit TickSpacingEnabled(600, 10_000);
+        tickSpacingToFee[1] = 100;
+        _tickSpacings.push(1);
+        emit TickSpacingEnabled(1, 100);
+        tickSpacingToFee[50] = 500;
+        _tickSpacings.push(50);
+        emit TickSpacingEnabled(50, 500);
+        tickSpacingToFee[100] = 500;
+        _tickSpacings.push(100);
+        emit TickSpacingEnabled(100, 500);
+        tickSpacingToFee[200] = 3_000;
+        _tickSpacings.push(200);
+        emit TickSpacingEnabled(200, 3_000);
+        tickSpacingToFee[2_000] = 10_000;
+        _tickSpacings.push(2_000);
+        emit TickSpacingEnabled(2_000, 10_000);
     }
 
     /// @inheritdoc IUniswapV3Factory
