@@ -25,7 +25,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         });
 
         vm.expectRevert();
-        customSwapFeeModule.setCustomFee({pool: pool, fee: 10_001});
+        customSwapFeeModule.setCustomFee({pool: pool, fee: 30_001});
     }
 
     function test_RevertIf_NotPool() public {

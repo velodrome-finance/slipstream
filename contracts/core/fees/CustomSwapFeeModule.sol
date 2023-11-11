@@ -10,7 +10,7 @@ contract CustomSwapFeeModule is ICustomFeeModule {
     /// @inheritdoc ICustomFeeModule
     mapping(address => uint24) public override customFee;
 
-    uint256 public constant MAX_FEE = 10_000; // 1% // TODO: is this acceptable?
+    uint256 public constant MAX_FEE = 30_000; // 3%
     // Override to indicate there is custom 0% fee - as a 0 value in the customFee mapping indicates
     // that no custom fee rate has been set
     uint256 public constant ZERO_FEE_INDICATOR = 420;
