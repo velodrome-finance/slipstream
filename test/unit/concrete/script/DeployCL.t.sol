@@ -83,9 +83,11 @@ contract DeployCLTest is Test {
         assertEq(address(poolFactory.nft()), address(nft));
         assertEq(address(poolFactory.gaugeFactory()), address(gaugeFactory));
         assertEq(address(poolFactory.gaugeImplementation()), address(gaugeImplementation));
-        assertEqUint(poolFactory.tickSpacingToFee(30), 500);
-        assertEqUint(poolFactory.tickSpacingToFee(180), 3_000);
-        assertEqUint(poolFactory.tickSpacingToFee(600), 10_000);
+        assertEqUint(poolFactory.tickSpacingToFee(1), 100);
+        assertEqUint(poolFactory.tickSpacingToFee(50), 500);
+        assertEqUint(poolFactory.tickSpacingToFee(100), 500);
+        assertEqUint(poolFactory.tickSpacingToFee(200), 3_000);
+        assertEqUint(poolFactory.tickSpacingToFee(2_000), 10_000);
 
         assertTrue(address(nftDescriptor) != address(0));
         assertEq(nftDescriptor.WETH9(), weth);
@@ -102,7 +104,7 @@ contract DeployCLTest is Test {
         assertEq(gaugeFactory.nft(), address(nft));
 
         assertTrue(address(swapFeeModule) != address(0));
-        assertEq(swapFeeModule.MAX_FEE(), 10_000); // 1%, using pip denomination
+        assertEq(swapFeeModule.MAX_FEE(), 30_000); // 3%, using pip denomination
         assertEq(address(swapFeeModule.factory()), address(poolFactory));
 
         assertTrue(address(unstakedFeeModule) != address(0));

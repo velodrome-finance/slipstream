@@ -37,12 +37,11 @@ library NFTDescriptor {
         int24 tickUpper;
         int24 tickCurrent;
         int24 tickSpacing;
-        uint24 fee;
         address poolAddress;
     }
 
     function constructTokenURI(ConstructTokenURIParams memory params) public pure returns (string memory) {
-        string memory name = generateName(params, feeToPercentString(params.fee));
+        string memory name = generateName(params);
         string memory descriptionPartOne = generateDescriptionPartOne(
             escapeQuotes(params.quoteTokenSymbol),
             escapeQuotes(params.baseTokenSymbol),
@@ -53,7 +52,7 @@ library NFTDescriptor {
             escapeQuotes(params.baseTokenSymbol),
             addressToString(params.quoteTokenAddress),
             addressToString(params.baseTokenAddress),
-            feeToPercentString(params.fee)
+            (uint256(params.tickSpacing)).toString()
         );
         string memory image = Base64.encode(bytes(generateSVGImage(params)));
 
@@ -127,7 +126,7 @@ library NFTDescriptor {
         string memory baseTokenSymbol,
         string memory quoteTokenAddress,
         string memory baseTokenAddress,
-        string memory feeTier
+        string memory tickSpacing
     ) private pure returns (string memory) {
         return string(
             abi.encodePacked(
@@ -137,8 +136,8 @@ library NFTDescriptor {
                 baseTokenSymbol,
                 " Address: ",
                 baseTokenAddress,
-                "\\nFee Tier: ",
-                feeTier,
+                "\\nTick Spacing: ",
+                tickSpacing,
                 "\\nToken ID: ",
                 tokenId,
                 "\\n\\n",
@@ -147,16 +146,10 @@ library NFTDescriptor {
         );
     }
 
-    function generateName(ConstructTokenURIParams memory params, string memory feeTier)
-        private
-        pure
-        returns (string memory)
-    {
+    function generateName(ConstructTokenURIParams memory params) private pure returns (string memory) {
         return string(
             abi.encodePacked(
                 "Uniswap - ",
-                feeTier,
-                " - ",
                 escapeQuotes(params.quoteTokenSymbol),
                 "/",
                 escapeQuotes(params.baseTokenSymbol),
@@ -407,7 +400,6 @@ library NFTDescriptor {
             poolAddress: params.poolAddress,
             quoteTokenSymbol: params.quoteTokenSymbol,
             baseTokenSymbol: params.baseTokenSymbol,
-            feeTier: feeToPercentString(params.fee),
             tickLower: params.tickLower,
             tickUpper: params.tickUpper,
             tickSpacing: params.tickSpacing,

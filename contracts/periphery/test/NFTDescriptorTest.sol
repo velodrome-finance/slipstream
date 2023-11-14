@@ -45,10 +45,6 @@ contract NFTDescriptorTest {
         return NFTDescriptor.fixedPointToDecimalString(sqrtRatioX96, token0Decimals, token1Decimals);
     }
 
-    function feeToPercentString(uint24 fee) public pure returns (string memory) {
-        return NFTDescriptor.feeToPercentString(fee);
-    }
-
     function addressToString(address _address) public pure returns (string memory) {
         return NFTDescriptor.addressToString(_address);
     }

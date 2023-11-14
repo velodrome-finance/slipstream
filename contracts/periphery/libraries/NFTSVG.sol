@@ -25,7 +25,6 @@ library NFTSVG {
         address poolAddress;
         string quoteTokenSymbol;
         string baseTokenSymbol;
-        string feeTier;
         int24 tickLower;
         int24 tickUpper;
         int24 tickSpacing;
@@ -56,7 +55,9 @@ library NFTSVG {
                 generateSVGBorderText(
                     params.quoteToken, params.baseToken, params.quoteTokenSymbol, params.baseTokenSymbol
                 ),
-                generateSVGCardMantle(params.quoteTokenSymbol, params.baseTokenSymbol, params.feeTier),
+                generateSVGCardMantle(
+                    params.quoteTokenSymbol, params.baseTokenSymbol, (uint256(params.tickSpacing)).toString()
+                ),
                 generageSvgCurve(params.tickLower, params.tickUpper, params.tickSpacing, params.overRange),
                 generateSVGPositionDataAndLocationCurve(params.tokenId.toString(), params.tickLower, params.tickUpper),
                 generateSVGRareSparkle(params.tokenId, params.poolAddress),
@@ -183,11 +184,11 @@ library NFTSVG {
         );
     }
 
-    function generateSVGCardMantle(string memory quoteTokenSymbol, string memory baseTokenSymbol, string memory feeTier)
-        private
-        pure
-        returns (string memory svg)
-    {
+    function generateSVGCardMantle(
+        string memory quoteTokenSymbol,
+        string memory baseTokenSymbol,
+        string memory tickSpacing
+    ) private pure returns (string memory svg) {
         svg = string(
             abi.encodePacked(
                 '<g mask="url(#fade-symbol)"><rect fill="none" x="0px" y="0px" width="290px" height="200px" /> <text y="70px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
@@ -195,7 +196,7 @@ library NFTSVG {
                 "/",
                 baseTokenSymbol,
                 '</text><text y="115px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
-                feeTier,
+                tickSpacing,
                 "</text></g>",
                 '<rect x="16" y="16" width="258" height="468" rx="26" ry="26" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.2)" />'
             )

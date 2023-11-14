@@ -76,7 +76,6 @@ describe('NFTDescriptor', () => {
     let tickUpper: number
     let tickCurrent: number
     let tickSpacing: number
-    let fee: number
     let poolAddress: string
 
     beforeEach(async () => {
@@ -92,7 +91,6 @@ describe('NFTDescriptor', () => {
       tickUpper = getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM])
       tickCurrent = 0
       tickSpacing = TICK_SPACINGS[FeeAmount.MEDIUM]
-      fee = 3000
       poolAddress = `0x${'b'.repeat(40)}`
     })
 
@@ -111,7 +109,6 @@ describe('NFTDescriptor', () => {
           tickUpper,
           tickCurrent,
           tickSpacing,
-          fee,
           poolAddress,
         })
       )
@@ -127,7 +124,7 @@ describe('NFTDescriptor', () => {
         tickLower,
         tickUpper,
         tickCurrent,
-        '0.3%',
+        tickSpacing,
         'MIN<>MAX'
       )
 
@@ -139,7 +136,6 @@ describe('NFTDescriptor', () => {
       tickLower = -10
       tickUpper = 10
       tickSpacing = TICK_SPACINGS[FeeAmount.MEDIUM]
-      fee = 3000
 
       const json = extractJSONFromURI(
         await nftDescriptor.constructTokenURI({
@@ -155,7 +151,6 @@ describe('NFTDescriptor', () => {
           tickUpper,
           tickCurrent,
           tickSpacing,
-          fee,
           poolAddress,
         })
       )
@@ -171,7 +166,7 @@ describe('NFTDescriptor', () => {
         tickLower,
         tickUpper,
         tickCurrent,
-        '0.3%',
+        tickSpacing,
         '0.99900<>1.0010'
       )
 
@@ -195,7 +190,6 @@ describe('NFTDescriptor', () => {
           tickUpper,
           tickCurrent,
           tickSpacing,
-          fee,
           poolAddress,
         })
       )
@@ -211,7 +205,7 @@ describe('NFTDescriptor', () => {
         tickLower,
         tickUpper,
         tickCurrent,
-        '0.3%',
+        tickSpacing,
         'MIN<>MAX'
       )
 
@@ -239,7 +233,6 @@ describe('NFTDescriptor', () => {
             tickUpper,
             tickCurrent,
             tickSpacing,
-            fee,
             poolAddress,
           })
         )
@@ -255,7 +248,7 @@ describe('NFTDescriptor', () => {
           tickLower,
           tickUpper,
           tickCurrent,
-          '0.3%',
+          tickSpacing,
           '0.99900<>1.0010'
         )
 
@@ -280,7 +273,6 @@ describe('NFTDescriptor', () => {
             tickUpper,
             tickCurrent,
             tickSpacing,
-            fee,
             poolAddress,
           })
         )
@@ -296,7 +288,7 @@ describe('NFTDescriptor', () => {
           tickLower,
           tickUpper,
           tickCurrent,
-          '0.3%',
+          tickSpacing,
           'MIN<>MAX'
         )
 
@@ -320,7 +312,6 @@ describe('NFTDescriptor', () => {
           tickUpper,
           tickCurrent,
           tickSpacing,
-          fee,
           poolAddress,
         })
       )
@@ -335,7 +326,6 @@ describe('NFTDescriptor', () => {
       tickLower = 0
       tickUpper = 1000
       tickSpacing = TICK_SPACINGS[FeeAmount.LOW]
-      fee = FeeAmount.LOW
       quoteTokenAddress = '0xabcdeabcdefabcdefabcdefabcdefabcdefabcdf'
       baseTokenAddress = '0x1234567890123456789123456789012345678901'
       quoteTokenSymbol = 'UNI'
@@ -354,7 +344,6 @@ describe('NFTDescriptor', () => {
           tickUpper,
           tickCurrent,
           tickSpacing,
-          fee,
           poolAddress,
         })
       ).toMatchSnapshot()
@@ -644,72 +633,6 @@ describe('NFTDescriptor', () => {
     })
   })
 
-  describe('#feeToPercentString', () => {
-    it('returns the correct fee for 0', async () => {
-      expect(await nftDescriptor.feeToPercentString(0)).to.eq('0%')
-    })
-
-    it('returns the correct fee for 1', async () => {
-      expect(await nftDescriptor.feeToPercentString(1)).to.eq('0.0001%')
-    })
-
-    it('returns the correct fee for 30', async () => {
-      expect(await nftDescriptor.feeToPercentString(30)).to.eq('0.003%')
-    })
-
-    it('returns the correct fee for 33', async () => {
-      expect(await nftDescriptor.feeToPercentString(33)).to.eq('0.0033%')
-    })
-
-    it('returns the correct fee for 500', async () => {
-      expect(await nftDescriptor.feeToPercentString(500)).to.eq('0.05%')
-    })
-
-    it('returns the correct fee for 2500', async () => {
-      expect(await nftDescriptor.feeToPercentString(2500)).to.eq('0.25%')
-    })
-
-    it('returns the correct fee for 3000', async () => {
-      expect(await nftDescriptor.feeToPercentString(3000)).to.eq('0.3%')
-    })
-
-    it('returns the correct fee for 10000', async () => {
-      expect(await nftDescriptor.feeToPercentString(10000)).to.eq('1%')
-    })
-
-    it('returns the correct fee for 17000', async () => {
-      expect(await nftDescriptor.feeToPercentString(17000)).to.eq('1.7%')
-    })
-
-    it('returns the correct fee for 100000', async () => {
-      expect(await nftDescriptor.feeToPercentString(100000)).to.eq('10%')
-    })
-
-    it('returns the correct fee for 150000', async () => {
-      expect(await nftDescriptor.feeToPercentString(150000)).to.eq('15%')
-    })
-
-    it('returns the correct fee for 102000', async () => {
-      expect(await nftDescriptor.feeToPercentString(102000)).to.eq('10.2%')
-    })
-
-    it('returns the correct fee for 10000000', async () => {
-      expect(await nftDescriptor.feeToPercentString(1000000)).to.eq('100%')
-    })
-
-    it('returns the correct fee for 1005000', async () => {
-      expect(await nftDescriptor.feeToPercentString(1005000)).to.eq('100.5%')
-    })
-
-    it('returns the correct fee for 10000000', async () => {
-      expect(await nftDescriptor.feeToPercentString(10000000)).to.eq('1000%')
-    })
-
-    it('returns the correct fee for 12300000', async () => {
-      expect(await nftDescriptor.feeToPercentString(12300000)).to.eq('1230%')
-    })
-  })
-
   describe('#tokenToColorHex', () => {
     function tokenToColorHex(tokenAddress: string, startIndex: number): string {
       return `${tokenAddress.slice(startIndex, startIndex + 6).toLowerCase()}`
@@ -807,7 +730,6 @@ describe('NFTDescriptor', () => {
     let tickUpper: number
     let tickCurrent: number
     let tickSpacing: number
-    let fee: number
     let poolAddress: string
 
     beforeEach(async () => {
@@ -819,7 +741,6 @@ describe('NFTDescriptor', () => {
       tickLower = -1000
       tickUpper = 2000
       tickCurrent = 40
-      fee = 500
       baseTokenDecimals = await tokens[0].decimals()
       quoteTokenDecimals = await tokens[1].decimals()
       flipRatio = false
@@ -841,7 +762,6 @@ describe('NFTDescriptor', () => {
         tickUpper,
         tickCurrent,
         tickSpacing,
-        fee,
         poolAddress,
       })
 
@@ -863,7 +783,6 @@ describe('NFTDescriptor', () => {
         tickUpper,
         tickCurrent,
         tickSpacing,
-        fee,
         poolAddress,
       })
       expect(isSvg(svg)).to.eq(true)
@@ -891,16 +810,16 @@ describe('NFTDescriptor', () => {
     tickLower: number,
     tickUpper: number,
     tickCurrent: number,
-    feeTier: string,
+    tickSpacing: number,
     prices: string
   ): { name: string; description: string } {
     quoteTokenSymbol = quoteTokenSymbol.replace(/"/gi, '"')
     baseTokenSymbol = baseTokenSymbol.replace(/"/gi, '"')
     return {
-      name: `Uniswap - ${feeTier} - ${quoteTokenSymbol}/${baseTokenSymbol} - ${prices}`,
+      name: `Uniswap - ${quoteTokenSymbol}/${baseTokenSymbol} - ${prices}`,
       description: `This NFT represents a liquidity position in a Uniswap V3 ${quoteTokenSymbol}-${baseTokenSymbol} pool. The owner of this NFT can modify or redeem the position.\n\
 \nPool Address: ${poolAddress}\n${quoteTokenSymbol} Address: ${quoteTokenAddress.toLowerCase()}\n${baseTokenSymbol} Address: ${baseTokenAddress.toLowerCase()}\n\
-Fee Tier: ${feeTier}\nToken ID: ${tokenId}\n\n⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as \
+Tick Spacing: ${tickSpacing}\nToken ID: ${tokenId}\n\n⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as \
 token symbols may be imitated.`,
     }
   }

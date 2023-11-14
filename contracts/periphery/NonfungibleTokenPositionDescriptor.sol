@@ -84,7 +84,6 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
                 tickUpper: tickUpper,
                 tickCurrent: tick,
                 tickSpacing: tickSpacing,
-                fee: pool.fee(), // this makes less sense as fee can be variable, consider removing
                 poolAddress: address(pool)
             })
         );
