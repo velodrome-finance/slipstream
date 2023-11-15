@@ -171,6 +171,7 @@ interface IUniswapV3Factory {
     /// @notice Set gauge factory
     /// @dev Callable once only on initialize
     /// @param _gaugeFactory The gauge factory that creates gauges for the pools created by this factory
+    /// @param _gaugeImplementation The gauge implementation from which gauges will be created
     /// @param _nft The nonfungible position manager that will manage positions for this pool
-    function setGaugeFactoryAndNFT(address _gaugeFactory, address _nft) external;
+    function setGaugeFactoryAndNFT(address _gaugeFactory, address _gaugeImplementation, address _nft) external;
 }

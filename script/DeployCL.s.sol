@@ -81,7 +81,11 @@ contract DeployCL is Script {
         });
 
         // set parameters on pool factory
-        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(gaugeFactory), _nft: address(nft)});
+        poolFactory.setGaugeFactoryAndNFT({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation),
+            _nft: address(nft)
+        });
 
         // deploy fee modules
         swapFeeModule = new CustomSwapFeeModule({

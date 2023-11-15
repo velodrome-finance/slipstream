@@ -59,6 +59,9 @@ interface IUniswapV3PoolState {
     /// @notice acts as a virtual reserve that holds information on how many rewards are yet to be distributed
     function rewardReserve() external view returns (uint256);
 
+    /// @notice timestamp of the end of the current epoch's rewards
+    function periodFinish() external view returns (uint256);
+
     /// @notice last time the rewardReserve and rewardRate were updated
     function lastUpdated() external view returns (uint32);
 

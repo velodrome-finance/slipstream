@@ -2,19 +2,19 @@
 
 exports[`NonfungiblePositionManager #burn gas 1`] = `41284`;
 
-exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `115905`;
+exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `115992`;
 
-exports[`NonfungiblePositionManager #collect gas transfers token0 only 1`] = `127045`;
+exports[`NonfungiblePositionManager #collect gas transfers token0 only 1`] = `127132`;
 
-exports[`NonfungiblePositionManager #collect gas transfers token1 only 1`] = `127252`;
+exports[`NonfungiblePositionManager #collect gas transfers token1 only 1`] = `127339`;
 
-exports[`NonfungiblePositionManager #createAndInitializePoolIfNecessary gas 1`] = `1201804`;
+exports[`NonfungiblePositionManager #createAndInitializePoolIfNecessary gas 1`] = `1201849`;
 
-exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`] = `105559`;
+exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`] = `105603`;
 
-exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `177482`;
+exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `177569`;
 
-exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `201468`;
+exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `201446`;
 
 exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `637643`;
 
@@ -36,4 +36,4 @@ exports[`NonfungiblePositionManager #transferFrom gas 1`] = `79174`;
 
 exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `67580`;
 
-exports[`NonfungiblePositionManager multicall exit gas 1`] = `159457`;
+exports[`NonfungiblePositionManager multicall exit gas 1`] = `159490`;

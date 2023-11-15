@@ -23,9 +23,7 @@ import "./interfaces/IERC20Minimal.sol";
 import "./interfaces/callback/IUniswapV3MintCallback.sol";
 import "./interfaces/callback/IUniswapV3SwapCallback.sol";
 import "./interfaces/callback/IUniswapV3FlashCallback.sol";
-
 import "contracts/libraries/VelodromeTimeLibrary.sol";
-import "contracts/gauge/interfaces/ICLGauge.sol";
 
 contract UniswapV3Pool is IUniswapV3Pool {
     using LowGasSafeMath for uint256;
@@ -94,6 +92,8 @@ contract UniswapV3Pool is IUniswapV3Pool {
     uint256 public override rewardRate;
     /// @inheritdoc IUniswapV3PoolState
     uint256 public override rewardReserve;
+    /// @inheritdoc IUniswapV3PoolState
+    uint256 public override periodFinish;
     /// @inheritdoc IUniswapV3PoolState
     uint32 public override lastUpdated;
     /// @inheritdoc IUniswapV3PoolState
@@ -926,7 +926,7 @@ contract UniswapV3Pool is IUniswapV3Pool {
                     // in case of late notify we only account till the end of the epoch
                     if (VelodromeTimeLibrary.epochStart(timestamp) != VelodromeTimeLibrary.epochStart(_lastUpdated)) {
                         timeDelta = VelodromeTimeLibrary.epochNext(_lastUpdated) - _lastUpdated;
-                    } else if (ICLGauge(gauge).periodFinish() == VelodromeTimeLibrary.epochStart(timestamp)) {
+                    } else if (periodFinish == VelodromeTimeLibrary.epochStart(timestamp)) {
                         // new epoch, notify has yet to be called so we skip the update
                         timeDelta = 0;
                     }
@@ -946,9 +946,15 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    function syncReward(uint256 _rewardRate, uint256 _rewardReserve) external override lock onlyGauge {
+    function syncReward(uint256 _rewardRate, uint256 _rewardReserve, uint256 _periodFinish)
+        external
+        override
+        lock
+        onlyGauge
+    {
         rewardRate = _rewardRate;
         rewardReserve = _rewardReserve;
+        periodFinish = _periodFinish;
         delete timeNoStakedLiquidity;
     }
 

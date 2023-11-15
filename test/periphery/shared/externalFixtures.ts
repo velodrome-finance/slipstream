@@ -100,7 +100,7 @@ const v3CoreFactoryFixture: Fixture<{
     gaugeImplementation.address,
     nft.address // unused in hardhat tests
   )) as CLGaugeFactory
-  await factory.setGaugeFactoryAndNFT(gaugeFactory.address, nft.address)
+  await factory.setGaugeFactoryAndNFT(gaugeFactory.address, gaugeImplementation.address, nft.address)
 
   // approve pool factory <=> gauge factory combination
   const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory

@@ -6,7 +6,6 @@ import "./interfaces/fees/IFeeModule.sol";
 import "./interfaces/IVoter.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./UniswapV3Pool.sol";
-import "contracts/gauge/interfaces/ICLGaugeFactory.sol";
 
 /// @title Canonical Uniswap V3 factory
 /// @notice Deploys Uniswap V3 pools and manages ownership and control over pool protocol fees
@@ -184,10 +183,13 @@ contract UniswapV3Factory is IUniswapV3Factory {
     }
 
     /// @inheritdoc IUniswapV3Factory
-    function setGaugeFactoryAndNFT(address _gaugeFactory, address _nft) external override {
+    function setGaugeFactoryAndNFT(address _gaugeFactory, address _gaugeImplementation, address _nft)
+        external
+        override
+    {
         require(gaugeFactory == address(0), "AI");
         gaugeFactory = _gaugeFactory;
-        gaugeImplementation = ICLGaugeFactory(gaugeFactory).implementation();
+        gaugeImplementation = _gaugeImplementation;
         nft = _nft;
     }
 }

@@ -35,14 +35,26 @@ contract SetGaugeFactoryAndNFTTest is UniswapV3FactoryTest {
     }
 
     function test_RevertIf_AlreadyInitialized() public {
-        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(gaugeFactory), _nft: address(nft)});
+        poolFactory.setGaugeFactoryAndNFT({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation),
+            _nft: address(nft)
+        });
 
         vm.expectRevert(abi.encodePacked("AI"));
-        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(1), _nft: address(2)});
+        poolFactory.setGaugeFactoryAndNFT({
+            _gaugeFactory: address(1),
+            _gaugeImplementation: address(2),
+            _nft: address(3)
+        });
     }
 
     function test_SetGaugeFactoryAndNFT() public {
-        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(gaugeFactory), _nft: address(nft)});
+        poolFactory.setGaugeFactoryAndNFT({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation),
+            _nft: address(nft)
+        });
 
         assertEq(poolFactory.gaugeFactory(), address(gaugeFactory));
         assertEq(poolFactory.gaugeImplementation(), address(gaugeImplementation));

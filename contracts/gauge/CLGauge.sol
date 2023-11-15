@@ -326,6 +326,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 timestamp = block.timestamp;
         uint256 timeUntilNext = VelodromeTimeLibrary.epochNext(timestamp) - timestamp;
         pool.updateRewardsGrowthGlobal();
+        uint256 nextPeriodFinish = timestamp + timeUntilNext;
 
         if (timestamp >= periodFinish) {
             IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
@@ -340,13 +341,13 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             }
             _amount += tnsl * rewardRate;
             rewardRate = _amount / timeUntilNext;
-            pool.syncReward(rewardRate, _amount);
+            pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount, periodFinish: nextPeriodFinish});
         } else {
             uint256 _remaining = periodFinish - timestamp;
             uint256 _leftover = _remaining * rewardRate;
             IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
             rewardRate = (_amount + _leftover) / timeUntilNext;
-            pool.syncReward(rewardRate, _amount + _leftover);
+            pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount + _leftover, periodFinish: nextPeriodFinish});
         }
         rewardRateByEpoch[VelodromeTimeLibrary.epochStart(timestamp)] = rewardRate;
         require(rewardRate != 0, "ZRR");
@@ -356,7 +357,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 balance = IERC20(rewardToken).balanceOf(address(this));
         require(rewardRate <= balance / timeUntilNext, "RRH");
 
-        periodFinish = timestamp + timeUntilNext;
+        periodFinish = nextPeriodFinish;
         emit NotifyReward(_sender, _amount);
     }
 

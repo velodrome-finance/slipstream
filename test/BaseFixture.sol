@@ -96,7 +96,11 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             _implementation: address(gaugeImplementation),
             _nft: address(nft)
         });
-        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(gaugeFactory), _nft: address(nft)});
+        poolFactory.setGaugeFactoryAndNFT({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation),
+            _nft: address(nft)
+        });
 
         // approve gauge in factory registry
         vm.prank(Ownable(address(factoryRegistry)).owner());

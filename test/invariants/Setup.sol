@@ -136,7 +136,11 @@ contract SetupUniswap {
             _nft: address(nft)
         });
 
-        poolFactory.setGaugeFactoryAndNFT({_gaugeFactory: address(gaugeFactory), _nft: address(nft)});
+        poolFactory.setGaugeFactoryAndNFT({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation),
+            _nft: address(nft)
+        });
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),

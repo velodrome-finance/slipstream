@@ -151,5 +151,6 @@ interface IUniswapV3PoolActions {
     /// @notice Syncs rewards with gauge
     /// @param rewardRate the rate rewards being distributed during the epoch
     /// @param rewardReserve the available rewards to be distributed during the epoch
-    function syncReward(uint256 rewardRate, uint256 rewardReserve) external;
+    /// @param periodFinish the end of the current period of rewards, updated once per epoch
+    function syncReward(uint256 rewardRate, uint256 rewardReserve, uint256 periodFinish) external;
 }
