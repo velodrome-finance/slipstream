@@ -46,7 +46,7 @@ contract WithdrawTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});
 
-        changePrank(users.charlie);
+        vm.startPrank(users.charlie);
         vm.expectRevert(abi.encodePacked("NA"));
         gauge.withdraw({tokenId: tokenId});
     }

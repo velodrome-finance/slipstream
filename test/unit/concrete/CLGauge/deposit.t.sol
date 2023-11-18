@@ -41,7 +41,7 @@ contract DepositTest is CLGaugeTest {
         });
         (uint256 tokenId,,,) = nft.mint(params);
 
-        changePrank(users.charlie);
+        vm.startPrank(users.charlie);
         vm.expectRevert(abi.encodePacked("NA"));
         gauge.deposit({tokenId: tokenId});
     }

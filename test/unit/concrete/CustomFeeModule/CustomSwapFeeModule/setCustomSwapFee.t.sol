@@ -12,7 +12,7 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
 
     function test_RevertIf_NotManager() public {
         vm.expectRevert();
-        changePrank({msgSender: users.charlie});
+        vm.startPrank({msgSender: users.charlie});
         customSwapFeeModule.setCustomFee({pool: address(1), fee: 5_000});
     }
 

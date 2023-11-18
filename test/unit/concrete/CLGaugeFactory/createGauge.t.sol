@@ -18,7 +18,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
     function test_RevertIf_NotVoter() public {
         pool = poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: TICK_SPACING_LOW});
         vm.expectRevert(abi.encodePacked("NV"));
-        changePrank(users.charlie);
+        vm.startPrank(users.charlie);
         CLGauge(
             gaugeFactory.createGauge({
                 _forwarder: forwarder,

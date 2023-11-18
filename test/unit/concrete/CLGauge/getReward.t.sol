@@ -23,7 +23,7 @@ contract GetRewardTest is CLGaugeTest {
         token0.approve(address(nftCallee), type(uint256).max);
         token1.approve(address(nftCallee), type(uint256).max);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
 
@@ -35,7 +35,7 @@ contract GetRewardTest is CLGaugeTest {
 
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
-        changePrank(users.charlie);
+        vm.startPrank(users.charlie);
         vm.expectRevert(abi.encodePacked("NA"));
         gauge.getReward(tokenId);
     }
@@ -146,7 +146,7 @@ contract GetRewardTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -165,7 +165,7 @@ contract GetRewardTest is CLGaugeTest {
 
         skip(5 days);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
@@ -176,7 +176,7 @@ contract GetRewardTest is CLGaugeTest {
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2 - reward / 7, 1e5);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
@@ -200,7 +200,7 @@ contract GetRewardTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -219,12 +219,12 @@ contract GetRewardTest is CLGaugeTest {
 
         skip(WEEK / 2);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         // alice no longer staked
         vm.expectRevert(abi.encodePacked("NA"));
         gauge.getReward(aliceTokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
@@ -260,7 +260,7 @@ contract GetRewardTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -270,7 +270,7 @@ contract GetRewardTest is CLGaugeTest {
         // two deposits, equal in size, 1/7th of epoch
         uint256 secondExpectedReward = reward / 7 / 2;
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         // we withdraw alice position so we can add more liquidity into it and stake it back
         gauge.withdraw(aliceTokenId);
 
@@ -278,13 +278,13 @@ contract GetRewardTest is CLGaugeTest {
         // alice already claimed 1 day worth of reward
         assertApproxEqAbs(aliceRewardBalance, firstExpectedReward + secondExpectedReward, 1e5);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
         assertApproxEqAbs(bobRewardBalance, secondExpectedReward, 1e5);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         // add more liq to alice positon then stake it in the gauge
         nft.increaseLiquidity(
             INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -311,7 +311,7 @@ contract GetRewardTest is CLGaugeTest {
         // alice: first claim + second claim + third claim
         assertApproxEqAbs(aliceRewardBalance, firstExpectedReward + secondExpectedReward + thirdExpectedReward * 2, 1e5);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         // we withdraw for bob then mint a new position for him with half the size
         gauge.withdraw(bobTokenId);
 
@@ -331,7 +331,7 @@ contract GetRewardTest is CLGaugeTest {
         // two deposits, alice with four times the size of bob, 1/7th of epoch
         uint256 fourthExpectedReward = reward / 7 / 5;
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
@@ -341,7 +341,7 @@ contract GetRewardTest is CLGaugeTest {
             1e5
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         bobRewardBalance = rewardToken.balanceOf(users.bob);
@@ -364,7 +364,7 @@ contract GetRewardTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -401,13 +401,13 @@ contract GetRewardTest is CLGaugeTest {
 
         skipToNextEpoch(0);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 2 + reward2 / 2, 1e5);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
@@ -430,7 +430,7 @@ contract GetRewardTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -465,7 +465,7 @@ contract GetRewardTest is CLGaugeTest {
 
         skipToNextEpoch(0); // accrue all of remaining rewards
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
@@ -475,7 +475,7 @@ contract GetRewardTest is CLGaugeTest {
         // bob not claimed yet
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 2 + reward2 / 2, 1e5);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);

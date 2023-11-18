@@ -11,7 +11,7 @@ contract EnableTickSpacingTest is UniswapV3FactoryTest {
 
     function test_RevertIf_NotOwner() public {
         vm.expectRevert();
-        changePrank({msgSender: users.charlie});
+        vm.startPrank({msgSender: users.charlie});
         poolFactory.enableTickSpacing({tickSpacing: 250, fee: 5_000});
     }
 

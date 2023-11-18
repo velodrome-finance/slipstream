@@ -11,7 +11,7 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         vm.expectRevert(abi.encodePacked("NA"));
         gauge.increaseStakedLiquidity(tokenId, TOKEN_1, TOKEN_1, 0, 0, block.timestamp);
     }

@@ -12,7 +12,7 @@ contract SetUnstakedFeeManagerTest is UniswapV3FactoryTest {
 
     function test_RevertIf_NotFeeManager() public {
         vm.expectRevert();
-        changePrank({msgSender: users.charlie});
+        vm.startPrank({msgSender: users.charlie});
         poolFactory.setUnstakedFeeManager({_unstakedFeeManager: users.charlie});
     }
 

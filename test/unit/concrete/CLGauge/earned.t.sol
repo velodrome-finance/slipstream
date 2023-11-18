@@ -23,7 +23,7 @@ contract EarnedTest is CLGaugeTest {
         token0.approve(address(nftCallee), type(uint256).max);
         token1.approve(address(nftCallee), type(uint256).max);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
 
@@ -134,7 +134,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -147,7 +147,7 @@ contract EarnedTest is CLGaugeTest {
         assertApproxEqAbs(gauge.earned(address(users.bob), bobTokenId), bobBal, 1e5);
 
         // alice withdraw then add more liquidity
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.withdraw(aliceTokenId);
 
         // alice already claimed 1 day worth of rewards
@@ -182,7 +182,7 @@ contract EarnedTest is CLGaugeTest {
         assertApproxEqAbs(gauge.earned(address(users.bob), bobTokenId), bobBal, 1e5);
 
         // alice withdraw and add more liquidity
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.withdraw(aliceTokenId);
 
         // add more liq to alice positon then stake it in the gauge
@@ -220,7 +220,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -269,7 +269,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);

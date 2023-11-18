@@ -23,7 +23,7 @@ contract EarnedTest is CLGaugeTest {
         token0.approve(address(nftCallee), type(uint256).max);
         token1.approve(address(nftCallee), type(uint256).max);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
 
@@ -44,7 +44,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -67,7 +67,7 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 bobClaimable = gauge.earned(address(users.bob), bobTokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
@@ -77,7 +77,7 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 aliceClaimableSecond = gauge.earned(address(users.alice), aliceTokenId);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
@@ -104,7 +104,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -142,7 +142,7 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 aliceClaimableThird = gauge.earned(address(users.alice), aliceTokenId);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
@@ -151,7 +151,7 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 bobClaimable = gauge.earned(address(users.bob), bobTokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
@@ -191,7 +191,7 @@ contract EarnedTest is CLGaugeTest {
             TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
         );
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
 
         nft.approve(address(gauge), bobTokenId);
         gauge.deposit(bobTokenId);
@@ -201,7 +201,7 @@ contract EarnedTest is CLGaugeTest {
         // two deposits, equal in size, 1/7th of epoch
         uint256 aliceClaimableSecond = gauge.earned(address(users.alice), aliceTokenId);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         // we withdraw alice position so we can add more liquidity into it and stake it back
         gauge.withdraw(aliceTokenId);
 
@@ -210,13 +210,13 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 bobClaimableFirst = gauge.earned(address(users.bob), bobTokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         // should be the same
         assertEq(rewardToken.balanceOf(users.bob), bobClaimableFirst);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         // add more liq to alice positon then stake it in the gauge
         nft.increaseLiquidity(
             INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -244,7 +244,7 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 bobClaimableSecond = gauge.earned(address(users.bob), bobTokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         // we withdraw for bob then mint a new position for him with half the size
         gauge.withdraw(bobTokenId);
 
@@ -263,7 +263,7 @@ contract EarnedTest is CLGaugeTest {
         // two deposits, alice with four times the size of bob, 1/7th of epoch
         uint256 aliceClaimableFourth = gauge.earned(address(users.alice), aliceTokenId);
 
-        changePrank(users.alice);
+        vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
 
         // should be the same
@@ -274,7 +274,7 @@ contract EarnedTest is CLGaugeTest {
 
         uint256 bobClaimableThird = gauge.earned(address(users.bob), bobTokenId);
 
-        changePrank(users.bob);
+        vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
 
         // should be the same
