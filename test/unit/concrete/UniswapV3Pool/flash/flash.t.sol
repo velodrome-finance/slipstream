@@ -17,9 +17,13 @@ contract FlashTest is UniswapV3PoolTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: tickSpacing,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
         gauge = CLGauge(voter.gauges(address(pool)));
 

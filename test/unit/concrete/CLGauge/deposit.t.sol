@@ -14,7 +14,12 @@ contract DepositTest is CLGaugeTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: TICK_SPACING_60,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
         gauge = CLGauge(voter.gauges(address(pool)));
 
@@ -24,8 +29,6 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_RevertIf_CallerIsNotOwner() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -47,8 +50,6 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_RevertIf_GaugeNotAlive() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -73,8 +74,6 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_DepositWithPositionInCurrentPrice() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -118,8 +117,6 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_DepositWithPositionRightOfCurrentPrice() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -163,8 +160,6 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_DepositWithPositionLeftOfCurrentPrice() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -208,8 +203,6 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_DepositCollectsAlreadyAccumulatedFees() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 

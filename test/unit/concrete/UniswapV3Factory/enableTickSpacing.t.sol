@@ -45,6 +45,12 @@ contract EnableTickSpacingTest is UniswapV3FactoryTest {
         assertEq(poolFactory.tickSpacings().length, 8);
         assertEq(poolFactory.tickSpacings()[7], 250);
 
-        createAndCheckPool({factory: poolFactory, token0: TEST_TOKEN_0, token1: TEST_TOKEN_1, tickSpacing: 250});
+        createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: 250,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
     }
 }

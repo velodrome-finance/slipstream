@@ -10,16 +10,18 @@ contract MediumFeeCloseToMinPriceTest is UniswapV3PoolSwapNoStakeTest {
 
         int24 tickSpacing = TICK_SPACING_60;
 
-        string memory poolName = ".close_to_min_price";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         // hardcoded value because the calculated value with the
         // util function returns an incorrect result
         // sqrt(1 / 2^127) * 2^96
         uint160 startingPrice = 6085630636;
 
-        IUniswapV3Pool(pool).initialize(startingPrice);
+        string memory poolName = ".close_to_min_price";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = 2e18;
 

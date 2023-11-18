@@ -1,4 +1,4 @@
-import { BigNumber, Wallet } from 'ethers'
+import { BigNumber, BigNumberish, Wallet } from 'ethers'
 import { ethers } from 'hardhat'
 import { MockTimeUniswapV3Pool } from '../../../typechain/MockTimeUniswapV3Pool'
 import { CoreTestERC20 } from '../../../typechain/CoreTestERC20'
@@ -9,6 +9,7 @@ import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
+import { encodePriceSqrt } from './utilities'
 
 import { Fixture } from 'ethereum-waffle'
 
@@ -43,7 +44,8 @@ interface PoolFixture extends TokensAndFactoryFixture {
     fee: number,
     tickSpacing: number,
     firstToken?: CoreTestERC20,
-    secondToken?: CoreTestERC20
+    secondToken?: CoreTestERC20,
+    sqrtPriceX96?: BigNumberish
   ): Promise<MockTimeUniswapV3Pool>
 }
 // Monday, October 5, 2020 9:00:00 AM GMT-05:00
@@ -108,13 +110,24 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     factory: mockTimePoolDeployer,
     swapTargetCallee,
     swapTargetRouter,
-    createPool: async (fee, tickSpacing, firstToken = token0, secondToken = token1) => {
+    createPool: async (
+      fee,
+      tickSpacing,
+      firstToken = token0,
+      secondToken = token1,
+      sqrtPriceX96 = encodePriceSqrt(1, 1)
+    ) => {
       // add tick spacing if not already added, backwards compatible with uniswapv3 tests
       const tickSpacingFee = await mockTimePoolDeployer.tickSpacingToFee(tickSpacing)
       if (tickSpacingFee == 0) await mockTimePoolDeployer['enableTickSpacing(int24,uint24)'](tickSpacing, fee)
-      const tx = await mockTimePoolDeployer.createPool(firstToken.address, secondToken.address, tickSpacing)
+      const tx = await mockTimePoolDeployer.createPool(
+        firstToken.address,
+        secondToken.address,
+        tickSpacing,
+        sqrtPriceX96
+      )
       const receipt = await tx.wait()
-      const poolAddress = receipt.events?.[0].args?.pool as string
+      const poolAddress = receipt.events?.[1].args?.pool as string
       const pool = MockTimeUniswapV3PoolFactory.attach(poolAddress) as MockTimeUniswapV3Pool
       await pool.advanceTime(TEST_POOL_START_TIME)
       customUnstakedFeeModule.setCustomFee(poolAddress, 420)

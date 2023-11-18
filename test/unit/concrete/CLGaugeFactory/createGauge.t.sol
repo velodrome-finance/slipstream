@@ -16,7 +16,12 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
     }
 
     function test_RevertIf_NotVoter() public {
-        pool = poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: TICK_SPACING_LOW});
+        pool = poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
         vm.expectRevert(abi.encodePacked("NV"));
         vm.startPrank(users.charlie);
         CLGauge(
@@ -31,7 +36,12 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
     }
 
     function test_RevertIf_AlreadyCreated() public {
-        pool = poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: TICK_SPACING_LOW});
+        pool = poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
         vm.expectRevert(abi.encodePacked("ERC1167: create2 failed"));
         CLGauge(
             gaugeFactory.createGauge({
@@ -45,7 +55,12 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
     }
 
     function test_CreateGauge() public {
-        pool = poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: TICK_SPACING_LOW});
+        pool = poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
         CLGauge gauge = CLGauge(voter.gauges(pool));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 

@@ -17,7 +17,12 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: tickSpacing,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
         gauge = CLGauge(voter.gauges(address(pool)));
 
@@ -47,7 +52,6 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
     function testFuzz_RewardGrowthGlobalUpdatesCorrectlyWithDelayedRewardDistribute(uint256 reward, uint256 delay)
         public
     {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
         reward = bound(reward, WEEK, type(uint128).max);
         delay = bound(delay, 1, WEEK - 1 hours);
 
@@ -82,8 +86,6 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
 
     function testFuzz_RewardGrowthGlobalUpdatesCorrectlyWithdrawPosition(uint256 reward) public {
         reward = bound(reward, WEEK, type(uint128).max);
-
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
         uint128 amount0 = 10e18;
         uint128 amount1 = 10e18;
@@ -123,7 +125,6 @@ contract RewardGrowthGlobalFuzzTest is UniswapV3PoolTest {
     function testFuzz_notifyRewardAmountUpdatesPoolStateCorrectlyOnAdditionalRewardInSameEpoch(uint256 reward) public {
         reward = bound(reward, WEEK, type(uint128).max);
 
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
         skip(1 days);
 
         addRewardToGauge(address(voter), address(gauge), reward);

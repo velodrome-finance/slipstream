@@ -56,7 +56,6 @@ describe('UniswapV3Pool gas tests', () => {
           pool,
         })
 
-        await pool.initialize(encodePriceSqrt(1, 1))
         await pool.increaseObservationCardinalityNext(4)
         await pool.advanceTime(1)
         await mint(wallet.address, minTick, maxTick, expandTo18Decimals(2))

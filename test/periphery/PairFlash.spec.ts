@@ -26,7 +26,7 @@ describe('PairFlash test', () => {
     if (tokenAddressA.toLowerCase() > tokenAddressB.toLowerCase())
       [tokenAddressA, tokenAddressB] = [tokenAddressB, tokenAddressA]
 
-    await nft.createAndInitializePoolIfNecessary(tokenAddressA, tokenAddressB, tickSpacing, price)
+    await nft.createPoolFromFactory(tokenAddressA, tokenAddressB, tickSpacing, price)
 
     const liquidityParams = {
       token0: tokenAddressA,

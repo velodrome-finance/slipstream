@@ -159,10 +159,13 @@ contract SetupUniswap {
 
     function createPool(int24 _tickSpacing, uint160 _startPrice) public {
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: _tickSpacing})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: _tickSpacing,
+                sqrtPriceX96: _startPrice
+            })
         );
-
-        pool.initialize(_startPrice);
 
         gauge = CLGauge(voter.gauges(address(pool)));
 

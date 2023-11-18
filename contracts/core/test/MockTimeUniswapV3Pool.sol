@@ -16,6 +16,12 @@ contract MockTimeUniswapV3Pool is UniswapV3Pool {
         feeGrowthGlobal1X128 = _feeGrowthGlobal1X128;
     }
 
+    function uninitialize() external {
+        slot0.sqrtPriceX96 = 0;
+        slot0.unlocked = false;
+        factory = address(0);
+    }
+
     function advanceTime(uint256 by) external {
         time += by;
     }

@@ -37,7 +37,7 @@ describe('SwapRouter gas tests', function () {
       if (tokenAddressA.toLowerCase() > tokenAddressB.toLowerCase())
         [tokenAddressA, tokenAddressB] = [tokenAddressB, tokenAddressA]
 
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokenAddressA,
         tokenAddressB,
         TICK_SPACINGS[FeeAmount.MEDIUM],

@@ -17,15 +17,17 @@ contract MediumFeeCloseToMaxPricePartiallyStakedWithUnstakedFeeTest is
 
         int24 tickSpacing = TICK_SPACING_60;
 
-        string memory poolName = ".close_to_max_price";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         // hardcoded value, because we can't reproduce it within solidity
         // sqrt(2^127) * 2^96
         uint160 startingPrice = 1033437718471923706666374484006904511252097097914;
 
-        IUniswapV3Pool(pool).initialize(startingPrice);
+        string memory poolName = ".close_to_max_price";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = 2e18;
 

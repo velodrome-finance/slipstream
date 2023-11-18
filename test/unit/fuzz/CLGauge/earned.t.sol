@@ -11,7 +11,12 @@ contract EarnedTest is CLGaugeTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: TICK_SPACING_60,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
         gauge = CLGauge(voter.gauges(address(pool)));
 
@@ -26,8 +31,6 @@ contract EarnedTest is CLGaugeTest {
         vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
-
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
     }
 
     function testFuzz_EarnedReturnsSameAsGetRewardsWithMultipleDepositors(uint256 reward) public {

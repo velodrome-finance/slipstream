@@ -10,12 +10,15 @@ contract MediumFee1to10Price2e18MaxRangeLiquidityTest is UniswapV3PoolSwapNoStak
 
         int24 tickSpacing = TICK_SPACING_60;
 
-        string memory poolName = ".medium_fee_1to10_price_2e18_max_range_liquidity";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         uint160 startingPrice = encodePriceSqrt(1, 10);
-        IUniswapV3Pool(pool).initialize(startingPrice);
+
+        string memory poolName = ".medium_fee_1to10_price_2e18_max_range_liquidity";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = 2e18;
 

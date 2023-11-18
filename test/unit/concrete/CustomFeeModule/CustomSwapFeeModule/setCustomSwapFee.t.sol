@@ -21,7 +21,8 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_LOW
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
 
         vm.expectRevert();
@@ -38,7 +39,8 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_LOW
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
 
         vm.expectEmit(true, true, false, false, address(customSwapFeeModule));

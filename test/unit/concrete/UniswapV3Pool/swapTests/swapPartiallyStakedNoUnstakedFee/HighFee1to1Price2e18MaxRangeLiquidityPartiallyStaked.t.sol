@@ -15,12 +15,15 @@ contract HighFee1to1Price2e18MaxRangeLiquidityPartiallyStakedTest is
 
         int24 tickSpacing = TICK_SPACING_200;
 
-        string memory poolName = ".high_fee_1to1_price_2e18_max_range_liquidity";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         uint160 startingPrice = encodePriceSqrt(1, 1);
-        IUniswapV3Pool(pool).initialize(startingPrice);
+
+        string memory poolName = ".high_fee_1to1_price_2e18_max_range_liquidity";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = 2e18;
 

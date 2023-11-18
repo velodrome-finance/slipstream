@@ -8,23 +8,48 @@ import {UniswapV3FactoryTest} from "./UniswapV3Factory.t.sol";
 contract CreatePoolTest is UniswapV3FactoryTest {
     function test_RevertIf_SameTokens() public {
         vm.expectRevert();
-        poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_0, tickSpacing: TICK_SPACING_LOW});
+        poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: TEST_TOKEN_0,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
     }
 
     function test_RevertIf_ZeroAddress() public {
         vm.expectRevert();
-        poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: address(0), tickSpacing: TICK_SPACING_LOW});
+        poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: address(0),
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
 
         vm.expectRevert();
-        poolFactory.createPool({tokenA: address(0), tokenB: TEST_TOKEN_0, tickSpacing: TICK_SPACING_LOW});
+        poolFactory.createPool({
+            tokenA: address(0),
+            tokenB: TEST_TOKEN_0,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
 
         vm.expectRevert();
-        poolFactory.createPool({tokenA: address(0), tokenB: address(0), tickSpacing: TICK_SPACING_LOW});
+        poolFactory.createPool({
+            tokenA: address(0),
+            tokenB: address(0),
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
     }
 
     function test_RevertIf_TickSpacingNotEnabled() public {
         vm.expectRevert();
-        poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: 250});
+        poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: TEST_TOKEN_1,
+            tickSpacing: 250,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
     }
 
     function test_CreatePoolWithReversedTokens() public {
@@ -32,7 +57,8 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             factory: poolFactory,
             token0: TEST_TOKEN_1,
             token1: TEST_TOKEN_0,
-            tickSpacing: TICK_SPACING_LOW
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
     }
 
@@ -41,7 +67,8 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_STABLE
+            tickSpacing: TICK_SPACING_STABLE,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         assertEqUint(poolFactory.getSwapFee(pool), 100);
 
@@ -60,7 +87,8 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_LOW
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         assertEqUint(poolFactory.getSwapFee(pool), 500);
 
@@ -79,7 +107,8 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_MEDIUM
+            tickSpacing: TICK_SPACING_MEDIUM,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         assertEqUint(poolFactory.getSwapFee(pool), 500);
 
@@ -98,7 +127,8 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_HIGH
+            tickSpacing: TICK_SPACING_HIGH,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         assertEqUint(poolFactory.getSwapFee(pool), 3_000);
 
@@ -117,7 +147,8 @@ contract CreatePoolTest is UniswapV3FactoryTest {
             factory: poolFactory,
             token0: TEST_TOKEN_0,
             token1: TEST_TOKEN_1,
-            tickSpacing: TICK_SPACING_VOLATILE
+            tickSpacing: TICK_SPACING_VOLATILE,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         assertEqUint(poolFactory.getSwapFee(pool), 10_000);
 

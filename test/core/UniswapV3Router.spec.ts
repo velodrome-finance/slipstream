@@ -1,4 +1,4 @@
-import { Wallet } from 'ethers'
+import { BigNumber, Wallet } from 'ethers'
 import { ethers, waffle } from 'hardhat'
 import { CoreTestERC20 } from '../../typechain/CoreTestERC20'
 import { UniswapV3Factory } from '../../typechain/UniswapV3Factory'
@@ -22,6 +22,7 @@ import { TestUniswapV3Router } from '../../typechain/TestUniswapV3Router'
 import { TestUniswapV3Callee } from '../../typechain/TestUniswapV3Callee'
 
 const feeAmount = FeeAmount.MEDIUM
+const startingPrice = encodePriceSqrt(1, 1)
 const tickSpacing = TICK_SPACINGS[feeAmount]
 
 const createFixtureLoader = waffle.createFixtureLoader
@@ -65,9 +66,10 @@ describe('UniswapV3Pool', () => {
       amount: number,
       spacing: number,
       firstToken: CoreTestERC20,
-      secondToken: CoreTestERC20
+      secondToken: CoreTestERC20,
+      sqrtPriceX96: BigNumber
     ): Promise<[MockTimeUniswapV3Pool, any]> => {
-      const pool = await createPool(amount, spacing, firstToken, secondToken)
+      const pool = await createPool(amount, spacing, firstToken, secondToken, sqrtPriceX96)
       const poolFunctions = createPoolFunctions({
         swapTarget: swapTargetCallee,
         token0: firstToken,
@@ -80,8 +82,8 @@ describe('UniswapV3Pool', () => {
     }
 
     // default to the 30 bips pool
-    ;[pool0, pool0Functions] = await createPoolWrapped(feeAmount, tickSpacing, token0, token1)
-    ;[pool1, pool1Functions] = await createPoolWrapped(feeAmount, tickSpacing, token1, token2)
+    ;[pool0, pool0Functions] = await createPoolWrapped(feeAmount, tickSpacing, token0, token1, startingPrice)
+    ;[pool1, pool1Functions] = await createPoolWrapped(feeAmount, tickSpacing, token1, token2, startingPrice)
   })
 
   it('constructor initializes immutables', async () => {
@@ -100,9 +102,6 @@ describe('UniswapV3Pool', () => {
     beforeEach('initialize both pools', async () => {
       inputToken = token0
       outputToken = token2
-
-      await pool0.initialize(encodePriceSqrt(1, 1))
-      await pool1.initialize(encodePriceSqrt(1, 1))
 
       await pool0Functions.mint(wallet.address, minTick, maxTick, expandTo18Decimals(1))
       await pool1Functions.mint(wallet.address, minTick, maxTick, expandTo18Decimals(1))

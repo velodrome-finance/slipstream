@@ -136,10 +136,15 @@ contract UniswapV3Pool is IUniswapV3Pool {
     }
 
     /// @inheritdoc IUniswapV3PoolActions
-    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge, address _nft)
-        external
-        override
-    {
+    function initialize(
+        address _factory,
+        address _token0,
+        address _token1,
+        int24 _tickSpacing,
+        address _gauge,
+        address _nft,
+        uint160 _sqrtPriceX96
+    ) external override {
         require(factory == address(0));
         factory = _factory;
         token0 = _token0;
@@ -149,6 +154,21 @@ contract UniswapV3Pool is IUniswapV3Pool {
         nft = _nft;
 
         maxLiquidityPerTick = Tick.tickSpacingToMaxLiquidityPerTick(_tickSpacing);
+
+        int24 tick = TickMath.getTickAtSqrtRatio(_sqrtPriceX96);
+
+        (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
+
+        slot0 = Slot0({
+            sqrtPriceX96: _sqrtPriceX96,
+            tick: tick,
+            observationIndex: 0,
+            observationCardinality: cardinality,
+            observationCardinalityNext: cardinalityNext,
+            unlocked: true
+        });
+
+        emit Initialize(_sqrtPriceX96, tick);
     }
 
     function fee() public view override returns (uint24) {
@@ -278,27 +298,6 @@ contract UniswapV3Pool is IUniswapV3Pool {
         if (observationCardinalityNextOld != observationCardinalityNextNew) {
             emit IncreaseObservationCardinalityNext(observationCardinalityNextOld, observationCardinalityNextNew);
         }
-    }
-
-    /// @inheritdoc IUniswapV3PoolActions
-    /// @dev not locked because it initializes unlocked
-    function initialize(uint160 sqrtPriceX96) external override {
-        require(slot0.sqrtPriceX96 == 0, "AI");
-
-        int24 tick = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
-
-        (uint16 cardinality, uint16 cardinalityNext) = observations.initialize(_blockTimestamp());
-
-        slot0 = Slot0({
-            sqrtPriceX96: sqrtPriceX96,
-            tick: tick,
-            observationIndex: 0,
-            observationCardinality: cardinality,
-            observationCardinalityNext: cardinalityNext,
-            unlocked: true
-        });
-
-        emit Initialize(sqrtPriceX96, tick);
     }
 
     struct ModifyPositionParams {

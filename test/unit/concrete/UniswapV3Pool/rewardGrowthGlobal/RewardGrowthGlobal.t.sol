@@ -17,7 +17,12 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: tickSpacing,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
         gauge = CLGauge(voter.gauges(address(pool)));
 
@@ -45,8 +50,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardDistributedAtTheStartOfTheEpoch() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
@@ -84,8 +87,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWithDelayedRewardDistribute() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 stakedLiquidity = 10e18;
 
         mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
@@ -115,8 +116,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_DelayedDistributeUpdatesAccumulatorAtTheEndOfTheEpochCorrectlyComparedToOnTimeDistribute() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 stakedLiquidity = 10e18;
 
         mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
@@ -165,8 +164,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWithdrawPosition() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 stakedLiquidity = 10e18;
 
         uint256 tokenId = mintNewFullRangePositionAndDepositIntoGauge(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
@@ -202,8 +199,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyCrossingInitializedTicks() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
@@ -267,8 +262,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_StuckRewardsRolledOverToNextEpochIfThereIsNoStakedLiquidityAtRewardDistribution() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
@@ -363,8 +356,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardsRolledOverIfThereAreHolesInStakedLiquidityWithDepositAndWithdraw() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         // adding 29953549559107810 as amount0 and amount1 will be equal to ~10 liquidity
         uint256 tokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
             29953549559107810, 29953549559107810, -tickSpacing, tickSpacing, users.alice
@@ -439,8 +430,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardsRolledOverIfThereAreHolesInStakedLiquidityWithSwap() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // adding 29953549559107810 as amount0 and amount1 will be equal to ~10 liquidity
@@ -510,8 +499,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardReserveIsZeroAndRewardRateGreaterThanZeroUpdateTriggeredByWithdraw(
     ) public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 stakedLiquidity = 10e18;
 
         uint256 tokenId =
@@ -542,8 +529,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardReserveIsZeroAndRewardRateGreaterThanZeroUpdateTriggeredByNextNotify(
     ) public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint128 stakedLiquidity = 10e18;
 
         uint256 tokenId =
@@ -583,8 +568,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenNoStakeLiquidityPresentForMoreThanOneEpoch() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -622,8 +605,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthNoRollover() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -660,8 +641,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthDelayedRollover() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -698,8 +677,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthEpochSkipped() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -738,8 +715,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthEpochSkippedNoDelay() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -778,8 +753,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthMultipleEpochSkippedDelayed() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -820,8 +793,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthMultipleEpochSkippedNoDelay() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -861,8 +832,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWithUnstakedLiquidityBothAtTheStartAndEndOfTheEpoch() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -894,8 +863,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     }
 
     function test_RewardGrowthOnlyAccountRewardsTillTheEndOfTheEpochInCaseOfLateNotify() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -921,8 +888,6 @@ contract RewardGrowthGlobalTest is UniswapV3PoolTest {
     function test_RewardGrowthGlobalUpdatesCorrectlyWithMultipleCallsToUpdateRewardsGrowthGlobalAfterEpochFlip()
         public
     {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 

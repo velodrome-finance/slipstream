@@ -114,7 +114,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
   describe('#tokenURI', () => {
     it('displays ETH as token symbol for WETH token', async () => {
       const [token0, token1] = sortedTokens(weth9, tokens[1])
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -144,7 +144,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
 
     it('displays returned token symbols when neither token is WETH ', async () => {
       const [token0, token1] = sortedTokens(tokens[2], tokens[1])
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -173,7 +173,7 @@ describe('NonfungibleTokenPositionDescriptor', () => {
 
     it('can render a different label for native currencies', async () => {
       const [token0, token1] = sortedTokens(weth9, tokens[1])
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],

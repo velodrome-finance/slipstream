@@ -18,12 +18,15 @@ contract MediumFeeMaxFullRangeLiquidityAt1to1PriceWithDefaultFeePartiallyStakedT
 
         int24 tickSpacing = TICK_SPACING_60;
 
-        string memory poolName = ".max_full_range_liquidity_at_1to1_price_with_default_fee";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         uint160 startingPrice = encodePriceSqrt(1, 1);
-        IUniswapV3Pool(pool).initialize(startingPrice);
+
+        string memory poolName = ".max_full_range_liquidity_at_1to1_price_with_default_fee";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = Tick.tickSpacingToMaxLiquidityPerTick(tickSpacing);
 

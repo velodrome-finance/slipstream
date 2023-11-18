@@ -67,7 +67,11 @@ contract UniswapV3Factory is IUniswapV3Factory {
     }
 
     /// @inheritdoc IUniswapV3Factory
-    function createPool(address tokenA, address tokenB, int24 tickSpacing) external override returns (address pool) {
+    function createPool(address tokenA, address tokenB, int24 tickSpacing, uint160 sqrtPriceX96)
+        external
+        override
+        returns (address pool)
+    {
         require(tokenA != tokenB);
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
         require(token0 != address(0));
@@ -77,13 +81,14 @@ contract UniswapV3Factory is IUniswapV3Factory {
         pool = Clones.cloneDeterministic({master: poolImplementation, salt: _salt});
         address gauge =
             Clones.predictDeterministicAddress({master: gaugeImplementation, salt: _salt, deployer: gaugeFactory});
-        UniswapV3Pool(pool).init({
+        UniswapV3Pool(pool).initialize({
             _factory: address(this),
             _token0: token0,
             _token1: token1,
             _tickSpacing: tickSpacing,
             _gauge: gauge,
-            _nft: nft
+            _nft: nft,
+            _sqrtPriceX96: sqrtPriceX96
         });
         _isPool[pool] = true;
         getPool[token0][token1][tickSpacing] = pool;

@@ -132,10 +132,13 @@ interface IUniswapV3Factory {
     /// @param tokenA One of the two tokens in the desired pool
     /// @param tokenB The other of the two tokens in the desired pool
     /// @param tickSpacing The desired tick spacing for the pool
+    /// @param sqrtPriceX96 The initial sqrt price of the pool, as a Q64.96
     /// @dev tokenA and tokenB may be passed in either order: token0/token1 or token1/token0. The call will
     /// revert if the pool already exists, the tick spacing is invalid, or the token arguments are invalid
     /// @return pool The address of the newly created pool
-    function createPool(address tokenA, address tokenB, int24 tickSpacing) external returns (address pool);
+    function createPool(address tokenA, address tokenB, int24 tickSpacing, uint160 sqrtPriceX96)
+        external
+        returns (address pool);
 
     /// @notice Updates the owner of the factory
     /// @dev Must be called by the current owner

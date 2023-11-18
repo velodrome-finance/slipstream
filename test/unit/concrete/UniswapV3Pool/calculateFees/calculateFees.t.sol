@@ -18,7 +18,12 @@ contract CalculateFeesTest is UniswapV3PoolTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: TICK_SPACING_60,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
 
         vm.prank(users.feeManager);
@@ -29,8 +34,6 @@ contract CalculateFeesTest is UniswapV3PoolTest {
         vm.startPrank(users.alice);
 
         skipToNextEpoch(0);
-
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
     }
 
     function assertFees(uint256 t0, uint256 t1, uint256 fg0, uint256 fg1) internal {

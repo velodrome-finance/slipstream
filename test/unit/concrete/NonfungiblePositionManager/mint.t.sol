@@ -6,13 +6,6 @@ import {NonfungiblePositionManagerTest} from "./NonfungiblePositionManager.t.sol
 
 contract MintTest is NonfungiblePositionManagerTest {
     function test_Mint() public {
-        nft.createAndInitializePoolIfNecessary({
-            token0: address(token0),
-            token1: address(token1),
-            tickSpacing: TICK_SPACING_60,
-            sqrtPriceX96: encodePriceSqrt(1, 1)
-        });
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),

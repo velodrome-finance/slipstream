@@ -17,12 +17,15 @@ contract MediumFeeInitializedAtTheMinRatioPartiallyStakedWithUnstakedFeeTest is
 
         int24 tickSpacing = TICK_SPACING_60;
 
-        string memory poolName = ".initialized_at_the_min_ratio";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         uint160 startingPrice = MIN_SQRT_RATIO;
-        IUniswapV3Pool(pool).initialize(startingPrice);
+
+        string memory poolName = ".initialized_at_the_min_ratio";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = 2e18;
 

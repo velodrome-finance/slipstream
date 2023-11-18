@@ -4,11 +4,10 @@ pragma abicoder v2;
 
 import "./IMulticall.sol";
 import "./ISelfPermit.sol";
-import "./IPoolInitializer.sol";
 
 /// @title V3 Migrator
 /// @notice Enables migration of liqudity from Uniswap v2-compatible pairs into Uniswap v3 pools
-interface IV3Migrator is IMulticall, ISelfPermit, IPoolInitializer {
+interface IV3Migrator is IMulticall, ISelfPermit {
     struct MigrateParams {
         address pair; // the Uniswap v2-compatible pair
         uint256 liquidityToMigrate; // expected to be balanceOf(msg.sender)

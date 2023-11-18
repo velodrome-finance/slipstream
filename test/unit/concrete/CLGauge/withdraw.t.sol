@@ -14,7 +14,12 @@ contract WithdrawTest is CLGaugeTest {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: TICK_SPACING_60})
+            poolFactory.createPool({
+                tokenA: address(token0),
+                tokenB: address(token1),
+                tickSpacing: TICK_SPACING_60,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
 
         vm.prank(users.feeManager);
@@ -26,8 +31,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_RevertIf_CallerIsNotOwner() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -52,8 +55,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawWithPositionInCurrentPrice() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -102,8 +103,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawWithPositionRightOfCurrentPrice() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -152,8 +151,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawWithPositionLeftOfCurrentPrice() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -203,8 +200,6 @@ contract WithdrawTest is CLGaugeTest {
 
     function test_WithdrawCollectsRewards() public {
         skipToNextEpoch(0);
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
             token1: address(token1),
@@ -252,8 +247,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawUpdatesPositionCorrectly() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -317,8 +310,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawUpdatesPositionCorrectlyWithUnstakedPositions() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -368,8 +359,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawUpdatesPositionCorrectlyWithStakedAndUnstakedButStakedTriggersUpdate() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
@@ -478,8 +467,6 @@ contract WithdrawTest is CLGaugeTest {
     }
 
     function test_WithdrawUpdatesPositionCorrectlyWithStakedAndUnstakedButUnstakedTriggersUpdate() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId =
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 

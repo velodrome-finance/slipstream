@@ -73,96 +73,6 @@ describe('NonfungiblePositionManager', () => {
     ;({ nft, factory, tokens, weth9, router } = await loadFixture(nftFixture))
   })
 
-  describe('#createAndInitializePoolIfNecessary', () => {
-    it('creates the pool at the expected address', async () => {
-      const expectedAddress = await computePoolAddress(
-        factory.address,
-        [tokens[0].address, tokens[1].address],
-        TICK_SPACINGS[FeeAmount.MEDIUM]
-      )
-      const code = await wallet.provider.getCode(expectedAddress)
-      expect(code).to.eq('0x')
-      await nft.createAndInitializePoolIfNecessary(
-        tokens[0].address,
-        tokens[1].address,
-        TICK_SPACINGS[FeeAmount.MEDIUM],
-        encodePriceSqrt(1, 1)
-      )
-      const codeAfter = await wallet.provider.getCode(expectedAddress)
-      expect(codeAfter).to.not.eq('0x')
-    })
-
-    it('is payable', async () => {
-      await nft.createAndInitializePoolIfNecessary(
-        tokens[0].address,
-        tokens[1].address,
-        TICK_SPACINGS[FeeAmount.MEDIUM],
-        encodePriceSqrt(1, 1),
-        { value: 1 }
-      )
-    })
-
-    it('works if pool is created but not initialized', async () => {
-      const expectedAddress = await computePoolAddress(
-        factory.address,
-        [tokens[0].address, tokens[1].address],
-        TICK_SPACINGS[FeeAmount.MEDIUM]
-      )
-      await factory.createPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
-      const code = await wallet.provider.getCode(expectedAddress)
-      expect(code).to.not.eq('0x')
-      await nft.createAndInitializePoolIfNecessary(
-        tokens[0].address,
-        tokens[1].address,
-        TICK_SPACINGS[FeeAmount.MEDIUM],
-        encodePriceSqrt(2, 1)
-      )
-    })
-
-    it('works if pool is created and initialized', async () => {
-      const expectedAddress = await computePoolAddress(
-        factory.address,
-        [tokens[0].address, tokens[1].address],
-        TICK_SPACINGS[FeeAmount.MEDIUM]
-      )
-      await factory.createPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
-      const IUniswapV3PoolABI = artifacts.readArtifactSync('IUniswapV3Pool').abi
-      const pool = new ethers.Contract(expectedAddress, IUniswapV3PoolABI, wallet)
-
-      await pool.initialize(encodePriceSqrt(3, 1))
-      const code = await wallet.provider.getCode(expectedAddress)
-      expect(code).to.not.eq('0x')
-      await nft.createAndInitializePoolIfNecessary(
-        tokens[0].address,
-        tokens[1].address,
-        TICK_SPACINGS[FeeAmount.MEDIUM],
-        encodePriceSqrt(4, 1)
-      )
-    })
-
-    it('could theoretically use eth via multicall', async () => {
-      const [token0, token1] = sortedTokens(weth9, tokens[0])
-
-      const createAndInitializePoolIfNecessaryData = nft.interface.encodeFunctionData(
-        'createAndInitializePoolIfNecessary',
-        [token0.address, token1.address, TICK_SPACINGS[FeeAmount.MEDIUM], encodePriceSqrt(1, 1)]
-      )
-
-      await nft.multicall([createAndInitializePoolIfNecessaryData], { value: expandTo18Decimals(1) })
-    })
-
-    it('gas', async () => {
-      await snapshotGasCost(
-        nft.createAndInitializePoolIfNecessary(
-          tokens[0].address,
-          tokens[1].address,
-          TICK_SPACINGS[FeeAmount.MEDIUM],
-          encodePriceSqrt(1, 1)
-        )
-      )
-    })
-  })
-
   describe('#mint', () => {
     it('fails if pool does not exist', async () => {
       await expect(
@@ -183,7 +93,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('fails if cannot transfer', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -208,7 +118,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('creates a token', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -260,7 +170,7 @@ describe('NonfungiblePositionManager', () => {
       // remove any approval
       await weth9.approve(nft.address, 0)
 
-      const createAndInitializeData = nft.interface.encodeFunctionData('createAndInitializePoolIfNecessary', [
+      const createAndInitializeData = nft.interface.encodeFunctionData('createPoolFromFactory', [
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -297,7 +207,7 @@ describe('NonfungiblePositionManager', () => {
     it('emits an event')
 
     it('gas first mint for pool', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -323,7 +233,7 @@ describe('NonfungiblePositionManager', () => {
 
     it('gas first mint for pool using eth with zero refund', async () => {
       const [token0, token1] = sortedTokens(weth9, tokens[0])
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -357,7 +267,7 @@ describe('NonfungiblePositionManager', () => {
 
     it('gas first mint for pool using eth with non-zero refund', async () => {
       const [token0, token1] = sortedTokens(weth9, tokens[0])
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -390,7 +300,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('gas mint on same ticks', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -429,7 +339,7 @@ describe('NonfungiblePositionManager', () => {
     })
 
     it('gas mint for same pool, different ticks', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -471,7 +381,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#increaseLiquidity', () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -513,7 +423,7 @@ describe('NonfungiblePositionManager', () => {
 
       const tokenId = 1
 
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -568,7 +478,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#decreaseLiquidity', () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -671,7 +581,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#collect', () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -791,7 +701,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#burn', () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -860,7 +770,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#transferFrom', () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -916,7 +826,7 @@ describe('NonfungiblePositionManager', () => {
     describe('owned by eoa', () => {
       const tokenId = 1
       beforeEach('create a position', async () => {
-        await nft.createAndInitializePoolIfNecessary(
+        await nft.createPoolFromFactory(
           tokens[0].address,
           tokens[1].address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -981,7 +891,7 @@ describe('NonfungiblePositionManager', () => {
           await ethers.getContractFactory('TestPositionNFTOwner')
         ).deploy()) as TestPositionNFTOwner
 
-        await nft.createAndInitializePoolIfNecessary(
+        await nft.createPoolFromFactory(
           tokens[0].address,
           tokens[1].address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -1041,7 +951,7 @@ describe('NonfungiblePositionManager', () => {
   describe('multicall exit', () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -1134,7 +1044,7 @@ describe('NonfungiblePositionManager', () => {
   describe('#tokenURI', async () => {
     const tokenId = 1
     beforeEach('create a position', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -1174,7 +1084,7 @@ describe('NonfungiblePositionManager', () => {
 
   describe('fees accounting', () => {
     beforeEach('create two positions', async () => {
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
@@ -1294,7 +1204,7 @@ describe('NonfungiblePositionManager', () => {
         nft.address
       )) as NonfungiblePositionManagerPositionsGasTest
 
-      await nft.createAndInitializePoolIfNecessary(
+      await nft.createPoolFromFactory(
         tokens[0].address,
         tokens[1].address,
         TICK_SPACINGS[FeeAmount.MEDIUM],

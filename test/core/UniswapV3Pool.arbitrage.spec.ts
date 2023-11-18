@@ -105,7 +105,6 @@ describe('UniswapV3Pool arbitrage tests', () => {
             await fix.token0.approve(tester.address, MaxUint256)
             await fix.token1.approve(tester.address, MaxUint256)
 
-            await pool.initialize(startingPrice)
             await mint(wallet.address, minTick, maxTick, passiveLiquidity)
 
             expect((await pool.slot0()).tick).to.eq(startingTick)

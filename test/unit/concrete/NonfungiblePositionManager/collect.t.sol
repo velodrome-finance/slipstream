@@ -6,8 +6,6 @@ import "./NonfungiblePositionManager.t.sol";
 
 contract CollectTest is NonfungiblePositionManagerTest {
     function test_RevertIf_CallerIsNotGauge() public {
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
-
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         nft.approve(address(gauge), tokenId);

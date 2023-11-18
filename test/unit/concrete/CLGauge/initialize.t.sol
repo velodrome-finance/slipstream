@@ -6,8 +6,12 @@ import {CLGaugeTest} from "./CLGauge.t.sol";
 
 contract InitializeTest is CLGaugeTest {
     function test_RevertIf_AlreadyInitialized() public {
-        address pool =
-            poolFactory.createPool({tokenA: TEST_TOKEN_0, tokenB: TEST_TOKEN_1, tickSpacing: TICK_SPACING_LOW});
+        address pool = poolFactory.createPool({
+            tokenA: TEST_TOKEN_0,
+            tokenB: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
         address gauge = voter.gauges(pool);
         address feesVotingReward = voter.gaugeToFees(gauge);
 

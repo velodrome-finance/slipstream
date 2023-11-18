@@ -6,19 +6,24 @@ pragma solidity >=0.5.0;
 interface IUniswapV3PoolActions {
     /// @notice Initialize function used in proxy deployment
     /// @dev Can be called once only
+    /// Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
+    /// @dev not locked because it initializes unlocked
     /// @param _factory The Uniswap V3 factory contract address
     /// @param _token0 The first token of the pool by address sort order
     /// @param _token1 The second token of the pool by address sort order
     /// @param _tickSpacing The pool tick spacing
     /// @param _gauge The address of the gauge corresponding to this pool
     /// @param _nft The address of the nonfungible position manager corresponding to this pool
-    function init(address _factory, address _token0, address _token1, int24 _tickSpacing, address _gauge, address _nft)
-        external;
-
-    /// @notice Sets the initial price for the pool
-    /// @dev Price is represented as a sqrt(amountToken1/amountToken0) Q64.96 value
-    /// @param sqrtPriceX96 the initial sqrt price of the pool as a Q64.96
-    function initialize(uint160 sqrtPriceX96) external;
+    /// @param _sqrtPriceX96 The initial sqrt price of the pool, as a Q64.96
+    function initialize(
+        address _factory,
+        address _token0,
+        address _token1,
+        int24 _tickSpacing,
+        address _gauge,
+        address _nft,
+        uint160 _sqrtPriceX96
+    ) external;
 
     /// @notice Adds liquidity for the given recipient/tickLower/tickUpper position
     /// @dev The caller of this method receives a callback in the form of IUniswapV3MintCallback#uniswapV3MintCallback

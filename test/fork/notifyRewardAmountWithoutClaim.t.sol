@@ -12,9 +12,13 @@ contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
         super.setUp();
 
         pool = UniswapV3Pool(
-            poolFactory.createPool({tokenA: address(weth), tokenB: address(op), tickSpacing: TICK_SPACING_60})
+            poolFactory.createPool({
+                tokenA: address(weth),
+                tokenB: address(op),
+                tickSpacing: TICK_SPACING_60,
+                sqrtPriceX96: encodePriceSqrt(1, 1)
+            })
         );
-        pool.initialize({sqrtPriceX96: encodePriceSqrt(1, 1)});
 
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);

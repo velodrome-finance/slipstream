@@ -15,12 +15,15 @@ contract MediumFeeInitializedAtTheMaxRatioPartiallyStakedTest is UniswapV3PoolSw
 
         int24 tickSpacing = TICK_SPACING_60;
 
-        string memory poolName = ".initialized_at_the_max_ratio";
-        address pool =
-            poolFactory.createPool({tokenA: address(token0), tokenB: address(token1), tickSpacing: tickSpacing});
-
         uint160 startingPrice = MAX_SQRT_RATIO - 1;
-        IUniswapV3Pool(pool).initialize(startingPrice);
+
+        string memory poolName = ".initialized_at_the_max_ratio";
+        address pool = poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: tickSpacing,
+            sqrtPriceX96: startingPrice
+        });
 
         uint128 liquidity = 2e18;
 

@@ -63,7 +63,7 @@ describe('PositionValue', async () => {
 
   beforeEach(async () => {
     ;({ positionValue, tokens, nft, router, factory } = await loadFixture(positionValueCompleteFixture))
-    await nft.createAndInitializePoolIfNecessary(
+    await nft.createPoolFromFactory(
       tokens[0].address,
       tokens[1].address,
       TICK_SPACINGS[FeeAmount.MEDIUM],

@@ -13,12 +13,7 @@ export async function createPool(
   if (tokenAddressA.toLowerCase() > tokenAddressB.toLowerCase())
     [tokenAddressA, tokenAddressB] = [tokenAddressB, tokenAddressA]
 
-  await nft.createAndInitializePoolIfNecessary(
-    tokenAddressA,
-    tokenAddressB,
-    TICK_SPACINGS[FeeAmount.MEDIUM],
-    encodePriceSqrt(1, 1)
-  )
+  await nft.createPoolFromFactory(tokenAddressA, tokenAddressB, TICK_SPACINGS[FeeAmount.MEDIUM], encodePriceSqrt(1, 1))
 
   const liquidityParams = {
     token0: tokenAddressA,
@@ -46,12 +41,7 @@ export async function createPoolWithMultiplePositions(
   if (tokenAddressA.toLowerCase() > tokenAddressB.toLowerCase())
     [tokenAddressA, tokenAddressB] = [tokenAddressB, tokenAddressA]
 
-  await nft.createAndInitializePoolIfNecessary(
-    tokenAddressA,
-    tokenAddressB,
-    TICK_SPACINGS[FeeAmount.MEDIUM],
-    encodePriceSqrt(1, 1)
-  )
+  await nft.createPoolFromFactory(tokenAddressA, tokenAddressB, TICK_SPACINGS[FeeAmount.MEDIUM], encodePriceSqrt(1, 1))
 
   const liquidityParams = {
     token0: tokenAddressA,
@@ -111,12 +101,7 @@ export async function createPoolWithZeroTickInitialized(
   if (tokenAddressA.toLowerCase() > tokenAddressB.toLowerCase())
     [tokenAddressA, tokenAddressB] = [tokenAddressB, tokenAddressA]
 
-  await nft.createAndInitializePoolIfNecessary(
-    tokenAddressA,
-    tokenAddressB,
-    TICK_SPACINGS[FeeAmount.MEDIUM],
-    encodePriceSqrt(1, 1)
-  )
+  await nft.createPoolFromFactory(tokenAddressA, tokenAddressB, TICK_SPACINGS[FeeAmount.MEDIUM], encodePriceSqrt(1, 1))
 
   const liquidityParams = {
     token0: tokenAddressA,
