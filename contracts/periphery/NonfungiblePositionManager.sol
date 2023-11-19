@@ -2,6 +2,7 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
+import "contracts/core/interfaces/IUniswapV3Factory.sol";
 import "contracts/core/interfaces/IUniswapV3Pool.sol";
 import "contracts/core/libraries/FixedPoint128.sol";
 import "contracts/core/libraries/FullMath.sol";
@@ -10,6 +11,7 @@ import "./interfaces/INonfungiblePositionManager.sol";
 import "./interfaces/INonfungibleTokenPositionDescriptor.sol";
 import "./libraries/PositionKey.sol";
 import "./libraries/PoolAddress.sol";
+import "./libraries/GaugeAddress.sol";
 import "./base/LiquidityManagement.sol";
 import "./base/PeripheryImmutableState.sol";
 import "./base/Multicall.sol";
@@ -48,6 +50,14 @@ contract NonfungiblePositionManager is
         uint128 tokensOwed0;
         uint128 tokensOwed1;
     }
+    /// @dev Revert String Annotations:
+    /// NE - ERC721: approved query for nonexistent token
+    /// PS - Price slippage check
+    /// ID - Invalid token ID
+    /// ZA - Zero Address
+    /// NA - Not approved
+    /// NC - Not cleared
+    /// NO - Not Owner
 
     /// @dev IDs of pools assigned by this contract
     mapping(address => uint80) private _poolIds;
@@ -63,14 +73,32 @@ contract NonfungiblePositionManager is
     /// @dev The ID of the next pool that is used for the first time. Skips 0
     uint80 private _nextPoolId = 1;
 
-    /// @dev The address of the token descriptor contract, which handles generating token URIs for position tokens
-    address private immutable _tokenDescriptor;
+    /// @inheritdoc INonfungiblePositionManager
+    address public override owner;
 
-    constructor(address _factory, address _WETH9, address _tokenDescriptor_)
+    /// @inheritdoc INonfungiblePositionManager
+    address public override tokenDescriptor;
+
+    /// @inheritdoc INonfungiblePositionManager
+    address public immutable override gaugeFactory;
+
+    /// @inheritdoc INonfungiblePositionManager
+    address public immutable override gaugeImplementation;
+
+    /// @dev Prevents calling a function from anyone except owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "NO");
+        _;
+    }
+
+    constructor(address _factory, address _WETH9, address _tokenDescriptor)
         ERC721Permit("Uniswap V3 Positions NFT-V1", "UNI-V3-POS", "1")
         PeripheryImmutableState(_factory, _WETH9)
     {
-        _tokenDescriptor = _tokenDescriptor_;
+        owner = msg.sender;
+        tokenDescriptor = _tokenDescriptor;
+        gaugeFactory = IUniswapV3Factory(_factory).gaugeFactory();
+        gaugeImplementation = IUniswapV3Factory(_factory).gaugeImplementation();
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -94,7 +122,7 @@ contract NonfungiblePositionManager is
         )
     {
         Position memory position = _positions[tokenId];
-        require(position.poolId != 0, "Invalid token ID");
+        require(position.poolId != 0, "ID");
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
         return (
             position.nonce,
@@ -173,13 +201,13 @@ contract NonfungiblePositionManager is
     }
 
     modifier isAuthorizedForToken(uint256 tokenId) {
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Not approved");
+        require(_isApprovedOrOwner(msg.sender, tokenId), "NA");
         _;
     }
 
     function tokenURI(uint256 tokenId) public view override(ERC721, IERC721Metadata) returns (string memory) {
         require(_exists(tokenId));
-        return INonfungibleTokenPositionDescriptor(_tokenDescriptor).tokenURI(this, tokenId);
+        return INonfungibleTokenPositionDescriptor(tokenDescriptor).tokenURI(this, tokenId);
     }
 
     // save bytecode by removing implementation of unused method
@@ -199,7 +227,8 @@ contract NonfungiblePositionManager is
 
         IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
 
-        address _gauge = pool.gauge();
+        address _gauge = GaugeAddress.computeAddress(gaugeFactory, gaugeImplementation, poolKey);
+
         bool isStaked = ownerOf(params.tokenId) == _gauge;
         if (isStaked) require(msg.sender == _gauge, "NG");
 
@@ -261,7 +290,7 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
         IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
 
-        address _gauge = pool.gauge();
+        address _gauge = GaugeAddress.computeAddress(gaugeFactory, gaugeImplementation, poolKey);
         bool isStaked = ownerOf(params.tokenId) == _gauge;
         if (!isStaked) {
             (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity, address(this));
@@ -269,7 +298,7 @@ contract NonfungiblePositionManager is
             (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity, _gauge);
         }
 
-        require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");
+        require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "PS");
 
         bytes32 positionKey =
             PositionKey.compute(isStaked ? _gauge : address(this), position.tickLower, position.tickUpper);
@@ -320,7 +349,7 @@ contract NonfungiblePositionManager is
 
         (uint128 tokensOwed0, uint128 tokensOwed1) = (position.tokensOwed0, position.tokensOwed1);
 
-        address _gauge = pool.gauge();
+        address _gauge = GaugeAddress.computeAddress(gaugeFactory, gaugeImplementation, poolKey);
         bool isStaked = ownerOf(params.tokenId) == _gauge;
 
         // trigger an update of the position fees owed and fee growth snapshots if it has any liquidity
@@ -384,7 +413,7 @@ contract NonfungiblePositionManager is
     /// @inheritdoc INonfungiblePositionManager
     function burn(uint256 tokenId) external payable override isAuthorizedForToken(tokenId) {
         Position storage position = _positions[tokenId];
-        require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, "Not cleared");
+        require(position.liquidity == 0 && position.tokensOwed0 == 0 && position.tokensOwed1 == 0, "NC");
         delete _positions[tokenId];
         _burn(tokenId);
     }
@@ -395,7 +424,7 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc IERC721
     function getApproved(uint256 tokenId) public view override(ERC721, IERC721) returns (address) {
-        require(_exists(tokenId), "ERC721: approved query for nonexistent token");
+        require(_exists(tokenId), "NE");
 
         return _positions[tokenId].operator;
     }
@@ -404,5 +433,19 @@ contract NonfungiblePositionManager is
     function _approve(address to, uint256 tokenId) internal override(ERC721) {
         _positions[tokenId].operator = to;
         emit Approval(ownerOf(tokenId), to, tokenId);
+    }
+
+    /// @inheritdoc INonfungiblePositionManager
+    function setTokenDescriptor(address _tokenDescriptor) external override onlyOwner {
+        require(_tokenDescriptor != address(0), "ZA");
+        tokenDescriptor = _tokenDescriptor;
+        emit TokenDescriptorChanged(_tokenDescriptor);
+    }
+
+    /// @inheritdoc INonfungiblePositionManager
+    function setOwner(address _owner) external override onlyOwner {
+        require(_owner != address(0), "ZA");
+        owner = _owner;
+        emit TransferOwnership(_owner);
     }
 }

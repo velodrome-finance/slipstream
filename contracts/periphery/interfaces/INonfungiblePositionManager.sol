@@ -40,6 +40,12 @@ interface INonfungiblePositionManager is
     /// @param amount0 The amount of token0 owed to the position that was collected
     /// @param amount1 The amount of token1 owed to the position that was collected
     event Collect(uint256 indexed tokenId, address recipient, uint256 amount0, uint256 amount1);
+    /// @notice Emitted when a new Token Descriptor is set
+    /// @param tokenDescriptor Address of the new Token Descriptor
+    event TokenDescriptorChanged(address indexed tokenDescriptor);
+    /// @notice Emitted when a new Owner is set
+    /// @param owner Address of the new Owner
+    event TransferOwnership(address indexed owner);
 
     /// @notice Returns the position information associated with a given token ID.
     /// @dev Throws if the token ID is not valid.
@@ -73,6 +79,18 @@ interface INonfungiblePositionManager is
             uint128 tokensOwed0,
             uint128 tokensOwed1
         );
+
+    /// @notice Returns the address of the Token Descriptor, that handles generating token URIs for Positions
+    function tokenDescriptor() external view returns (address);
+
+    /// @notice Returns the address of the Owner, that is allowed to set a new TokenDescriptor
+    function owner() external view returns (address);
+
+    /// @notice Returns the address of the Gauge Factory, that handles the creation of Gauges
+    function gaugeFactory() external view returns (address);
+
+    /// @notice Returns the address of the Gauge Implementation, that is used by gauges
+    function gaugeImplementation() external view returns (address);
 
     struct MintParams {
         address token0;
@@ -167,4 +185,12 @@ interface INonfungiblePositionManager is
     /// must be collected first.
     /// @param tokenId The ID of the token that is being burned
     function burn(uint256 tokenId) external payable;
+
+    /// @notice Sets a new Token Descriptor
+    /// @param _tokenDescriptor Address of the new Token Descriptor to be chosen
+    function setTokenDescriptor(address _tokenDescriptor) external;
+
+    /// @notice Sets a new Owner address
+    /// @param _owner Address of the new Owner to be chosen
+    function setOwner(address _owner) external;
 }

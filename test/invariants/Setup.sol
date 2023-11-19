@@ -122,25 +122,28 @@ contract SetupUniswap {
         poolFactory.enableTickSpacing(60, 3_000);
         // manually override fee in pool creation for tick spacing 200
 
-        nft = new NonfungiblePositionManager({
-            _factory: address(poolFactory),
-            _WETH9: address(weth),
-            _tokenDescriptor_: address(100)
-        });
-
         // deploy gauges and associated contracts
         gaugeImplementation = new CLGauge();
         gaugeFactory = new CLGaugeFactory({
             _voter: address(voter),
-            _implementation: address(gaugeImplementation),
-            _nft: address(nft)
+            _implementation: address(gaugeImplementation)
         });
 
-        poolFactory.setGaugeFactoryAndNFT({
+        poolFactory.setGaugeFactory({
             _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation),
-            _nft: address(nft)
+            _gaugeImplementation: address(gaugeImplementation)
         });
+
+        // deploy nft manager
+        nft = new NonfungiblePositionManager({
+            _factory: address(poolFactory),
+            _WETH9: address(weth),
+            _tokenDescriptor: address(100)
+        });
+
+        // set nft manager in the factories
+        gaugeFactory.setNonfungiblePositionManager(address(nft));
+        poolFactory.setNonfungiblePositionManager(address(nft));
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),

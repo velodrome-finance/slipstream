@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import "./UniswapV3Factory.t.sol";
 
-contract SetGaugeFactoryAndNFTTest is UniswapV3FactoryTest {
+contract SetGaugeFactoryTest is UniswapV3FactoryTest {
     function setUp() public override {
         super.setUp();
 
@@ -16,6 +16,12 @@ contract SetGaugeFactoryAndNFTTest is UniswapV3FactoryTest {
             _poolImplementation: address(poolImplementation)
         });
 
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _voter: address(voter),
+            _implementation: address(gaugeImplementation)
+        });
+
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),
             _nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000 // 'ETH' as bytes32 string
@@ -23,42 +29,54 @@ contract SetGaugeFactoryAndNFTTest is UniswapV3FactoryTest {
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
-            _tokenDescriptor_: address(nftDescriptor)
+            _tokenDescriptor: address(nftDescriptor)
         });
+        gaugeFactory.setNonfungiblePositionManager(address(nft));
 
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _voter: address(voter),
-            _implementation: address(gaugeImplementation),
-            _nft: address(nft)
-        });
+        vm.stopPrank();
     }
 
     function test_RevertIf_AlreadyInitialized() public {
-        poolFactory.setGaugeFactoryAndNFT({
+        vm.startPrank({msgSender: users.owner});
+        poolFactory.setGaugeFactory({
             _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation),
-            _nft: address(nft)
+            _gaugeImplementation: address(gaugeImplementation)
         });
 
         vm.expectRevert(abi.encodePacked("AI"));
-        poolFactory.setGaugeFactoryAndNFT({
-            _gaugeFactory: address(1),
-            _gaugeImplementation: address(2),
-            _nft: address(3)
+        poolFactory.setGaugeFactory({_gaugeFactory: address(1), _gaugeImplementation: address(2)});
+        vm.stopPrank();
+    }
+
+    function test_RevertIf_CallerNotDeployer() public {
+        vm.prank({msgSender: users.alice});
+        vm.expectRevert(abi.encodePacked("AI"));
+        poolFactory.setGaugeFactory({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation)
         });
     }
 
-    function test_SetGaugeFactoryAndNFT() public {
-        poolFactory.setGaugeFactoryAndNFT({
+    function test_RevertIf_ZeroAddress() public {
+        vm.startPrank({msgSender: users.owner});
+        vm.expectRevert();
+        poolFactory.setGaugeFactory({_gaugeFactory: address(0), _gaugeImplementation: address(gaugeImplementation)});
+        vm.expectRevert();
+        poolFactory.setGaugeFactory({_gaugeFactory: address(gaugeFactory), _gaugeImplementation: address(0)});
+        vm.expectRevert();
+        poolFactory.setGaugeFactory({_gaugeFactory: address(0), _gaugeImplementation: address(0)});
+        vm.stopPrank();
+    }
+
+    function test_SetGaugeFactory() public {
+        vm.prank({msgSender: users.owner});
+        poolFactory.setGaugeFactory({
             _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation),
-            _nft: address(nft)
+            _gaugeImplementation: address(gaugeImplementation)
         });
 
         assertEq(poolFactory.gaugeFactory(), address(gaugeFactory));
         assertEq(poolFactory.gaugeImplementation(), address(gaugeImplementation));
-        assertEq(poolFactory.nft(), address(nft));
     }
 
     function test_InitialState() public virtual override {

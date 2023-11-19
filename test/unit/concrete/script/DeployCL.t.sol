@@ -25,6 +25,7 @@ contract DeployCLTest is Test {
     string public jsonConstants;
 
     // loaded variables
+    address public team;
     address public weth;
     address public voter;
     address public factoryRegistry;
@@ -49,6 +50,7 @@ contract DeployCLTest is Test {
         path = concat(path, constantsFilename);
         jsonConstants = vm.readFile(path);
 
+        team = abi.decode(vm.parseJson(jsonConstants, ".team"), (address));
         weth = abi.decode(vm.parseJson(jsonConstants, ".WETH"), (address));
         voter = abi.decode(vm.parseJson(jsonConstants, ".Voter"), (address));
         factoryRegistry = abi.decode(vm.parseJson(jsonConstants, ".FactoryRegistry"), (address));
@@ -96,6 +98,7 @@ contract DeployCLTest is Test {
         assertTrue(address(nft) != address(0));
         assertEq(nft.factory(), address(poolFactory));
         assertEq(nft.WETH9(), weth);
+        assertEq(nft.owner(), team);
 
         assertTrue(address(gaugeImplementation) != address(0));
         assertTrue(address(gaugeFactory) != address(0));

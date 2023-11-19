@@ -40,7 +40,9 @@ contract UniswapV3Factory is IUniswapV3Factory {
     int24[] private _tickSpacings;
 
     constructor(address _voter, address _poolImplementation) {
+        nft = msg.sender;
         owner = msg.sender;
+        gaugeFactory = msg.sender;
         swapFeeManager = msg.sender;
         unstakedFeeManager = msg.sender;
         voter = IVoter(_voter);
@@ -188,13 +190,17 @@ contract UniswapV3Factory is IUniswapV3Factory {
     }
 
     /// @inheritdoc IUniswapV3Factory
-    function setGaugeFactoryAndNFT(address _gaugeFactory, address _gaugeImplementation, address _nft)
-        external
-        override
-    {
-        require(gaugeFactory == address(0), "AI");
+    function setGaugeFactory(address _gaugeFactory, address _gaugeImplementation) external override {
+        require(gaugeFactory == msg.sender, "AI");
+        require(_gaugeFactory != address(0) && _gaugeImplementation != address(0));
         gaugeFactory = _gaugeFactory;
         gaugeImplementation = _gaugeImplementation;
+    }
+
+    /// @inheritdoc IUniswapV3Factory
+    function setNonfungiblePositionManager(address _nft) external override {
+        require(nft == msg.sender, "AI");
+        require(_nft != address(0));
         nft = _nft;
     }
 }

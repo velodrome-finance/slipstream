@@ -11,6 +11,11 @@ interface ICLGaugeFactory {
     /// @notice Address of the NonfungiblePositionManager used to create nfts that gauges will accept
     function nft() external view returns (address);
 
+    /// @notice Set Nonfungible Position Manager
+    /// @dev Callable once only on initialize
+    /// @param _nft The nonfungible position manager that will manage positions for this Factory
+    function setNonfungiblePositionManager(address _nft) external;
+
     /// @notice Called by the voter contract via factory.createPool
     /// @param _forwarder The address of the forwarder contract
     /// @param _pool The address of the pool

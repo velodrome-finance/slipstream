@@ -23,6 +23,7 @@ contract DeployCL is Script {
     string public jsonConstants;
 
     // loaded variables
+    address public team;
     address public weth;
     address public voter;
     address public factoryRegistry;
@@ -45,6 +46,7 @@ contract DeployCL is Script {
         string memory path = concat(basePath, constantsFilename);
         jsonConstants = vm.readFile(path);
 
+        team = abi.decode(vm.parseJson(jsonConstants, ".team"), (address));
         weth = abi.decode(vm.parseJson(jsonConstants, ".WETH"), (address));
         voter = abi.decode(vm.parseJson(jsonConstants, ".Voter"), (address));
         factoryRegistry = abi.decode(vm.parseJson(jsonConstants, ".FactoryRegistry"), (address));
@@ -61,6 +63,19 @@ contract DeployCL is Script {
             _poolImplementation: address(poolImplementation)
         });
 
+        // deploy gauges
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _voter: voter,
+            _implementation: address(gaugeImplementation)
+        });
+
+        // set parameters on pool factory
+        poolFactory.setGaugeFactory({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation)
+        });
+
         // deploy nft contracts
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),
@@ -69,23 +84,12 @@ contract DeployCL is Script {
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
-            _tokenDescriptor_: address(nftDescriptor)
+            _tokenDescriptor: address(nftDescriptor)
         });
 
-        // deploy gauges
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _voter: voter,
-            _implementation: address(gaugeImplementation),
-            _nft: address(nft)
-        });
-
-        // set parameters on pool factory
-        poolFactory.setGaugeFactoryAndNFT({
-            _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation),
-            _nft: address(nft)
-        });
+        // set nft manager in the factories
+        gaugeFactory.setNonfungiblePositionManager(address(nft));
+        poolFactory.setNonfungiblePositionManager(address(nft));
 
         // deploy fee modules
         swapFeeModule = new CustomSwapFeeModule({
@@ -98,6 +102,7 @@ contract DeployCL is Script {
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
 
         // transfer permissions
+        nft.setOwner(team);
         poolFactory.setOwner(poolFactoryOwner);
         poolFactory.setSwapFeeManager(feeManager);
         poolFactory.setUnstakedFeeManager(feeManager);

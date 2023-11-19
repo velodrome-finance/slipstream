@@ -1,7 +1,7 @@
 import { Contract } from "@ethersproject/contracts";
 import { ethers } from "hardhat";
 import { Libraries } from "hardhat/types";
-import { 
+import {
   UniswapV3Factory,
   UniswapV3Pool,
   NonfungibleTokenPositionDescriptor,
@@ -41,23 +41,27 @@ async function main() {
   const poolImplementation = await deploy<UniswapV3Pool>("UniswapV3Pool");
   const poolFactory = await deploy<UniswapV3Factory>("UniswapV3Factory", undefined, jsonConstants.Voter, poolImplementation.address);
 
+  const gaugeImplementation = await deploy<CLGauge>("CLGauge");
+  const gaugeFactory = await deploy<CLGaugeFactory>("CLGaugeFactory", undefined, jsonConstants.Voter, gaugeImplementation.address);
+
+  await poolFactory.setGaugeFactory(gaugeFactory.address, gaugeImplementation.address);
+
   const nftDescriptorLibrary = await deployLibrary("NFTDescriptor");
   const nftDescriptor = await deploy<NonfungibleTokenPositionDescriptor>("NonfungibleTokenPositionDescriptor", { NFTDescriptor: nftDescriptorLibrary.address }, jsonConstants.WETH, "0x4554480000000000000000000000000000000000000000000000000000000000");
   const nft = await deploy<NonfungiblePositionManager>("NonfungiblePositionManager", undefined, poolFactory.address, jsonConstants.WETH, nftDescriptor.address);
 
-  const gaugeImplementation = await deploy<CLGauge>("CLGauge");
-  const gaugeFactory = await deploy<CLGaugeFactory>("CLGaugeFactory", undefined, jsonConstants.Voter, gaugeImplementation.address, nft.address);
-
-  await poolFactory.setGaugeFactoryAndNFT(gaugeFactory.address, nft.address);
+  await poolFactory.setNonfungiblePositionManager(nft.address);
+  await gaugeFactory.setNonfungiblePositionManager(nft.address);
 
   const swapFeeModule = await deploy<CustomSwapFeeModule>("CustomSwapFeeModule", undefined, poolFactory.address);
   const unstakedFeeModule = await deploy<CustomUnstakedFeeModule>("CustomUnstakedFeeModule", undefined, poolFactory.address);
 
   // permissions
+  await nft.setOwner(jsonConstants.team);
   await poolFactory.setOwner(jsonConstants.poolFactoryOwner);
   await poolFactory.setSwapFeeManager(jsonConstants.feeManager);
   await poolFactory.setUnstakedFeeManager(jsonConstants.feeManager);
-  
+
   console.log(`Pool Implementation deployed to: ${poolImplementation.address}`);
   console.log(`Pool Factory deployed to: ${poolFactory.address}`);
   console.log(`NFT Position Descriptor deployed to: ${nftDescriptor.address}`);
@@ -72,4 +76,4 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-  
+

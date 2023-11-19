@@ -64,6 +64,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             charlie: createUser("Charlie")
         });
 
+        vm.startPrank(users.owner);
         rewardToken = new ERC20("", "");
 
         deployDependencies();
@@ -79,6 +80,18 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         poolFactory.enableTickSpacing(60, 3_000);
         // 200 tick spacing fee is manually overriden in tests as it is part of default settings
 
+        // deploy gauges and associated contracts
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _voter: address(voter),
+            _implementation: address(gaugeImplementation)
+        });
+        poolFactory.setGaugeFactory({
+            _gaugeFactory: address(gaugeFactory),
+            _gaugeImplementation: address(gaugeImplementation)
+        });
+
+        // deploy nft manager and descriptor
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),
             _nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000 // 'ETH' as bytes32 string
@@ -86,21 +99,13 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
-            _tokenDescriptor_: address(nftDescriptor)
+            _tokenDescriptor: address(nftDescriptor)
         });
 
-        // deploy gauges and associated contracts
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _voter: address(voter),
-            _implementation: address(gaugeImplementation),
-            _nft: address(nft)
-        });
-        poolFactory.setGaugeFactoryAndNFT({
-            _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation),
-            _nft: address(nft)
-        });
+        // set nftmanager in the factories
+        gaugeFactory.setNonfungiblePositionManager(address(nft));
+        poolFactory.setNonfungiblePositionManager(address(nft));
+        vm.stopPrank();
 
         // approve gauge in factory registry
         vm.prank(Ownable(address(factoryRegistry)).owner());
@@ -111,9 +116,11 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         });
 
         // transfer residual permissions
+        vm.startPrank(users.owner);
         poolFactory.setOwner(users.owner);
         poolFactory.setSwapFeeManager(users.feeManager);
         poolFactory.setUnstakedFeeManager(users.feeManager);
+        vm.stopPrank();
 
         customSwapFeeModule = new CustomSwapFeeModule(address(poolFactory));
         customUnstakedFeeModule = new CustomUnstakedFeeModule(address(poolFactory));
