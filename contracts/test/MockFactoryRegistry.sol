@@ -2,7 +2,7 @@
 pragma solidity =0.7.6;
 
 import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract MockFactoryRegistry is Ownable, IFactoryRegistry {

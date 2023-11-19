@@ -11,7 +11,7 @@ import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {EnumerableSet} from "@openzeppelin/contracts/utils/EnumerableSet.sol";
+import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
