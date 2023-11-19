@@ -196,7 +196,6 @@ library Tick {
     /// @param tick The tick that will be updated
     /// @param stakedLiquidityDelta The amount of staked liquidity to be added (subtracted) when tick is crossed from left to right (right to left)
     /// @param upper true for updating a position's upper tick, or false for updating a position's lower tick
-    // TODO: requires more thorough testing
     function updateStake(mapping(int24 => Tick.Info) storage self, int24 tick, int128 stakedLiquidityDelta, bool upper)
         internal
     {

@@ -35,7 +35,6 @@ describe('UniswapV3Pool gas tests', () => {
   })
 
   for (const feeProtocol of [0]) {
-    // TODO: can potentially update with factory fee test
     describe(feeProtocol > 0 ? 'fee is on' : 'fee is off', () => {
       const startingPrice = encodePriceSqrt(100001, 100000)
       const startingTick = 0

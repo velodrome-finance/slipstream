@@ -59,7 +59,6 @@ describe('UniswapV3Pool arbitrage tests', () => {
   })
 
   for (const feeProtocol of [0]) {
-    // TODO: can potentially update with factory fee test
     describe(`protocol fee = ${feeProtocol};`, () => {
       const startingPrice = encodePriceSqrt(1, 1)
       const startingTick = 0

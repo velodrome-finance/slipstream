@@ -102,7 +102,6 @@ contract UniswapV3Factory is IUniswapV3Factory {
 
     /// @inheritdoc IUniswapV3Factory
     function setOwner(address _owner) external override {
-        // TODO: should this be voter.governor()?
         require(msg.sender == owner);
         require(_owner != address(0));
         emit OwnerChanged(owner, _owner);

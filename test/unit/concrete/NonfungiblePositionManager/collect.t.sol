@@ -21,6 +21,4 @@ contract CollectTest is NonfungiblePositionManagerTest {
             })
         );
     }
-
-    // TODO Check feeGrowth once #42 is done
 }

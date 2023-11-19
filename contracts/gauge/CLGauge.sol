@@ -16,7 +16,7 @@ import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
-import {IReward} from "contracts/interfaces/IReward.sol";
+import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 import {TransferHelper} from "contracts/periphery/libraries/TransferHelper.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {

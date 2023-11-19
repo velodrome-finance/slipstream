@@ -233,7 +233,6 @@ contract CalculateFeesFuzzTest is UniswapV3PoolTest {
         uint256 swapAmount4;
     }
 
-    // TODO: fine tune this test
     function testFuzz_FeesCalculatedCorrectlyDuringSwapsFullRangePositionsIntermediaryUnstakeAndStake(
         uint256 liquidity1,
         uint256 liquidity2,
