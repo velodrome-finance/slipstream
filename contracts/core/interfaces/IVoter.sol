@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
