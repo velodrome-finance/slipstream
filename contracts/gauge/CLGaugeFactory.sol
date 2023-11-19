@@ -35,7 +35,6 @@ contract CLGaugeFactory is ICLGaugeFactory {
         bool _isPool
     ) external override returns (address _gauge) {
         require(msg.sender == voter, "NV");
-        require(nft != address(0), "NI");
         address token0 = IUniswapV3Pool(_pool).token0();
         address token1 = IUniswapV3Pool(_pool).token1();
         int24 tickSpacing = IUniswapV3Pool(_pool).tickSpacing();
