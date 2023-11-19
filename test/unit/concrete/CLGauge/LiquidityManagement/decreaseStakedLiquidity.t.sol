@@ -44,6 +44,8 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         assertEq(pool.stakedLiquidity(), TOKEN_1);
         assertEq(pool.liquidity(), TOKEN_1);
         assertEq(positionLiquidity, TOKEN_1);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 604800);
     }
 
     function test_DecreaseStakedLiquidityToZero() public {

@@ -63,6 +63,8 @@ contract GetRewardTest is CLGaugeTest {
         uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
         // alice should have 2 days worth of rewards
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 777600);
     }
 
     function test_GetRewardOneDepositorWithPositionInCurrentPrice() public {
@@ -87,6 +89,8 @@ contract GetRewardTest is CLGaugeTest {
 
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertApproxEqAbs(gaugeRewardTokenBalance, reward / 7 * 5, 1e5);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 777600);
     }
 
     function test_GetRewardOneDepositorWithPositionRightOfCurrentPrice() public {
@@ -111,6 +115,8 @@ contract GetRewardTest is CLGaugeTest {
 
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 777600);
     }
 
     function test_GetRewardOneDepositorWithPositionLeftOfCurrentPrice() public {
@@ -135,6 +141,8 @@ contract GetRewardTest is CLGaugeTest {
 
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 777600);
     }
 
     function test_GetRewardWithMultipleDepositors() public {
@@ -161,6 +169,8 @@ contract GetRewardTest is CLGaugeTest {
 
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
+        assertEq(gauge.rewards(aliceTokenId), 0);
+        assertEq(gauge.lastUpdateTime(aliceTokenId), 777600);
 
         uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
         // alice should have 1 day worth of rewards
@@ -170,6 +180,8 @@ contract GetRewardTest is CLGaugeTest {
 
         vm.startPrank(users.bob);
         gauge.getReward(bobTokenId);
+        assertEq(gauge.rewards(bobTokenId), 0);
+        assertEq(gauge.lastUpdateTime(bobTokenId), 1209600);
 
         uint256 bobRewardBalance = rewardToken.balanceOf(users.bob);
         // bob should have half an epoch worth of rewards
@@ -181,6 +193,8 @@ contract GetRewardTest is CLGaugeTest {
 
         vm.startPrank(users.alice);
         gauge.getReward(aliceTokenId);
+        assertEq(gauge.rewards(aliceTokenId), 0);
+        assertEq(gauge.lastUpdateTime(aliceTokenId), 1209600);
 
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
         // alice should have half of the rewards

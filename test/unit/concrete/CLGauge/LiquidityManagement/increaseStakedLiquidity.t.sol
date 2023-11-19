@@ -54,6 +54,8 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
             keccak256(abi.encodePacked(address(nft), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
         );
         assertEqUint(nftLiquidity, 0);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 604800);
     }
 
     function test_IncreaseAndDecreaseStakedLiquidity() public {

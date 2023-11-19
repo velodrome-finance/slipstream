@@ -385,7 +385,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
                 fees1 = _fees1;
             }
 
-            // TODO possibly update msg.sender to _msgSender()
             emit ClaimFees(msg.sender, claimed0, claimed1);
         }
     }
