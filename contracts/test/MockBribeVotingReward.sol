@@ -14,4 +14,10 @@ contract MockBribeVotingReward is IReward {
 
         emit NotifyReward(msg.sender, token, amount);
     }
+
+    function earned(address token, uint256 tokenId) external view override returns (uint256) {
+        return 0;
+    }
+
+    function getReward(uint256 tokenId, address[] memory tokens) external override {}
 }

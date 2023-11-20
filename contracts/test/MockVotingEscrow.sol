@@ -9,4 +9,8 @@ contract MockVotingEscrow is IVotingEscrow {
     constructor(address _team) {
         team = _team;
     }
+
+    function createLock(uint256 _value, uint256 _lockDuration) external override returns (uint256) {
+        return 0;
+    }
 }

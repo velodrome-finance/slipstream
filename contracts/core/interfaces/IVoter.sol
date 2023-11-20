@@ -6,6 +6,8 @@ import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 interface IVoter {
     function ve() external view returns (IVotingEscrow);
 
+    function vote(uint256 _tokenId, address[] calldata _poolVote, uint256[] calldata _weights) external;
+
     function gauges(address _pool) external view returns (address);
 
     function gaugeToFees(address _gauge) external view returns (address);

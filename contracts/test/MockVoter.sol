@@ -69,4 +69,6 @@ contract MockVoter is IVoter {
     function killGauge(address gauge) external override {
         isAlive[gauge] = false;
     }
+
+    function vote(uint256 _tokenId, address[] calldata _poolVote, uint256[] calldata _weights) external override {}
 }
