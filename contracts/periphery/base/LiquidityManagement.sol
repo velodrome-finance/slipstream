@@ -2,8 +2,8 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "contracts/core/interfaces/IUniswapV3Factory.sol";
-import "contracts/core/interfaces/callback/IUniswapV3MintCallback.sol";
+import "contracts/core/interfaces/ICLFactory.sol";
+import "contracts/core/interfaces/callback/ICLMintCallback.sol";
 import "contracts/core/libraries/TickMath.sol";
 
 import "../libraries/PoolAddress.sol";
@@ -14,14 +14,14 @@ import "./PeripheryPayments.sol";
 import "./PeripheryImmutableState.sol";
 
 /// @title Liquidity management functions
-/// @notice Internal functions for safely managing liquidity in Uniswap V3
-abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmutableState, PeripheryPayments {
+/// @notice Internal functions for safely managing liquidity in CL
+abstract contract LiquidityManagement is ICLMintCallback, PeripheryImmutableState, PeripheryPayments {
     struct MintCallbackData {
         PoolAddress.PoolKey poolKey;
         address payer;
     }
 
-    /// @inheritdoc IUniswapV3MintCallback
+    /// @inheritdoc ICLMintCallback
     function uniswapV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata data) external override {
         MintCallbackData memory decoded = abi.decode(data, (MintCallbackData));
         CallbackValidation.verifyCallback(factory, decoded.poolKey);
@@ -47,7 +47,7 @@ abstract contract LiquidityManagement is IUniswapV3MintCallback, PeripheryImmuta
         internal
         returns (uint128 liquidity, uint256 amount0, uint256 amount1)
     {
-        IUniswapV3Pool pool = IUniswapV3Pool(params.poolAddress);
+        ICLPool pool = ICLPool(params.poolAddress);
 
         // compute the liquidity amount
         {

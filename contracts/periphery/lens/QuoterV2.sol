@@ -5,8 +5,8 @@ pragma abicoder v2;
 import "contracts/core/libraries/SafeCast.sol";
 import "contracts/core/libraries/TickMath.sol";
 import "contracts/core/libraries/TickBitmap.sol";
-import "contracts/core/interfaces/IUniswapV3Pool.sol";
-import "contracts/core/interfaces/callback/IUniswapV3SwapCallback.sol";
+import "contracts/core/interfaces/ICLPool.sol";
+import "contracts/core/interfaces/callback/ICLSwapCallback.sol";
 
 import "../interfaces/IQuoterV2.sol";
 import "../base/PeripheryImmutableState.sol";
@@ -19,21 +19,21 @@ import "../libraries/PoolTicksCounter.sol";
 /// @notice Allows getting the expected amount out or amount in for a given swap without executing the swap
 /// @dev These functions are not gas efficient and should _not_ be called on chain. Instead, optimistically execute
 /// the swap and check the amounts in the callback.
-contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState {
+contract QuoterV2 is IQuoterV2, ICLSwapCallback, PeripheryImmutableState {
     using Path for bytes;
     using SafeCast for uint256;
-    using PoolTicksCounter for IUniswapV3Pool;
+    using PoolTicksCounter for ICLPool;
 
     /// @dev Transient storage variable used to check a safety condition in exact output swaps.
     uint256 private amountOutCached;
 
     constructor(address _factory, address _WETH9) PeripheryImmutableState(_factory, _WETH9) {}
 
-    function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (IUniswapV3Pool) {
-        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (ICLPool) {
+        return ICLPool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
     }
 
-    /// @inheritdoc IUniswapV3SwapCallback
+    /// @inheritdoc ICLSwapCallback
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes memory path)
         external
         view
@@ -47,7 +47,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
             ? (tokenIn < tokenOut, uint256(amount0Delta), uint256(-amount1Delta))
             : (tokenOut < tokenIn, uint256(amount1Delta), uint256(-amount0Delta));
 
-        IUniswapV3Pool pool = getPool(tokenIn, tokenOut, tickSpacing);
+        ICLPool pool = getPool(tokenIn, tokenOut, tickSpacing);
         (uint160 sqrtPriceX96After, int24 tickAfter,,,,) = pool.slot0();
 
         if (isExactInput) {
@@ -87,7 +87,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         return abi.decode(reason, (uint256, uint160, int24));
     }
 
-    function handleRevert(bytes memory reason, IUniswapV3Pool pool, uint256 gasEstimate)
+    function handleRevert(bytes memory reason, ICLPool pool, uint256 gasEstimate)
         private
         view
         returns (uint256 amount, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256)
@@ -108,7 +108,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         returns (uint256 amountOut, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
-        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
+        ICLPool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
 
         uint256 gasBefore = gasleft();
         try pool.swap(
@@ -175,7 +175,7 @@ contract QuoterV2 is IQuoterV2, IUniswapV3SwapCallback, PeripheryImmutableState 
         returns (uint256 amountIn, uint160 sqrtPriceX96After, uint32 initializedTicksCrossed, uint256 gasEstimate)
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
-        IUniswapV3Pool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
+        ICLPool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
 
         // if no price limit has been specified, cache the output amount for comparison in the swap callback
         if (params.sqrtPriceLimitX96 == 0) amountOutCached = params.amount;

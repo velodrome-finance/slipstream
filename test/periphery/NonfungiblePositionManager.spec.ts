@@ -3,7 +3,7 @@ import { BigNumberish, constants, Wallet } from 'ethers'
 import { ethers, waffle, artifacts } from 'hardhat'
 import {
   CustomUnstakedFeeModule,
-  IUniswapV3Factory,
+  ICLFactory,
   IWETH9,
   MockTimeNonfungiblePositionManager,
   NonfungiblePositionManagerPositionsGasTest,
@@ -31,7 +31,7 @@ describe('NonfungiblePositionManager', () => {
 
   const nftFixture: Fixture<{
     nft: MockTimeNonfungiblePositionManager
-    factory: IUniswapV3Factory
+    factory: ICLFactory
     tokens: [TestERC20, TestERC20, TestERC20]
     weth9: IWETH9
     router: SwapRouter
@@ -54,7 +54,7 @@ describe('NonfungiblePositionManager', () => {
     }
   }
 
-  let factory: IUniswapV3Factory
+  let factory: ICLFactory
   let nft: MockTimeNonfungiblePositionManager
   let tokens: [TestERC20, TestERC20, TestERC20]
   let weth9: IWETH9

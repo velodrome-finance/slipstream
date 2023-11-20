@@ -4,7 +4,7 @@ pragma abicoder v2;
 import "./Setup.sol";
 import "./helpers/Hevm.sol";
 import {CoreTestERC20} from "contracts/core/test/CoreTestERC20.sol";
-import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
+import {CLPool} from "contracts/core/CLPool.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
@@ -14,9 +14,9 @@ import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol
 
 contract E2E_swap {
     SetupTokens tokens;
-    SetupUniswap uniswap;
+    SetupCL cl;
 
-    UniswapV3Pool pool;
+    CLPool pool;
     CLGauge gauge;
     NonfungiblePositionManager nft;
     IVoter voter;
@@ -24,8 +24,8 @@ contract E2E_swap {
     CoreTestERC20 token0;
     CoreTestERC20 token1;
 
-    UniswapMinter minter;
-    UniswapSwapper swapper;
+    CLMinter minter;
+    CLSwapper swapper;
 
     CoreTestERC20 rewardToken;
 
@@ -65,10 +65,10 @@ contract E2E_swap {
         token0 = tokens.token0();
         token1 = tokens.token1();
 
-        uniswap = new SetupUniswap(token0, token1);
+        cl = new SetupCL(token0, token1);
 
-        minter = new UniswapMinter(token0, token1);
-        swapper = new UniswapSwapper(token0, token1);
+        minter = new CLMinter(token0, token1);
+        swapper = new CLSwapper(token0, token1);
 
         tokens.mintTo(0, address(swapper), 1e9 ether);
         tokens.mintTo(1, address(swapper), 1e9 ether);
@@ -295,7 +295,7 @@ contract E2E_swap {
         assert(rewardReserveBefore >= rewardReserveAfter);
     }
 
-    function check_withdraw_invariant(UniswapMinter.StakingData memory sd) internal {
+    function check_withdraw_invariant(CLMinter.StakingData memory sd) internal {
         assert(sd.collectedToken0 == 0);
         assert(sd.collectedToken1 == 0);
         assert(sd.feeGrowthInside0LastX128Before <= sd.feeGrowthInside0LastX128After);
@@ -310,7 +310,7 @@ contract E2E_swap {
         assert(amount1 == 0);
     }
 
-    function check_deposit_invariant(UniswapMinter.StakingData memory sd) internal {
+    function check_deposit_invariant(CLMinter.StakingData memory sd) internal {
         assert(sd.collectedToken0 >= 0);
         assert(sd.collectedToken1 >= 0);
         assert(sd.feeGrowthInside0LastX128Before <= sd.feeGrowthInside0LastX128After);
@@ -320,7 +320,7 @@ contract E2E_swap {
         assert(sd.tokensOwed1 == 0);
     }
 
-    function check_increase_staked_liquidity_invariant(UniswapMinter.LiquidityManagementData memory lmd) internal {
+    function check_increase_staked_liquidity_invariant(CLMinter.LiquidityManagementData memory lmd) internal {
         assert(lmd.collectedReward >= 0);
         assert(lmd.token0Change == lmd.actualToken0Change);
         assert(lmd.token1Change == lmd.actualToken1Change);
@@ -331,7 +331,7 @@ contract E2E_swap {
         assert(lmd.liquidityBefore < lmd.liquidityAfter);
     }
 
-    function check_decrease_staked_liquidity_invariant(UniswapMinter.LiquidityManagementData memory lmd) internal {
+    function check_decrease_staked_liquidity_invariant(CLMinter.LiquidityManagementData memory lmd) internal {
         assert(lmd.collectedReward >= 0);
         assert(lmd.token0Change == lmd.actualToken0Change);
         assert(lmd.token1Change == lmd.actualToken1Change);
@@ -466,13 +466,13 @@ contract E2E_swap {
         //
         // deploy the pool
         //
-        uniswap.createPool(poolParams.tickSpacing, poolParams.startPrice);
+        cl.createPool(poolParams.tickSpacing, poolParams.startPrice);
 
-        pool = uniswap.pool();
-        gauge = uniswap.gauge();
-        nft = uniswap.nft();
-        voter = uniswap.voter();
-        rewardToken = uniswap.rewardToken();
+        pool = cl.pool();
+        gauge = cl.gauge();
+        nft = cl.nft();
+        voter = cl.voter();
+        rewardToken = cl.rewardToken();
         //
         // set the pool inside the minter and swapper contracts
         //
@@ -534,7 +534,7 @@ contract E2E_swap {
         uint160 sqrtPriceLimitX96 = get_random_zeroForOne_priceLimit(_amount);
         // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
-        (UniswapSwapper.SwapperStats memory bfre, UniswapSwapper.SwapperStats memory aftr) =
+        (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(true, _amountSpecified, sqrtPriceLimitX96);
 
         GaugeFeesBeforeAndAfter memory gfba = GaugeFeesBeforeAndAfter({
@@ -581,7 +581,7 @@ contract E2E_swap {
         uint160 sqrtPriceLimitX96 = get_random_oneForZero_priceLimit(_amount);
         // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
-        (UniswapSwapper.SwapperStats memory bfre, UniswapSwapper.SwapperStats memory aftr) =
+        (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(false, _amountSpecified, sqrtPriceLimitX96);
 
         GaugeFeesBeforeAndAfter memory gfba = GaugeFeesBeforeAndAfter({
@@ -628,7 +628,7 @@ contract E2E_swap {
         uint160 sqrtPriceLimitX96 = get_random_zeroForOne_priceLimit(_amount);
         // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
-        (UniswapSwapper.SwapperStats memory bfre, UniswapSwapper.SwapperStats memory aftr) =
+        (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(true, _amountSpecified, sqrtPriceLimitX96);
 
         GaugeFeesBeforeAndAfter memory gfba = GaugeFeesBeforeAndAfter({
@@ -675,7 +675,7 @@ contract E2E_swap {
         uint160 sqrtPriceLimitX96 = get_random_oneForZero_priceLimit(_amount);
         // console.log('sqrtPriceLimitX96 = %s', sqrtPriceLimitX96);
 
-        (UniswapSwapper.SwapperStats memory bfre, UniswapSwapper.SwapperStats memory aftr) =
+        (CLSwapper.SwapperStats memory bfre, CLSwapper.SwapperStats memory aftr) =
             swapper.doSwap(false, _amountSpecified, sqrtPriceLimitX96);
 
         GaugeFeesBeforeAndAfter memory gfba = GaugeFeesBeforeAndAfter({
@@ -750,7 +750,7 @@ contract E2E_swap {
         uint256 rewardGrowthBefore = pool.rewardGrowthGlobalX128();
         uint256 rewardReserveBefore = pool.rewardReserve();
 
-        (UniswapMinter.StakingData memory sd) = minter.withdraw(tokenId);
+        (CLMinter.StakingData memory sd) = minter.withdraw(tokenId);
         check_withdraw_invariant(sd);
 
         (uint256 amount0, uint256 amount1) = minter.nftCollect(tokenId);
@@ -785,7 +785,7 @@ contract E2E_swap {
         uint256 rewardGrowthBefore = pool.rewardGrowthGlobalX128();
         uint256 rewardReserveBefore = pool.rewardReserve();
 
-        (UniswapMinter.StakingData memory sd) = minter.deposit(tokenId);
+        (CLMinter.StakingData memory sd) = minter.deposit(tokenId);
         check_deposit_invariant(sd);
 
         removeFromArray(index, unstakedPositions);
@@ -813,7 +813,7 @@ contract E2E_swap {
         uint256 rewardGrowthBefore = pool.rewardGrowthGlobalX128();
         uint256 rewardReserveBefore = pool.rewardReserve();
 
-        (UniswapMinter.LiquidityManagementData memory lmd) = minter.increaseStakedLiquidity(tokenId, _amount);
+        (CLMinter.LiquidityManagementData memory lmd) = minter.increaseStakedLiquidity(tokenId, _amount);
         check_increase_staked_liquidity_invariant(lmd);
 
         totalClaimed += lmd.collectedReward;
@@ -841,7 +841,7 @@ contract E2E_swap {
         uint256 rewardGrowthBefore = pool.rewardGrowthGlobalX128();
         uint256 rewardReserveBefore = pool.rewardReserve();
 
-        (UniswapMinter.LiquidityManagementData memory lmd) = minter.decreaseStakedLiquidity(tokenId, _amount);
+        (CLMinter.LiquidityManagementData memory lmd) = minter.decreaseStakedLiquidity(tokenId, _amount);
         check_decrease_staked_liquidity_invariant(lmd);
 
         totalClaimed += lmd.collectedReward;

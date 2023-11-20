@@ -2,11 +2,11 @@
 pragma solidity >=0.7.5;
 pragma abicoder v2;
 
-import "contracts/core/interfaces/callback/IUniswapV3SwapCallback.sol";
+import "contracts/core/interfaces/callback/ICLSwapCallback.sol";
 
 /// @title Router token swapping functionality
-/// @notice Functions for swapping tokens via Uniswap V3
-interface ISwapRouter is IUniswapV3SwapCallback {
+/// @notice Functions for swapping tokens via CL
+interface ISwapRouter is ICLSwapCallback {
     struct ExactInputSingleParams {
         address tokenIn;
         address tokenOut;

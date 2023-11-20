@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import "contracts/core/interfaces/IUniswapV3Pool.sol";
+import "contracts/core/interfaces/ICLPool.sol";
 import "./interfaces/ICLGaugeFactory.sol";
 import "./CLGauge.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
@@ -35,9 +35,9 @@ contract CLGaugeFactory is ICLGaugeFactory {
         bool _isPool
     ) external override returns (address _gauge) {
         require(msg.sender == voter, "NV");
-        address token0 = IUniswapV3Pool(_pool).token0();
-        address token1 = IUniswapV3Pool(_pool).token1();
-        int24 tickSpacing = IUniswapV3Pool(_pool).tickSpacing();
+        address token0 = ICLPool(_pool).token0();
+        address token1 = ICLPool(_pool).token1();
+        int24 tickSpacing = ICLPool(_pool).tickSpacing();
         _gauge = Clones.cloneDeterministic({
             master: implementation,
             salt: keccak256(abi.encode(token0, token1, tickSpacing))

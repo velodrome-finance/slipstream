@@ -3,17 +3,17 @@ pragma abicoder v2;
 
 import "./CLGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
-import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
+import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 
 contract NotifyRewardWithoutClaimTest is CLGaugeTest {
-    UniswapV3Pool public pool;
+    CLPool public pool;
     CLGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
 
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
@@ -46,7 +46,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         deal(address(rewardToken), users.owner, reward);
         rewardToken.approve(address(gauge), reward);
         // check collect fees not called
-        vm.expectCall(address(pool), abi.encodeWithSelector(UniswapV3Pool.collectFees.selector), 0);
+        vm.expectCall(address(pool), abi.encodeWithSelector(CLPool.collectFees.selector), 0);
         gauge.notifyRewardWithoutClaim(reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
@@ -65,7 +65,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
-        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 3e15);
@@ -75,7 +75,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         deal(address(rewardToken), users.owner, reward);
         rewardToken.approve(address(gauge), reward);
         // check collect fees not called
-        vm.expectCall(address(pool), abi.encodeWithSelector(UniswapV3Pool.collectFees.selector), 0);
+        vm.expectCall(address(pool), abi.encodeWithSelector(CLPool.collectFees.selector), 0);
         gauge.notifyRewardWithoutClaim(reward);
 
         assertEq(gauge.rewardRate(), reward / WEEK);
@@ -124,7 +124,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
-        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
 
         skip(1 days);
         vm.startPrank(users.owner);

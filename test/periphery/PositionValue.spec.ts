@@ -6,7 +6,7 @@ import {
   SwapRouter,
   MockTimeNonfungiblePositionManager,
   TestERC20,
-  IUniswapV3Factory,
+  ICLFactory,
 } from '../../typechain'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { getMaxTick, getMinTick } from './shared/ticks'
@@ -26,7 +26,7 @@ describe('PositionValue', async () => {
     tokens: [TestERC20, TestERC20, TestERC20]
     nft: MockTimeNonfungiblePositionManager
     router: SwapRouter
-    factory: IUniswapV3Factory
+    factory: ICLFactory
   }> = async (wallets, provider) => {
     const { nft, router, tokens, factory } = await completeFixture(wallets, provider)
     const positionValueFactory = await ethers.getContractFactory('PositionValueTest')
@@ -52,7 +52,7 @@ describe('PositionValue', async () => {
   let positionValue: PositionValueTest
   let nft: MockTimeNonfungiblePositionManager
   let router: SwapRouter
-  let factory: IUniswapV3Factory
+  let factory: ICLFactory
 
   let amountDesired: BigNumberish
 
@@ -75,8 +75,8 @@ describe('PositionValue', async () => {
       [tokens[0].address, tokens[1].address],
       TICK_SPACINGS[FeeAmount.MEDIUM]
     )
-    const IUniswapV3PoolABI = artifacts.readArtifactSync('IUniswapV3Pool').abi
-    pool = new ethers.Contract(poolAddress, IUniswapV3PoolABI, wallets[0])
+    const ICLPoolABI = artifacts.readArtifactSync('ICLPool').abi
+    pool = new ethers.Contract(poolAddress, ICLPoolABI, wallets[0])
   })
 
   describe('#total', () => {

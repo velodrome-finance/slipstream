@@ -1,12 +1,12 @@
 {
-  "name": "@uniswap/v3-core",
-  "description": "🦄 Core smart contracts of Uniswap V3",
+  "name": "@velodrome-finance/concentrated-liquidity",
+  "description": "Core smart contracts of CL",
   "license": "BUSL-1.1",
   "publishConfig": {
     "access": "public"
   },
   "version": "1.0.1",
-  "homepage": "https://uniswap.org",
+  "homepage": "https://velodrome.finance",
   "keywords": [
     "uniswap",
     "core",
@@ -14,7 +14,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Uniswap/uniswap-v3-core"
+    "url": "https://github.com/velodrome-finance/concentrated-liquidity"
   },
   "files": [
     "contracts/core/interfaces",
@@ -22,8 +22,8 @@
     "contracts/periphery/base",
     "contracts/periphery/interfaces",
     "contracts/peripherylibraries",
-    "artifacts/contracts/core/UniswapV3Factory.sol/UniswapV3Factory.json",
-    "artifacts/contracts/core/UniswapV3Pool.sol/UniswapV3Pool.json",
+    "artifacts/contracts/core/CLFactory.sol/CLFactory.json",
+    "artifacts/contracts/core/CLPool.sol/CLPool.json",
     "artifacts/contracts/core/interfaces/**/*.json",
     "!artifacts/contracts/core/interfaces/**/*.dbg.json",
     "artifacts/contracts/periphery/**/*.json",

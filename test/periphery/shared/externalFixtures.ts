@@ -1,8 +1,8 @@
 import { Fixture } from 'ethereum-waffle'
 import { ethers, waffle } from 'hardhat'
 import {
-  IUniswapV3Pool,
-  IUniswapV3Factory,
+  ICLPool,
+  ICLFactory,
   IWETH9,
   MockTimeSwapRouter,
   TestERC20,
@@ -27,7 +27,7 @@ const wethFixture: Fixture<{ weth9: IWETH9 }> = async ([wallet]) => {
 }
 
 const v3CoreFactoryFixture: Fixture<{
-  factory: IUniswapV3Factory
+  factory: ICLFactory
   nft: MockTimeNonfungiblePositionManager
   weth9: IWETH9
   tokens: [TestERC20, TestERC20, TestERC20]
@@ -46,10 +46,10 @@ const v3CoreFactoryFixture: Fixture<{
 
   tokens.sort((a, b) => (a.address.toLowerCase() < b.address.toLowerCase() ? -1 : 1))
 
-  const Pool = await ethers.getContractFactory('UniswapV3Pool')
-  const Factory = await ethers.getContractFactory('UniswapV3Factory')
+  const Pool = await ethers.getContractFactory('CLPool')
+  const Factory = await ethers.getContractFactory('CLFactory')
   const CustomUnstakedFeeModuleFactory = await ethers.getContractFactory('CustomUnstakedFeeModule')
-  const pool = (await Pool.deploy()) as IUniswapV3Pool
+  const pool = (await Pool.deploy()) as ICLPool
 
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
   const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
@@ -69,7 +69,7 @@ const v3CoreFactoryFixture: Fixture<{
     mockVotingEscrow.address
   )) as MockVoter
 
-  const factory = (await Factory.deploy(mockVoter.address, pool.address)) as IUniswapV3Factory
+  const factory = (await Factory.deploy(mockVoter.address, pool.address)) as ICLFactory
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
     factory.address
   )) as CustomUnstakedFeeModule
@@ -120,7 +120,7 @@ const v3CoreFactoryFixture: Fixture<{
 
 export const v3RouterFixture: Fixture<{
   weth9: IWETH9
-  factory: IUniswapV3Factory
+  factory: ICLFactory
   router: MockTimeSwapRouter
   nft: MockTimeNonfungiblePositionManager
   tokens: [TestERC20, TestERC20, TestERC20]

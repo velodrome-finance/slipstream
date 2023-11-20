@@ -4,8 +4,8 @@ pragma solidity 0.7.6;
 import "forge-std/StdJson.sol";
 import "forge-std/Script.sol";
 
-import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
-import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
+import {CLPool} from "contracts/core/CLPool.sol";
+import {CLFactory} from "contracts/core/CLFactory.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
@@ -31,8 +31,8 @@ contract DeployCL is Script {
     address public feeManager;
 
     // deployed contracts
-    UniswapV3Pool public poolImplementation;
-    UniswapV3Factory public poolFactory;
+    CLPool public poolImplementation;
+    CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
     CLGauge public gaugeImplementation;
@@ -57,8 +57,8 @@ contract DeployCL is Script {
 
         vm.startBroadcast(deployerAddress);
         // deploy pool + factory
-        poolImplementation = new UniswapV3Pool();
-        poolFactory = new UniswapV3Factory({
+        poolImplementation = new CLPool();
+        poolFactory = new CLFactory({
             _voter: voter,
             _poolImplementation: address(poolImplementation)
         });

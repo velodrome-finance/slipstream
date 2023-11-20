@@ -3,7 +3,7 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import "../NonfungiblePositionManager.sol";
-import "../../core/interfaces/IUniswapV3Factory.sol";
+import "../../core/interfaces/ICLFactory.sol";
 
 contract MockTimeNonfungiblePositionManager is NonfungiblePositionManager {
     uint256 time;
@@ -17,9 +17,9 @@ contract MockTimeNonfungiblePositionManager is NonfungiblePositionManager {
         payable
         returns (address pool)
     {
-        pool = IUniswapV3Factory(factory).getPool(tokenA, tokenB, tickSpacing);
+        pool = ICLFactory(factory).getPool(tokenA, tokenB, tickSpacing);
         if (pool == address(0)) {
-            pool = IUniswapV3Factory(factory).createPool(tokenA, tokenB, tickSpacing, sqrtPriceX96);
+            pool = ICLFactory(factory).createPool(tokenA, tokenB, tickSpacing, sqrtPriceX96);
         }
     }
 

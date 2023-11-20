@@ -2,9 +2,9 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 struct Users {
-    // UniswapV3Factory owner / general purpose admin
+    // CLFactory owner / general purpose admin
     address payable owner;
-    // UniswapV3Factory fee manager
+    // CLFactory fee manager
     address payable feeManager;
     // User, used to initiate calls
     address payable alice;

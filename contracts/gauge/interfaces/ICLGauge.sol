@@ -3,7 +3,7 @@ pragma solidity =0.7.6;
 
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
-import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
+import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 
 interface ICLGauge {
     event NotifyReward(address indexed from, uint256 amount);
@@ -18,8 +18,8 @@ interface ICLGauge {
     /// @notice Voter contract gauge receives emissions from
     function voter() external view returns (IVoter);
 
-    /// @notice Address of the UniswapV3 pool linked to the gauge
-    function pool() external view returns (IUniswapV3Pool);
+    /// @notice Address of the CL pool linked to the gauge
+    function pool() external view returns (ICLPool);
 
     /// @notice Address of the forwarder
     function forwarder() external view returns (address);
@@ -113,12 +113,12 @@ interface ICLGauge {
     /// @param amount Amount of gauge rewards (emissions) to notify. Must be greater than 604_800.
     function notifyRewardWithoutClaim(uint256 amount) external;
 
-    /// @notice Used to deposit a UniswapV3 position into the gauge
+    /// @notice Used to deposit a CL position into the gauge
     /// @notice Allows the user to receive emissions instead of fees
     /// @param tokenId The tokenId of the position
     function deposit(uint256 tokenId) external;
 
-    /// @notice Used to withdraw a UniswapV3 position from the gauge
+    /// @notice Used to withdraw a CL position from the gauge
     /// @notice Allows the user to receive fees instead of emissions
     /// @notice Outstanding emissions will be collected on withdrawal
     /// @param tokenId The tokenId of the position

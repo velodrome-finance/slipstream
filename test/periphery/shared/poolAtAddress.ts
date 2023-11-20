@@ -1,8 +1,8 @@
 import { Contract, Wallet } from 'ethers'
 import { artifacts } from 'hardhat'
-import { IUniswapV3Pool } from '../../../typechain'
+import { ICLPool } from '../../../typechain'
 
-export default function poolAtAddress(address: string, wallet: Wallet): IUniswapV3Pool {
-  const abi = artifacts.readArtifactSync('UniswapV3Pool').abi
-  return new Contract(address, abi, wallet) as IUniswapV3Pool
+export default function poolAtAddress(address: string, wallet: Wallet): ICLPool {
+  const abi = artifacts.readArtifactSync('CLPool').abi
+  return new Contract(address, abi, wallet) as ICLPool
 }

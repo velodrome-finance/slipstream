@@ -9,7 +9,7 @@ import {SwapRouter} from "../../../contracts/periphery/SwapRouter.sol";
 import {IReward} from "../../../contracts/gauge/interfaces/IReward.sol";
 
 contract GaugeFlowTest is BaseForkFixture {
-    UniswapV3Pool public pool;
+    CLPool public pool;
     ISwapRouter public swapRouter;
     CLGauge public gauge;
     address public feesVotingReward;
@@ -18,7 +18,7 @@ contract GaugeFlowTest is BaseForkFixture {
     function setUp() public override {
         super.setUp();
 
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(weth),
                 tokenB: address(op),

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
-import "../../interfaces/IUniswapV3Factory.sol";
+import "../../interfaces/ICLFactory.sol";
 
 interface IFeeModule {
     /// @notice Get the factory that the fee module belongs to
-    function factory() external view returns (IUniswapV3Factory);
+    function factory() external view returns (ICLFactory);
 
     /// @notice Get fee for a given pool. Accounts for default and dynamic fees
     /// @dev Fee is denominated in bips.

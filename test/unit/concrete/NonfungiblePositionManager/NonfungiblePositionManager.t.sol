@@ -4,13 +4,13 @@ pragma abicoder v2;
 import "../../../BaseFixture.sol";
 
 contract NonfungiblePositionManagerTest is BaseFixture {
-    UniswapV3Pool public pool;
+    CLPool public pool;
     CLGauge public gauge;
 
     function setUp() public virtual override {
         super.setUp();
 
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),

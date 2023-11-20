@@ -4,7 +4,7 @@ pragma abicoder v2;
 
 import "contracts/core/libraries/SafeCast.sol";
 import "contracts/core/libraries/TickMath.sol";
-import "contracts/core/interfaces/IUniswapV3Pool.sol";
+import "contracts/core/interfaces/ICLPool.sol";
 
 import "./interfaces/ISwapRouter.sol";
 import "./base/PeripheryImmutableState.sol";
@@ -17,8 +17,8 @@ import "./libraries/PoolAddress.sol";
 import "./libraries/CallbackValidation.sol";
 import "./interfaces/external/IWETH9.sol";
 
-/// @title Uniswap V3 Swap Router
-/// @notice Router for stateless execution of swaps against Uniswap V3
+/// @title CL Swap Router
+/// @notice Router for stateless execution of swaps against CL
 contract SwapRouter is
     ISwapRouter,
     PeripheryImmutableState,
@@ -40,8 +40,8 @@ contract SwapRouter is
     constructor(address _factory, address _WETH9) PeripheryImmutableState(_factory, _WETH9) {}
 
     /// @dev Returns the pool for the given token pair and fee. The pool contract may or may not exist.
-    function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (IUniswapV3Pool) {
-        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (ICLPool) {
+        return ICLPool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
     }
 
     struct SwapCallbackData {
@@ -49,7 +49,7 @@ contract SwapRouter is
         address payer;
     }
 
-    /// @inheritdoc IUniswapV3SwapCallback
+    /// @inheritdoc ICLSwapCallback
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata _data) external override {
         require(amount0Delta > 0 || amount1Delta > 0); // swaps entirely within 0-liquidity regions are not supported
         SwapCallbackData memory data = abi.decode(_data, (SwapCallbackData));

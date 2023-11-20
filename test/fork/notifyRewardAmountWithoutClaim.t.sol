@@ -4,14 +4,14 @@ pragma abicoder v2;
 import "./BaseForkFixture.sol";
 
 contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
-    UniswapV3Pool public pool;
+    CLPool public pool;
     CLGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
 
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(weth),
                 tokenB: address(op),

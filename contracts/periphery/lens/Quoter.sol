@@ -4,8 +4,8 @@ pragma abicoder v2;
 
 import "contracts/core/libraries/SafeCast.sol";
 import "contracts/core/libraries/TickMath.sol";
-import "contracts/core/interfaces/IUniswapV3Pool.sol";
-import "contracts/core/interfaces/callback/IUniswapV3SwapCallback.sol";
+import "contracts/core/interfaces/ICLPool.sol";
+import "contracts/core/interfaces/callback/ICLSwapCallback.sol";
 
 import "../interfaces/IQuoter.sol";
 import "../base/PeripheryImmutableState.sol";
@@ -17,7 +17,7 @@ import "../libraries/CallbackValidation.sol";
 /// @notice Allows getting the expected amount out or amount in for a given swap without executing the swap
 /// @dev These functions are not gas efficient and should _not_ be called on chain. Instead, optimistically execute
 /// the swap and check the amounts in the callback.
-contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
+contract Quoter is IQuoter, ICLSwapCallback, PeripheryImmutableState {
     using Path for bytes;
     using SafeCast for uint256;
 
@@ -26,11 +26,11 @@ contract Quoter is IQuoter, IUniswapV3SwapCallback, PeripheryImmutableState {
 
     constructor(address _factory, address _WETH9) PeripheryImmutableState(_factory, _WETH9) {}
 
-    function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (IUniswapV3Pool) {
-        return IUniswapV3Pool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
+    function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (ICLPool) {
+        return ICLPool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
     }
 
-    /// @inheritdoc IUniswapV3SwapCallback
+    /// @inheritdoc ICLSwapCallback
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes memory path)
         external
         view

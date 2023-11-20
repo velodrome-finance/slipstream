@@ -4,22 +4,22 @@ pragma abicoder v2;
 import "./Setup.sol";
 import {CoreTestERC20} from "contracts/core/test/CoreTestERC20.sol";
 import "contracts/core/libraries/TickMath.sol";
-import "contracts/core/UniswapV3Pool.sol";
+import "contracts/core/CLPool.sol";
 import "contracts/core/libraries/Position.sol";
 
 // import 'hardhat/console.sol';
 
 contract E2E_mint_burn {
     SetupTokens tokens;
-    SetupUniswap uniswap;
+    SetupCL cl;
 
-    UniswapV3Pool pool;
+    CLPool pool;
 
     CoreTestERC20 token0;
     CoreTestERC20 token1;
 
-    UniswapMinter minter;
-    UniswapSwapper swapper;
+    CLMinter minter;
+    CLSwapper swapper;
 
     int24[] usedTicks;
     bool inited;
@@ -50,10 +50,10 @@ contract E2E_mint_burn {
         token0 = tokens.token0();
         token1 = tokens.token1();
 
-        uniswap = new SetupUniswap(token0, token1);
+        cl = new SetupCL(token0, token1);
 
-        minter = new UniswapMinter(token0, token1);
-        swapper = new UniswapSwapper(token0, token1);
+        minter = new CLMinter(token0, token1);
+        swapper = new CLSwapper(token0, token1);
 
         tokens.mintTo(0, address(minter), 1e10 ether);
         tokens.mintTo(1, address(minter), 1e10 ether);
@@ -201,8 +201,8 @@ contract E2E_mint_burn {
     function check_mint_invariants(
         int24 _tickLower,
         int24 _tickUpper,
-        UniswapMinter.MinterStats memory bfre,
-        UniswapMinter.MinterStats memory aftr
+        CLMinter.MinterStats memory bfre,
+        CLMinter.MinterStats memory aftr
     ) internal {
         (, int24 currentTick,,,,) = pool.slot0();
 
@@ -231,8 +231,8 @@ contract E2E_mint_burn {
         int24 _tickLower,
         int24 _tickUpper,
         uint128 _newPosAmount,
-        UniswapMinter.MinterStats memory bfre,
-        UniswapMinter.MinterStats memory aftr
+        CLMinter.MinterStats memory bfre,
+        CLMinter.MinterStats memory aftr
     ) internal {
         (, int24 currentTick,,,,) = pool.slot0();
 
@@ -351,8 +351,8 @@ contract E2E_mint_burn {
         //
         // deploy the pool
         //
-        uniswap.createPool(poolParams.tickSpacing, poolParams.startPrice);
-        pool = uniswap.pool();
+        cl.createPool(poolParams.tickSpacing, poolParams.startPrice);
+        pool = cl.pool();
 
         //
         // set the pool inside the minter and swapper contracts
@@ -372,8 +372,7 @@ contract E2E_mint_burn {
         (int24 _tL, int24 _tU) =
             forgePosition(_amount, poolParams.tickSpacing, poolParams.tickCount, poolParams.maxTick);
 
-        (UniswapMinter.MinterStats memory bfre, UniswapMinter.MinterStats memory aftr) =
-            minter.doMint(_tL, _tU, _amount);
+        (CLMinter.MinterStats memory bfre, CLMinter.MinterStats memory aftr) = minter.doMint(_tL, _tU, _amount);
         storeUsedTicks(_tL, _tU);
 
         check_mint_invariants(_tL, _tU, bfre, aftr);
@@ -407,11 +406,11 @@ contract E2E_mint_burn {
         // console.log('burn amount = %s', burnAmount);
         PoolPosition storage pos = positions[posIdx];
 
-        UniswapMinter.MinterStats memory bfre;
-        UniswapMinter.MinterStats memory aftr;
+        CLMinter.MinterStats memory bfre;
+        CLMinter.MinterStats memory aftr;
 
         try minter.doBurn(pos.tickLower, pos.tickUpper, burnAmount) returns (
-            UniswapMinter.MinterStats memory bfre_burn, UniswapMinter.MinterStats memory aftr_burn
+            CLMinter.MinterStats memory bfre_burn, CLMinter.MinterStats memory aftr_burn
         ) {
             bfre = bfre_burn;
             aftr = aftr_burn;
@@ -436,11 +435,11 @@ contract E2E_mint_burn {
         // console.log('burn posIdx = %s', posIdx);
         PoolPosition storage pos = positions[posIdx];
 
-        UniswapMinter.MinterStats memory bfre;
-        UniswapMinter.MinterStats memory aftr;
+        CLMinter.MinterStats memory bfre;
+        CLMinter.MinterStats memory aftr;
 
         try minter.doBurn(pos.tickLower, pos.tickUpper, pos.amount) returns (
-            UniswapMinter.MinterStats memory bfre_burn, UniswapMinter.MinterStats memory aftr_burn
+            CLMinter.MinterStats memory bfre_burn, CLMinter.MinterStats memory aftr_burn
         ) {
             bfre = bfre_burn;
             aftr = aftr_burn;
@@ -465,11 +464,11 @@ contract E2E_mint_burn {
         // console.log('burn posIdx = %s', posIdx);
         PoolPosition storage pos = positions[posIdx];
 
-        UniswapMinter.MinterStats memory bfre;
-        UniswapMinter.MinterStats memory aftr;
+        CLMinter.MinterStats memory bfre;
+        CLMinter.MinterStats memory aftr;
 
         try minter.doBurn(pos.tickLower, pos.tickUpper, 0) returns (
-            UniswapMinter.MinterStats memory bfre_burn, UniswapMinter.MinterStats memory aftr_burn
+            CLMinter.MinterStats memory bfre_burn, CLMinter.MinterStats memory aftr_burn
         ) {
             bfre = bfre_burn;
             aftr = aftr_burn;

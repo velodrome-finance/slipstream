@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
+import {CLFactory} from "contracts/core/CLFactory.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
 import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
+import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {IVotingRewardsFactory} from "contracts/test/interfaces/IVotingRewardsFactory.sol";
 
 contract MockVoter is IVoter {
@@ -43,14 +43,14 @@ contract MockVoter is IVoter {
 
         /// @dev mimic flow in real voter, note that feesVotingReward and bribeVotingReward are unused mocks
         address[] memory rewards = new address[](2);
-        rewards[0] = IUniswapV3Pool(_pool).token0();
-        rewards[1] = IUniswapV3Pool(_pool).token1();
+        rewards[0] = ICLPool(_pool).token0();
+        rewards[1] = ICLPool(_pool).token1();
         (address feesVotingReward, address bribeVotingReward) =
             IVotingRewardsFactory(votingRewardsFactory).createRewards(forwarder, rewards);
 
         address gauge =
             CLGaugeFactory(gaugeFactory).createGauge(forwarder, _pool, feesVotingReward, address(rewardToken), true);
-        require(UniswapV3Factory(_poolFactory).isPair(_pool));
+        require(CLFactory(_poolFactory).isPair(_pool));
         isAlive[gauge] = true;
         gauges[_pool] = gauge;
         gaugeToFees[gauge] = feesVotingReward;

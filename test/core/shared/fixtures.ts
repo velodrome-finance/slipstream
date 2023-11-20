@@ -1,10 +1,10 @@
 import { BigNumber, BigNumberish, Wallet } from 'ethers'
 import { ethers } from 'hardhat'
-import { MockTimeUniswapV3Pool } from '../../../typechain/MockTimeUniswapV3Pool'
+import { MockTimeCLPool } from '../../../typechain/MockTimeCLPool'
 import { CoreTestERC20 } from '../../../typechain/CoreTestERC20'
-import { UniswapV3Factory } from '../../../typechain/UniswapV3Factory'
-import { TestUniswapV3Callee } from '../../../typechain/TestUniswapV3Callee'
-import { TestUniswapV3Router } from '../../../typechain/TestUniswapV3Router'
+import { CLFactory } from '../../../typechain/CLFactory'
+import { TestCLCallee } from '../../../typechain/TestCLCallee'
+import { TestCLRouter } from '../../../typechain/TestCLRouter'
 import { MockVoter } from '../../../typechain/MockVoter'
 import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
@@ -14,7 +14,7 @@ import { encodePriceSqrt } from './utilities'
 import { Fixture } from 'ethereum-waffle'
 
 interface FactoryFixture {
-  factory: UniswapV3Factory
+  factory: CLFactory
 }
 interface TokensFixture {
   token0: CoreTestERC20
@@ -38,15 +38,15 @@ async function tokensFixture(): Promise<TokensFixture> {
 type TokensAndFactoryFixture = FactoryFixture & TokensFixture
 
 interface PoolFixture extends TokensAndFactoryFixture {
-  swapTargetCallee: TestUniswapV3Callee
-  swapTargetRouter: TestUniswapV3Router
+  swapTargetCallee: TestCLCallee
+  swapTargetRouter: TestCLRouter
   createPool(
     fee: number,
     tickSpacing: number,
     firstToken?: CoreTestERC20,
     secondToken?: CoreTestERC20,
     sqrtPriceX96?: BigNumberish
-  ): Promise<MockTimeUniswapV3Pool>
+  ): Promise<MockTimeCLPool>
 }
 // Monday, October 5, 2020 9:00:00 AM GMT-05:00
 export const TEST_POOL_START_TIME = 1601906400
@@ -56,8 +56,8 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   ;[wallet] = await (ethers as any).getSigners()
   const { token0, token1, token2 } = await tokensFixture()
 
-  const MockTimeUniswapV3PoolDeployerFactory = await ethers.getContractFactory('UniswapV3Factory')
-  const MockTimeUniswapV3PoolFactory = await ethers.getContractFactory('MockTimeUniswapV3Pool')
+  const MockTimeCLPoolDeployerFactory = await ethers.getContractFactory('CLFactory')
+  const MockTimeCLPoolFactory = await ethers.getContractFactory('MockTimeCLPool')
   const MockVoterFactory = await ethers.getContractFactory('MockVoter')
   const GaugeImplementationFactory = await ethers.getContractFactory('CLGauge')
   const GaugeFactoryFactory = await ethers.getContractFactory('CLGaugeFactory')
@@ -82,11 +82,11 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   // nft position manager stub, unused in hardhat tests
   await gaugeFactory.setNonfungiblePositionManager('0x0000000000000000000000000000000000000001')
 
-  const mockTimePool = (await MockTimeUniswapV3PoolFactory.deploy()) as MockTimeUniswapV3Pool
-  const mockTimePoolDeployer = (await MockTimeUniswapV3PoolDeployerFactory.deploy(
+  const mockTimePool = (await MockTimeCLPoolFactory.deploy()) as MockTimeCLPool
+  const mockTimePoolDeployer = (await MockTimeCLPoolDeployerFactory.deploy(
     mockVoter.address,
     mockTimePool.address
-  )) as UniswapV3Factory
+  )) as CLFactory
   const customUnstakedFeeModule = (await CustomUnstakedFeeModuleFactory.deploy(
     mockTimePoolDeployer.address
   )) as CustomUnstakedFeeModule
@@ -99,11 +99,11 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     gaugeFactory.address
   )
 
-  const calleeContractFactory = await ethers.getContractFactory('TestUniswapV3Callee')
-  const routerContractFactory = await ethers.getContractFactory('TestUniswapV3Router')
+  const calleeContractFactory = await ethers.getContractFactory('TestCLCallee')
+  const routerContractFactory = await ethers.getContractFactory('TestCLRouter')
 
-  const swapTargetCallee = (await calleeContractFactory.deploy()) as TestUniswapV3Callee
-  const swapTargetRouter = (await routerContractFactory.deploy()) as TestUniswapV3Router
+  const swapTargetCallee = (await calleeContractFactory.deploy()) as TestCLCallee
+  const swapTargetRouter = (await routerContractFactory.deploy()) as TestCLRouter
   return {
     token0,
     token1,
@@ -118,7 +118,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
       secondToken = token1,
       sqrtPriceX96 = encodePriceSqrt(1, 1)
     ) => {
-      // add tick spacing if not already added, backwards compatible with uniswapv3 tests
+      // add tick spacing if not already added, backwards compatible with CL tests
       const tickSpacingFee = await mockTimePoolDeployer.tickSpacingToFee(tickSpacing)
       if (tickSpacingFee == 0) await mockTimePoolDeployer['enableTickSpacing(int24,uint24)'](tickSpacing, fee)
       const tx = await mockTimePoolDeployer.createPool(
@@ -129,7 +129,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
       )
       const receipt = await tx.wait()
       const poolAddress = receipt.events?.[1].args?.pool as string
-      const pool = MockTimeUniswapV3PoolFactory.attach(poolAddress) as MockTimeUniswapV3Pool
+      const pool = MockTimeCLPoolFactory.attach(poolAddress) as MockTimeCLPool
       await pool.advanceTime(TEST_POOL_START_TIME)
       customUnstakedFeeModule.setCustomFee(poolAddress, 420)
       return pool

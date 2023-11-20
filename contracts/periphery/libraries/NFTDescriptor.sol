@@ -2,7 +2,7 @@
 pragma solidity >=0.7.0;
 pragma abicoder v2;
 
-import "contracts/core/interfaces/IUniswapV3Pool.sol";
+import "contracts/core/interfaces/ICLPool.sol";
 import "contracts/core/libraries/TickMath.sol";
 import "contracts/core/libraries/BitMath.sol";
 import "contracts/core/libraries/FullMath.sol";
@@ -107,7 +107,7 @@ library NFTDescriptor {
     ) private pure returns (string memory) {
         return string(
             abi.encodePacked(
-                "This NFT represents a liquidity position in a Uniswap V3 ",
+                "This NFT represents a liquidity position in a CL ",
                 quoteTokenSymbol,
                 "-",
                 baseTokenSymbol,
@@ -149,7 +149,7 @@ library NFTDescriptor {
     function generateName(ConstructTokenURIParams memory params) private pure returns (string memory) {
         return string(
             abi.encodePacked(
-                "Uniswap - ",
+                "CL - ",
                 escapeQuotes(params.quoteTokenSymbol),
                 "/",
                 escapeQuotes(params.baseTokenSymbol),

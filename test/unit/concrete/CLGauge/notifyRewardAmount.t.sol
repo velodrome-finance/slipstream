@@ -5,14 +5,14 @@ import "./CLGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 
 contract NotifyRewardAmountTest is CLGaugeTest {
-    UniswapV3Pool public pool;
+    CLPool public pool;
     CLGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
 
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
@@ -102,7 +102,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         // fee is 0.006
         uint256 pay2 = TOKEN_1 * 2 + 6e15;
 
-        uniswapV3Callee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1 * 2, pay1, pay2);
+        clCallee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1 * 2, pay1, pay2);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 3e15);
@@ -132,7 +132,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         // fee is 0.006
         uint256 pay2 = TOKEN_1 * 2 + 6e15;
 
-        uniswapV3Callee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1 * 2, pay1, pay2);
+        clCallee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1 * 2, pay1, pay2);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 15e14);
@@ -162,8 +162,8 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
-        uniswapV3Callee.swapExact1For0(address(pool), TOKEN_1 * 2, users.alice, MAX_SQRT_RATIO - 1);
+        clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact1For0(address(pool), TOKEN_1 * 2, users.alice, MAX_SQRT_RATIO - 1);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 3e15);
@@ -187,8 +187,8 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
-        uniswapV3Callee.swapExact1For0(address(pool), TOKEN_1 * 2, users.alice, MAX_SQRT_RATIO - 1);
+        clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact1For0(address(pool), TOKEN_1 * 2, users.alice, MAX_SQRT_RATIO - 1);
 
         (uint256 _token0, uint256 _token1) = pool.gaugeFees();
         assertEq(_token0, 15e14);
@@ -219,7 +219,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 2, TOKEN_1 * 2, users.alice);
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
-        uniswapV3Callee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), TOKEN_1, users.alice, MIN_SQRT_RATIO + 1);
 
         skip(1 days);
         addRewardToGauge(address(voter), address(gauge), reward);

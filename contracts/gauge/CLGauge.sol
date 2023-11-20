@@ -8,7 +8,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
-import {IUniswapV3Pool} from "contracts/core/interfaces/IUniswapV3Pool.sol";
+import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
@@ -29,7 +29,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLGauge
     IVoter public override voter;
     /// @inheritdoc ICLGauge
-    IUniswapV3Pool public override pool;
+    ICLPool public override pool;
 
     /// @inheritdoc ICLGauge
     address public override forwarder;
@@ -82,7 +82,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     ) external override {
         require(address(pool) == address(0), "AI");
         forwarder = _forwarder;
-        pool = IUniswapV3Pool(_pool);
+        pool = ICLPool(_pool);
         feesVotingReward = _feesVotingReward;
         rewardToken = _rewardToken;
         voter = IVoter(_voter);

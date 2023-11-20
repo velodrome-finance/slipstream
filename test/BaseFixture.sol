@@ -2,8 +2,8 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import "forge-std/Test.sol";
-import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
-import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
+import {CLFactory} from "contracts/core/CLFactory.sol";
+import {CLPool} from "contracts/core/CLPool.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
@@ -22,14 +22,14 @@ import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
 import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
-import {TestUniswapV3Callee} from "contracts/core/test/TestUniswapV3Callee.sol";
+import {TestCLCallee} from "contracts/core/test/TestCLCallee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 
 abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
-    UniswapV3Factory public poolFactory;
-    UniswapV3Pool public poolImplementation;
+    CLFactory public poolFactory;
+    CLPool public poolImplementation;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
     CLGaugeFactory public gaugeFactory;
@@ -49,7 +49,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
 
     Users internal users;
 
-    TestUniswapV3Callee public uniswapV3Callee;
+    TestCLCallee public clCallee;
     NFTManagerCallee public nftCallee;
 
     CustomSwapFeeModule public customSwapFeeModule;
@@ -70,8 +70,8 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         deployDependencies();
 
         // deploy pool and associated contracts
-        poolImplementation = new UniswapV3Pool();
-        poolFactory = new UniswapV3Factory({
+        poolImplementation = new CLPool();
+        poolFactory = new CLFactory({
             _voter: address(voter), 
             _poolImplementation: address(poolImplementation)
         });
@@ -133,7 +133,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         ERC20 tokenB = new ERC20("", "");
         (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
 
-        uniswapV3Callee = new TestUniswapV3Callee();
+        clCallee = new TestCLCallee();
         nftCallee = new NFTManagerCallee(address(token0), address(token1), address(nft));
 
         // Setting up alice for the tests since she's the default test user
@@ -143,8 +143,8 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.startPrank(users.alice);
         token0.approve(address(nft), type(uint256).max);
         token1.approve(address(nft), type(uint256).max);
-        token0.approve(address(uniswapV3Callee), type(uint256).max);
-        token1.approve(address(uniswapV3Callee), type(uint256).max);
+        token0.approve(address(clCallee), type(uint256).max);
+        token1.approve(address(clCallee), type(uint256).max);
         token0.approve(address(nftCallee), type(uint256).max);
         token1.approve(address(nftCallee), type(uint256).max);
         vm.stopPrank();

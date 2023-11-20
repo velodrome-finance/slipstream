@@ -7,13 +7,13 @@ contract DepositTest is CLGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
 
-    UniswapV3Pool public pool;
+    CLPool public pool;
     CLGauge public gauge;
 
     function setUp() public override {
         super.setUp();
 
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
@@ -213,10 +213,10 @@ contract DepositTest is CLGaugeTest {
             nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
 
         // swap 1 token0
-        uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
 
         // swap 1 token1
-        uniswapV3Callee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
+        clCallee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
 
         uint256 aliceBalanceBefore0 = token0.balanceOf(users.alice);
         uint256 aliceBalanceBefore1 = token1.balanceOf(users.alice);

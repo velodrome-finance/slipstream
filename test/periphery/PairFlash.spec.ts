@@ -1,6 +1,6 @@
 import { ethers, waffle } from 'hardhat'
 import { BigNumber } from 'ethers'
-import { MockTimeNonfungiblePositionManager, PairFlash, TestERC20, IUniswapV3Factory, Quoter } from '../../typechain'
+import { MockTimeNonfungiblePositionManager, PairFlash, TestERC20, ICLFactory, Quoter } from '../../typechain'
 import completeFixture from './shared/completeFixture'
 import { FeeAmount, MaxUint128, TICK_SPACINGS } from './shared/constants'
 import { encodePriceSqrt } from './shared/encodePriceSqrt'
@@ -19,7 +19,7 @@ describe('PairFlash test', () => {
   let nft: MockTimeNonfungiblePositionManager
   let token0: TestERC20
   let token1: TestERC20
-  let factory: IUniswapV3Factory
+  let factory: ICLFactory
   let quoter: Quoter
 
   async function createPool(tokenAddressA: string, tokenAddressB: string, tickSpacing: number, price: BigNumber) {

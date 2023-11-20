@@ -87,10 +87,10 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         gauge.deposit(tokenId);
 
         // swap 1 token0
-        uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
 
         // swap 1 token1
-        uniswapV3Callee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
+        clCallee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
 
         gauge.decreaseStakedLiquidity(tokenId, uint128(TOKEN_1), 0, 0, block.timestamp);
 
@@ -148,10 +148,10 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         gauge.deposit(tokenId);
 
         // swap 1 token0
-        uniswapV3Callee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), 1e18, users.alice, MIN_SQRT_RATIO + 1);
 
         // swap 1 token1
-        uniswapV3Callee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
+        clCallee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
 
         gauge.decreaseStakedLiquidity(tokenId, uint128(TOKEN_1), 0, 0, block.timestamp);
 
@@ -251,7 +251,7 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
             // fee is 0.003
             uint256 pay = TOKEN_1 + 3e15;
 
-            uniswapV3Callee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1, pay, pay);
+            clCallee.flash(address(pool), users.alice, TOKEN_1, TOKEN_1, pay, pay);
         }
 
         gauge.decreaseStakedLiquidity(tokenId, uint128(TOKEN_1), 0, 0, block.timestamp);

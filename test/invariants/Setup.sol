@@ -6,8 +6,8 @@ import "./helpers/Hevm.sol";
 import {CoreTestERC20} from "contracts/core/test/CoreTestERC20.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
-import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
-import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
+import {CLPool} from "contracts/core/CLPool.sol";
+import {CLFactory} from "contracts/core/CLFactory.sol";
 import {IVoter, MockVoter} from "contracts/test/MockVoter.sol";
 import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
 import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
@@ -49,7 +49,7 @@ contract SetupTokens {
         tokenSetup1 = new SetupToken();
 
         // switch them around so that token0's address is lower than token1's
-        // since this is what the uniswap poolFactory will do when you create the pool
+        // since this is what the cl poolFactory will do when you create the pool
         if (address(tokenSetup0.token()) > address(tokenSetup1.token())) {
             (tokenSetup0, tokenSetup1) = (tokenSetup1, tokenSetup0);
         }
@@ -67,9 +67,9 @@ contract SetupTokens {
     }
 }
 
-contract SetupUniswap {
-    UniswapV3Pool poolImplementation;
-    UniswapV3Pool public pool;
+contract SetupCL {
+    CLPool poolImplementation;
+    CLPool public pool;
     CoreTestERC20 token0;
     CoreTestERC20 token1;
     IFactoryRegistry public factoryRegistry;
@@ -91,7 +91,7 @@ contract SetupUniswap {
     // fee 500   + tickSpacing 10
     // fee 3000  + tickSpacing 60
     // fee 10000 + tickSpacing 200
-    UniswapV3Factory poolFactory;
+    CLFactory poolFactory;
 
     constructor(CoreTestERC20 _token0, CoreTestERC20 _token1) {
         rewardToken = new CoreTestERC20(1e12 ether);
@@ -111,9 +111,9 @@ contract SetupUniswap {
 
         rewardToken.mint(address(voter), 10000000000e18);
 
-        poolImplementation = new UniswapV3Pool();
+        poolImplementation = new CLPool();
 
-        poolFactory = new UniswapV3Factory({
+        poolFactory = new CLFactory({
             _voter: address(voter), 
             _poolImplementation: address(poolImplementation)
         });
@@ -161,7 +161,7 @@ contract SetupUniswap {
     }
 
     function createPool(int24 _tickSpacing, uint160 _startPrice) public {
-        pool = UniswapV3Pool(
+        pool = CLPool(
             poolFactory.createPool({
                 tokenA: address(token0),
                 tokenB: address(token1),
@@ -181,8 +181,8 @@ contract SetupUniswap {
     }
 }
 
-contract UniswapMinter is ERC721Holder {
-    UniswapV3Pool pool;
+contract CLMinter is ERC721Holder {
+    CLPool pool;
     CoreTestERC20 token0;
     CoreTestERC20 token1;
 
@@ -204,7 +204,7 @@ contract UniswapMinter is ERC721Holder {
         token1 = _token1;
     }
 
-    function setPool(UniswapV3Pool _pool) public {
+    function setPool(CLPool _pool) public {
         pool = _pool;
     }
 
@@ -523,8 +523,8 @@ contract UniswapMinter is ERC721Holder {
     }
 }
 
-contract UniswapSwapper {
-    UniswapV3Pool pool;
+contract CLSwapper {
+    CLPool pool;
     CoreTestERC20 token0;
     CoreTestERC20 token1;
 
@@ -546,7 +546,7 @@ contract UniswapSwapper {
         token1 = _token1;
     }
 
-    function setPool(UniswapV3Pool _pool) public {
+    function setPool(CLPool _pool) public {
         pool = _pool;
     }
 

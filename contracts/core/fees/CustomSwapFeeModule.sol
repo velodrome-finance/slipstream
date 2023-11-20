@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
 
-import "../interfaces/IUniswapV3Pool.sol";
+import "../interfaces/ICLPool.sol";
 import "../interfaces/fees/ICustomFeeModule.sol";
 
 contract CustomSwapFeeModule is ICustomFeeModule {
     /// @inheritdoc IFeeModule
-    IUniswapV3Factory public override factory;
+    ICLFactory public override factory;
     /// @inheritdoc ICustomFeeModule
     mapping(address => uint24) public override customFee;
 
@@ -16,7 +16,7 @@ contract CustomSwapFeeModule is ICustomFeeModule {
     uint256 public constant ZERO_FEE_INDICATOR = 420;
 
     constructor(address _factory) {
-        factory = IUniswapV3Factory(_factory);
+        factory = ICLFactory(_factory);
     }
 
     /// @inheritdoc ICustomFeeModule
@@ -32,7 +32,7 @@ contract CustomSwapFeeModule is ICustomFeeModule {
     /// @inheritdoc IFeeModule
     function getFee(address pool) external view override returns (uint24) {
         uint24 fee = customFee[pool];
-        int24 tickSpacing = IUniswapV3Pool(pool).tickSpacing();
+        int24 tickSpacing = ICLPool(pool).tickSpacing();
         return fee == ZERO_FEE_INDICATOR ? 0 : fee != 0 ? fee : factory.tickSpacingToFee(tickSpacing);
     }
 }

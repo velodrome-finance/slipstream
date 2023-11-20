@@ -2,8 +2,8 @@
 pragma solidity =0.7.6;
 pragma abicoder v2;
 
-import "contracts/core/interfaces/IUniswapV3Factory.sol";
-import "contracts/core/interfaces/IUniswapV3Pool.sol";
+import "contracts/core/interfaces/ICLFactory.sol";
+import "contracts/core/interfaces/ICLPool.sol";
 import "contracts/core/libraries/FixedPoint128.sol";
 import "contracts/core/libraries/FullMath.sol";
 
@@ -20,7 +20,7 @@ import "./base/PeripheryValidation.sol";
 import "./base/SelfPermit.sol";
 
 /// @title NFT positions
-/// @notice Wraps Uniswap V3 positions in the ERC721 non-fungible token interface
+/// @notice Wraps CL positions in the ERC721 non-fungible token interface
 contract NonfungiblePositionManager is
     INonfungiblePositionManager,
     Multicall,
@@ -30,7 +30,7 @@ contract NonfungiblePositionManager is
     PeripheryValidation,
     SelfPermit
 {
-    // details about the uniswap position
+    // details about the cl position
     struct Position {
         // the nonce for permits
         uint96 nonce;
@@ -92,13 +92,13 @@ contract NonfungiblePositionManager is
     }
 
     constructor(address _factory, address _WETH9, address _tokenDescriptor)
-        ERC721Permit("Uniswap V3 Positions NFT-V1", "UNI-V3-POS", "1")
+        ERC721Permit("CL Positions NFT-V1", "CL-POS", "1")
         PeripheryImmutableState(_factory, _WETH9)
     {
         owner = msg.sender;
         tokenDescriptor = _tokenDescriptor;
-        gaugeFactory = IUniswapV3Factory(_factory).gaugeFactory();
-        gaugeImplementation = IUniswapV3Factory(_factory).gaugeImplementation();
+        gaugeFactory = ICLFactory(_factory).gaugeFactory();
+        gaugeImplementation = ICLFactory(_factory).gaugeImplementation();
     }
 
     /// @inheritdoc INonfungiblePositionManager
@@ -160,7 +160,7 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey =
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing});
 
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
@@ -225,7 +225,7 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         address _gauge = GaugeAddress.computeAddress(gaugeFactory, gaugeImplementation, poolKey);
 
@@ -288,7 +288,7 @@ contract NonfungiblePositionManager is
         require(positionLiquidity >= params.liquidity);
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         address _gauge = GaugeAddress.computeAddress(gaugeFactory, gaugeImplementation, poolKey);
         bool isStaked = ownerOf(params.tokenId) == _gauge;
@@ -345,7 +345,7 @@ contract NonfungiblePositionManager is
 
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
 
-        IUniswapV3Pool pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, poolKey));
+        ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         (uint128 tokensOwed0, uint128 tokensOwed1) = (position.tokensOwed0, position.tokensOwed1);
 

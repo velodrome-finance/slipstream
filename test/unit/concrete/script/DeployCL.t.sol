@@ -5,8 +5,8 @@ import "forge-std/Test.sol";
 import "forge-std/StdJson.sol";
 
 import {DeployCL} from "script/DeployCL.s.sol";
-import {UniswapV3Pool} from "contracts/core/UniswapV3Pool.sol";
-import {UniswapV3Factory} from "contracts/core/UniswapV3Factory.sol";
+import {CLPool} from "contracts/core/CLPool.sol";
+import {CLFactory} from "contracts/core/CLFactory.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
@@ -33,8 +33,8 @@ contract DeployCLTest is Test {
     address public feeManager;
 
     // deployed contracts
-    UniswapV3Pool public poolImplementation;
-    UniswapV3Factory public poolFactory;
+    CLPool public poolImplementation;
+    CLFactory public poolFactory;
     NonfungibleTokenPositionDescriptor public nftDescriptor;
     NonfungiblePositionManager public nft;
     CLGauge public gaugeImplementation;
