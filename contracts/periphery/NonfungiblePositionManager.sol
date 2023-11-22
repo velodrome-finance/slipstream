@@ -439,6 +439,7 @@ contract NonfungiblePositionManager is
     function setTokenDescriptor(address _tokenDescriptor) external override onlyOwner {
         require(_tokenDescriptor != address(0), "ZA");
         tokenDescriptor = _tokenDescriptor;
+        emit BatchMetadataUpdate(0, type(uint256).max);
         emit TokenDescriptorChanged(_tokenDescriptor);
     }
 

@@ -43,7 +43,7 @@ either the `NonfungiblePositionManager` or the `gauge`). This function is callab
 `NonfungiblePositionManager` and is used to update pool state for positions owned by the `nft` or the `gauge`. 
     - This function helps ensure that fees do not accrue to positions owned by the gauge.
 - Pools no longer have `ProtocolFees`. 
-- Pools have a `collectFees` function which allows the gauge to bulk collect fees attributable to voters over the couse of an epoch. 
+- Pools have a `collectFees` function which allows the gauge to bulk collect fees attributable to voters over the course of an epoch.
 These fees accumulate every swap / flash based on % of liquidity in the current tick that is staked. 
     - These fees include fees levied on the swap fee earned by unstaked LPers.
     - These fees also include swap fees earned by staked LPers. 

@@ -40,6 +40,10 @@ interface INonfungiblePositionManager is
     /// @param amount0 The amount of token0 owed to the position that was collected
     /// @param amount1 The amount of token1 owed to the position that was collected
     event Collect(uint256 indexed tokenId, address recipient, uint256 amount0, uint256 amount1);
+    /// @dev This event emits when the metadata of a range of tokens is changed.
+    /// So that the third-party platforms such as NFT market could
+    /// timely update the images and related attributes of the NFTs.
+    event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
     /// @notice Emitted when a new Token Descriptor is set
     /// @param tokenDescriptor Address of the new Token Descriptor
     event TokenDescriptorChanged(address indexed tokenDescriptor);

@@ -46,7 +46,7 @@ As swaps take place over the course of the epoch, fees owed to staked LPers accu
 can be collected (net of the unstaked LP fee). At the beginning of the following epoch, emissions are deposited
 into the gauge based on the voting weight attracted by the gauge, with fees earned by staked LPers + unstaked LP fees
 being transferred to the fee reward contract associated with the gauge. Staked LPers will then be able to collect
-rewards earned by supply liquidity to the pool.
+rewards earned by supplying liquidity to the pool.
 
 ### Pool
 The pools are standard UniswapV3Pools that have been modified to support gauges. The pools 

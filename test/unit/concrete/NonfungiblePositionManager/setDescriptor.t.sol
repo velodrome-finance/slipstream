@@ -7,6 +7,7 @@ import {NonfungiblePositionManagerTest} from "./NonfungiblePositionManager.t.sol
 
 contract SetDescriptorTest is NonfungiblePositionManagerTest {
     event TokenDescriptorChanged(address indexed tokenDescriptor);
+    event BatchMetadataUpdate(uint256 _fromTokenId, uint256 _toTokenId);
 
     function test_SetTokenDescriptor() public {
         address tokenDescriptor = nft.tokenDescriptor();
@@ -18,6 +19,8 @@ contract SetDescriptorTest is NonfungiblePositionManagerTest {
         ); // 'ETH' as bytes32 string
         assertNotEq(tokenDescriptor, newTokenDescriptor);
 
+        vm.expectEmit(false, false, false, true, address(nft));
+        emit BatchMetadataUpdate(0, type(uint256).max);
         vm.expectEmit(true, false, false, false, address(nft));
         emit TokenDescriptorChanged(newTokenDescriptor);
 
