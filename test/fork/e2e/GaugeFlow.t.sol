@@ -14,6 +14,7 @@ contract GaugeFlowTest is BaseForkFixture {
     CLGauge public gauge;
     address public feesVotingReward;
     uint256 EMISSION = TOKEN_1;
+    address largeTokenHolder = vm.addr(0x123454321);
 
     function setUp() public override {
         super.setUp();
@@ -88,10 +89,13 @@ contract GaugeFlowTest is BaseForkFixture {
     {
         vm.startPrank(user);
         //claim fees rewards
-        address[] memory tokens = new address[](2);
-        tokens[0] = address(weth);
-        tokens[1] = address(op);
-        IReward(feesVotingReward).getReward(tokenId, tokens);
+        address[] memory feesVotingRewards = new address[](1);
+        feesVotingRewards[0] = feesVotingReward;
+        address[][] memory tokens = new address[][](1);
+        tokens[0] = new address[](2);
+        tokens[0][0] = address(weth);
+        tokens[0][1] = address(op);
+        voter.claimFees(feesVotingRewards, tokens, tokenId);
 
         assertEq(weth.balanceOf(user), expectedBalanceWETH);
         assertEq(op.balanceOf(user), expectedBalanceOP);
@@ -260,15 +264,93 @@ contract GaugeFlowTest is BaseForkFixture {
         checkFees(users.alice, tokenIdVeAlice, 600000000000000002, 60000000000000000002);
         checkFees(users.bob, tokenIdVeBob, 148499999999999999, 14849999999999999999);
 
+        //large token holder stakes
+        vm.startPrank(largeTokenHolder);
+        deal(address(weth), largeTokenHolder, TOKEN_1 * 10_000);
+        weth.approve(address(nftCallee), TOKEN_1 * 10_000);
+        deal(address(op), largeTokenHolder, TOKEN_1 * 100_000_000);
+        op.approve(address(nftCallee), TOKEN_1 * 100_000_000);
+        uint256 tokenIdLarge = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(
+            TOKEN_1 * 10_000, TOKEN_1 * 100_000_000, largeTokenHolder
+        );
+        nft.approve(address(gauge), tokenIdLarge);
+        gauge.deposit(tokenIdLarge);
+        vm.stopPrank();
+
         //going to epoch 8
         doSomeSwaps();
         skipToNextEpoch(1 hours + 1);
         vm.prank(address(voter));
-        gauge.notifyRewardAmount(EMISSION);
+        rewardToken.approve(address(gauge), 0);
+        minter.updatePeriod();
 
-        checkEmissions(users.alice, tokenIdAlice, 1999999999999094896);
-        checkEmissions(users.bob, tokenIdBob, 999999999999547448);
+        assertEq(rewardToken.balanceOf(address(gauge)), 1000000000002617527);
+        address[] memory gauges = new address[](1);
+        gauges[0] = address(gauge);
+        voter.distribute(gauges);
+        skip(1);
+        assertEq(rewardToken.balanceOf(address(gauge)), 35494346173824038215);
+
+        checkEmissions(users.alice, tokenIdAlice, 1507737538783700416);
+        checkEmissions(users.bob, tokenIdBob, 507737538784152968);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 984582298351530379);
         checkFees(users.alice, tokenIdVeAlice, 750000000000000002, 75000000000000000002);
         checkFees(users.bob, tokenIdVeBob, 298499999999999999, 29849999999999999999);
+
+        //going to epoch 9
+        doSomeSwaps();
+        skipToNextEpoch(1 hours + 1);
+        minter.updatePeriod();
+        assertEq(rewardToken.balanceOf(address(gauge)), 34494288797903773794);
+        gauges[0] = address(gauge);
+        voter.distribute(gauges);
+        assertEq(rewardToken.balanceOf(address(gauge)), 68643691509986979045);
+        skip(1);
+
+        //large token holder creates lock
+        deal(address(rewardToken), largeTokenHolder, TOKEN_1 * 100_000_000);
+        vm.startPrank(largeTokenHolder);
+        rewardToken.approve(address(escrow), TOKEN_1 * 100_000_000);
+        uint256 tokenIdVeLarge = escrow.createLock(TOKEN_1 * 100_000_000, 365 days * 4);
+        vm.stopPrank();
+
+        //large token holder votes
+        vm.startPrank(largeTokenHolder);
+        voter.vote(tokenIdVeLarge, pools, votes);
+        vm.stopPrank();
+
+        //going to epoch 10
+        doSomeSwaps();
+        skipToNextEpoch(1 hours + 1);
+        minter.updatePeriod();
+        assertEq(rewardToken.balanceOf(address(gauge)), 68643691509986979045);
+        gauges[0] = address(gauge);
+        voter.distribute(gauges);
+        assertEq(rewardToken.balanceOf(address(gauge)), 1504525486055946921860110);
+        skip(1);
+
+        checkEmissions(users.alice, tokenIdAlice, 2058201809708669458);
+        checkEmissions(users.bob, tokenIdBob, 1058201809709122010);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 70045190354679768846);
+        checkFees(users.alice, tokenIdVeAlice, 900002985517110672, 90000298551711067029);
+        checkFees(users.bob, tokenIdVeBob, 448502985517110669, 44850298551711067026);
+        checkFees(largeTokenHolder, tokenIdVeLarge, 299994028965778659, 29999402896577865944);
+
+        //going to epoch 11
+        doSomeSwaps();
+        skipToNextEpoch(1 hours + 1);
+        minter.updatePeriod();
+        assertEq(rewardToken.balanceOf(address(gauge)), 1504454339937050392153180);
+        gauges[0] = address(gauge);
+        voter.distribute(gauges);
+        assertEq(rewardToken.balanceOf(address(gauge)), 2993866613877842953696428);
+        skip(1);
+
+        checkEmissions(users.alice, tokenIdAlice, 11642183312494373616688);
+        checkEmissions(users.bob, tokenIdBob, 11641183312494374069240);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 1481246612309148419088075);
+        checkFees(users.alice, tokenIdVeAlice, 900005971034221342, 90000597103422134056);
+        checkFees(users.bob, tokenIdVeBob, 448505971034221339, 44850597103422134053);
+        checkFees(largeTokenHolder, tokenIdVeLarge, 599988057931557318, 59998805793155731888);
     }
 }

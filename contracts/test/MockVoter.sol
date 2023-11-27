@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
+pragma abicoder v2;
 
 import {CLFactory} from "contracts/core/CLFactory.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
@@ -35,6 +36,12 @@ contract MockVoter is IVoter {
         factoryRegistry = IFactoryRegistry(_factoryRegistry);
         ve = IVotingEscrow(_ve);
         emergencyCouncil = msg.sender;
+    }
+
+    function claimFees(address[] memory _fees, address[][] memory _tokens, uint256 _tokenId) external override {}
+
+    function distribute(address[] memory _gauges) external override {
+        revert("Not implemented");
     }
 
     function createGauge(address _poolFactory, address _pool) external override returns (address) {

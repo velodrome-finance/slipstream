@@ -26,6 +26,7 @@ import {TestCLCallee} from "contracts/core/test/TestCLCallee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
+import {IMinter} from "contracts/core/interfaces/IMinter.sol";
 
 abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     CLFactory public poolFactory;
@@ -39,6 +40,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     IFactoryRegistry public factoryRegistry;
     IVoter public voter;
     IVotingEscrow public escrow;
+    IMinter public minter;
     IERC20 public weth;
     IVotingRewardsFactory public votingRewardsFactory;
 

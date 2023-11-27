@@ -39,5 +39,6 @@ abstract contract BaseForkFixture is BaseFixture {
         rewardToken = ERC20(vm.parseJsonAddress(addresses, ".Velo"));
         votingRewardsFactory = IVotingRewardsFactory(vm.parseJsonAddress(addresses, ".VotingRewardsFactory"));
         escrow = IVotingEscrow(vm.parseJsonAddress(addresses, ".VotingEscrow"));
+        minter = IMinter(vm.parseJsonAddress(addresses, ".Minter"));
     }
 }
