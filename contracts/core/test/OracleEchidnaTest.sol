@@ -20,7 +20,7 @@ contract OracleEchidnaTest {
     }
 
     function limitTimePassed(uint32 by) private {
-        require(timePassed + by >= timePassed);
+        require(timePassed + by + 14 >= timePassed); // ensure observations are always written
         timePassed += by;
     }
 

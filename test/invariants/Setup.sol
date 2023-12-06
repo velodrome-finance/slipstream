@@ -103,9 +103,9 @@ contract SetupCL {
 
         voter = IVoter(
             new MockVoter({
-            _rewardToken: address(rewardToken),
-            _factoryRegistry: address(factoryRegistry),
-            _ve: address(escrow)
+                _rewardToken: address(rewardToken),
+                _factoryRegistry: address(factoryRegistry),
+                _ve: address(escrow)
             })
         );
 
@@ -113,10 +113,7 @@ contract SetupCL {
 
         poolImplementation = new CLPool();
 
-        poolFactory = new CLFactory({
-            _voter: address(voter), 
-            _poolImplementation: address(poolImplementation)
-        });
+        poolFactory = new CLFactory({_voter: address(voter), _poolImplementation: address(poolImplementation)});
 
         poolFactory.enableTickSpacing(10, 500);
         poolFactory.enableTickSpacing(60, 3_000);
@@ -124,10 +121,7 @@ contract SetupCL {
 
         // deploy gauges and associated contracts
         gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _voter: address(voter),
-            _implementation: address(gaugeImplementation)
-        });
+        gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
 
         poolFactory.setGaugeFactory({
             _gaugeFactory: address(gaugeFactory),

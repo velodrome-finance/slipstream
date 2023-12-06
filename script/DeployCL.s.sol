@@ -58,17 +58,11 @@ contract DeployCL is Script {
         vm.startBroadcast(deployerAddress);
         // deploy pool + factory
         poolImplementation = new CLPool();
-        poolFactory = new CLFactory({
-            _voter: voter,
-            _poolImplementation: address(poolImplementation)
-        });
+        poolFactory = new CLFactory({_voter: voter, _poolImplementation: address(poolImplementation)});
 
         // deploy gauges
         gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _voter: voter,
-            _implementation: address(gaugeImplementation)
-        });
+        gaugeFactory = new CLGaugeFactory({_voter: voter, _implementation: address(gaugeImplementation)});
 
         // set parameters on pool factory
         poolFactory.setGaugeFactory({
@@ -77,10 +71,8 @@ contract DeployCL is Script {
         });
 
         // deploy nft contracts
-        nftDescriptor = new NonfungibleTokenPositionDescriptor({
-            _WETH9: address(weth),
-            _nativeCurrencyLabelBytes: bytes32("ETH")
-        });
+        nftDescriptor =
+            new NonfungibleTokenPositionDescriptor({_WETH9: address(weth), _nativeCurrencyLabelBytes: bytes32("ETH")});
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
@@ -92,12 +84,8 @@ contract DeployCL is Script {
         poolFactory.setNonfungiblePositionManager(address(nft));
 
         // deploy fee modules
-        swapFeeModule = new CustomSwapFeeModule({
-            _factory: address(poolFactory)
-        });
-        unstakedFeeModule = new CustomUnstakedFeeModule({
-            _factory: address(poolFactory)
-        });
+        swapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});
+        unstakedFeeModule = new CustomUnstakedFeeModule({_factory: address(poolFactory)});
         poolFactory.setSwapFeeModule({_swapFeeModule: address(swapFeeModule)});
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
 

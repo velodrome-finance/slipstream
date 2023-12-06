@@ -142,7 +142,8 @@ The default fee will be settable.
 ### Oracle
 
 The oracle has been modified to provide a consistent experience across chains with different block times. Observations
-can only be written at most once every 15 seconds. 
+can only be written at most once every 15 seconds. When the observation timestamp overflows, a new observation will be
+written regardless of the time that has passed (i.e. may be written before 15 seconds has passed).
 
 ### UniversalRouter
 

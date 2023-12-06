@@ -11,16 +11,10 @@ contract SetGaugeFactoryTest is CLFactoryTest {
 
         // redeploy contracts, but do not set gauge factory or nft
         poolImplementation = new CLPool();
-        poolFactory = new CLFactory({
-            _voter: address(voter), 
-            _poolImplementation: address(poolImplementation)
-        });
+        poolFactory = new CLFactory({_voter: address(voter), _poolImplementation: address(poolImplementation)});
 
         gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({
-            _voter: address(voter),
-            _implementation: address(gaugeImplementation)
-        });
+        gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
 
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),

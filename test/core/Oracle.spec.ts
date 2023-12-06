@@ -185,6 +185,16 @@ describe('Oracle', () => {
       expect(await oracle.index()).to.eq(1)
     })
 
+    it('writes an index if time overflows u32 container', async () => {
+      await oracle.grow(3)
+      await oracle.update({ advanceTimeBy: 15, tick: 3, liquidity: 2 })
+      expect(await oracle.index()).to.eq(1)
+      // uint32.max: 4294967295, 4294967280 + 15 = uint32.max
+      // this will hit uint32.max, in the observations.write() this will overflow
+      await oracle.update({ advanceTimeBy: 4294967280, tick: -5, liquidity: 9 })
+      expect(await oracle.index()).to.eq(2)
+    })
+
     it('writes an index if time has increased by at least 15 seconds', async () => {
       await oracle.grow(3)
       await oracle.update({ advanceTimeBy: 15, tick: 3, liquidity: 2 })
