@@ -857,9 +857,13 @@ contract CLPool is ICLPool {
             if (rewardReserve > 0) {
                 if (stakedLiquidity > 0) {
                     // in case of late notify we only account till the end of the epoch
-                    if (VelodromeTimeLibrary.epochStart(timestamp) != VelodromeTimeLibrary.epochStart(_lastUpdated)) {
+                    uint256 _lastUpdatedEpoch = VelodromeTimeLibrary.epochStart(_lastUpdated);
+                    if (
+                        periodFinish > _lastUpdatedEpoch
+                            && VelodromeTimeLibrary.epochStart(timestamp) > _lastUpdatedEpoch
+                    ) {
                         timeDelta = VelodromeTimeLibrary.epochNext(_lastUpdated) - _lastUpdated;
-                    } else if (periodFinish == VelodromeTimeLibrary.epochStart(timestamp)) {
+                    } else if (periodFinish <= VelodromeTimeLibrary.epochStart(timestamp)) {
                         // new epoch, notify has yet to be called so we skip the update
                         timeDelta = 0;
                     }

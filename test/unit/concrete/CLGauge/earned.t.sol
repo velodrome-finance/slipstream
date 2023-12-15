@@ -305,4 +305,43 @@ contract EarnedTest is CLGaugeTest {
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward + reward2);
     }
+
+    function test_EarnedWithLaggedStaking() public {
+        uint256 reward = TOKEN_1;
+
+        uint256 aliceTokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
+            TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.alice
+        );
+        uint256 bobTokenId = nftCallee.mintNewCustomRangePositionForUserWith60TickSpacing(
+            TOKEN_1, TOKEN_1, -TICK_SPACING_60, TICK_SPACING_60, users.bob
+        );
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skipToNextEpoch(2);
+
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), aliceTokenId);
+        gauge.deposit(aliceTokenId);
+
+        skip(7 days - 2 - 1);
+
+        assertEq(gauge.earned(users.alice, aliceTokenId), 0);
+
+        skipToNextEpoch(3);
+
+        vm.startPrank(users.bob);
+        nft.approve(address(gauge), bobTokenId);
+        gauge.deposit(bobTokenId);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(7 days - 3 - 1);
+
+        vm.startPrank(users.bob);
+        gauge.withdraw(bobTokenId);
+
+        vm.startPrank(users.alice);
+        gauge.withdraw(aliceTokenId);
+    }
 }

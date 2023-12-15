@@ -117,8 +117,12 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 rewardReserve = pool.rewardReserve();
 
         if (timeDelta != 0 && pool.stakedLiquidity() > 0 && rewardReserve > 0) {
-            if (VelodromeTimeLibrary.epochStart(block.timestamp) != VelodromeTimeLibrary.epochStart(lastUpdated)) {
+            uint256 lastUpdatedEpoch = VelodromeTimeLibrary.epochStart(lastUpdated);
+            if (periodFinish > lastUpdatedEpoch && VelodromeTimeLibrary.epochStart(block.timestamp) > lastUpdatedEpoch)
+            {
                 timeDelta = VelodromeTimeLibrary.epochNext(lastUpdated) - lastUpdated;
+            } else if (periodFinish <= VelodromeTimeLibrary.epochStart(block.timestamp)) {
+                timeDelta = 0;
             }
             uint256 reward = rewardRate * timeDelta;
             if (reward > rewardReserve) reward = rewardReserve;
