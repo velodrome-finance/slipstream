@@ -107,8 +107,8 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         gauge.notifyRewardWithoutClaim(reward2);
 
         assertEq(rewardToken.balanceOf(address(gauge)), reward + reward2);
-        assertEq(gauge.rewardRate(), reward / (6 days) + reward2 / (5 days));
-        assertEq(gauge.rewardRateByEpoch(epochStart), reward / (6 days) + reward2 / (5 days));
+        assertEq(gauge.rewardRate(), (reward + reward2) / (5 days));
+        assertEq(gauge.rewardRateByEpoch(epochStart), (reward + reward2) / (5 days));
         assertEq(gauge.periodFinish(), block.timestamp + (5 days));
         assertEq(token0.balanceOf(address(feesVotingReward)), 0);
         assertEq(token1.balanceOf(address(feesVotingReward)), 0);
@@ -152,5 +152,93 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         assertEq(_token1, 0);
         assertEq(token0.balanceOf(address(feesVotingReward)), 3e15 - 1);
         assertEq(token1.balanceOf(address(feesVotingReward)), 0);
+    }
+
+    function test_NotifyRewardWithoutClaimAfterNotifyRewardAmountWithRewardRollover() public {
+        uint256 reward = TOKEN_1;
+        uint256 reward2 = TOKEN_1 * 2;
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        // add initial rewards
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(2 days);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), reward / WEEK);
+        assertEqUint(pool.rewardReserve(), reward);
+        assertEqUint(pool.timeNoStakedLiquidity(), 2 days);
+
+        skip(4 days);
+
+        // add additional rewards in the same epoch
+        vm.startPrank(users.owner);
+        deal(address(rewardToken), users.owner, reward2);
+        rewardToken.approve(address(gauge), reward2);
+        gauge.notifyRewardWithoutClaim(reward2);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        uint256 rollover = reward * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)
+        uint256 remaining = reward * (1 days) / WEEK; // remaining rewards for the week
+        assertEqUint(pool.rewardRate(), (rollover + remaining + reward2) / (1 days));
+        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+
+        skipToNextEpoch(0);
+
+        // alice claims her rewards
+        // expect ~all rewards to be claimable as tnsl should have rolled over
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward * 3, 1e6);
+        assertApproxEqAbs(rewardToken.balanceOf(address(gauge)), 0, 1e6);
+    }
+
+    function test_NotifyRewardWithoutClaimBeforeNotifyRewardAmountWithRewardRollover() public {
+        uint256 reward = TOKEN_1;
+        uint256 reward2 = TOKEN_1 * 2;
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        // add initial rewards
+        vm.startPrank(users.owner);
+        deal(address(rewardToken), users.owner, reward2);
+        rewardToken.approve(address(gauge), reward2);
+        gauge.notifyRewardWithoutClaim(reward2);
+
+        skip(2 days);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), reward2 / WEEK);
+        assertEqUint(pool.rewardReserve(), reward2);
+        assertEqUint(pool.timeNoStakedLiquidity(), 2 days);
+
+        skip(4 days);
+
+        // add additional rewards in the same epoch
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        uint256 rollover = reward2 * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)
+        uint256 remaining = reward2 * (1 days) / WEEK; // remaining rewards for the week
+        assertEqUint(pool.rewardRate(), (rollover + remaining + reward) / (1 days));
+        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+
+        skipToNextEpoch(0);
+
+        // alice claims her rewards
+        // expect ~all rewards to be claimable as tnsl should have rolled over
+        vm.startPrank(users.alice);
+        gauge.getReward(tokenId);
+
+        assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward * 3, 1e6);
+        assertApproxEqAbs(rewardToken.balanceOf(address(gauge)), 0, 1e6);
     }
 }

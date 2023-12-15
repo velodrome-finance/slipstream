@@ -85,7 +85,7 @@ contract NotifyRewardAmountTest is CLGaugeTest {
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         assertEq(gaugeRewardTokenBalance, reward * 2);
 
-        assertEq(gauge.rewardRate(), reward / 6 days + reward / 5 days);
+        assertEq(gauge.rewardRate(), (reward * 2) / 5 days);
         assertEq(gauge.periodFinish(), block.timestamp + 5 days);
     }
 
@@ -307,8 +307,9 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        assertEq(pool.rewardRate(), reward / 6 days + reward / 5 days);
-        assertEqUint(pool.rewardReserve(), reward + reward / 6 days * 5 days);
+        assertEq(pool.rewardRate(), (reward * 2) / 5 days);
+        // loss from requeueing
+        assertEqUint(pool.rewardReserve(), reward + (reward / 6 days) * 6 days);
         assertEqUint(pool.lastUpdated(), block.timestamp);
     }
 }

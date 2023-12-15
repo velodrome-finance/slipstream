@@ -122,8 +122,12 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         assertEqUint(pool.rewardReserve(), reward - accumulatedReward);
     }
 
-    function testFuzz_notifyRewardAmountUpdatesPoolStateCorrectlyOnAdditionalRewardInSameEpoch(uint256 reward) public {
+    function testFuzz_notifyRewardAmountUpdatesPoolStateCorrectlyOnAdditionalRewardInSameEpoch(
+        uint256 reward,
+        uint256 reward2
+    ) public {
         reward = bound(reward, WEEK, type(uint128).max);
+        reward2 = bound(reward2, WEEK, type(uint128).max);
 
         skip(1 days);
 
@@ -131,10 +135,10 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
 
         skip(1 days);
 
-        addRewardToGauge(address(voter), address(gauge), reward);
+        addRewardToGauge(address(voter), address(gauge), reward2);
 
-        assertEq(pool.rewardRate(), reward / 6 days + reward / 5 days);
-        assertEqUint(pool.rewardReserve(), reward + reward / 6 days * 5 days);
+        assertApproxEqAbs(pool.rewardRate(), (reward + reward2) / 5 days, 2);
+        assertEqUint(pool.rewardReserve(), reward2 + (reward / 6 days) * 6 days);
         assertEqUint(pool.lastUpdated(), block.timestamp);
     }
 }

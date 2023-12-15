@@ -328,24 +328,24 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         pool.updateRewardsGrowthGlobal();
         uint256 nextPeriodFinish = timestamp + timeUntilNext;
 
+        IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
+        // rolling over stuck rewards from previous epoch (if any)
+        uint256 tnsl = pool.timeNoStakedLiquidity();
+        // we must only count tnsl for the previous epoch
+        if (tnsl + timeUntilNext > DURATION) {
+            tnsl -= (DURATION - timeUntilNext); // subtract time in current epoch
+            // skip epochs where no notify occurred, but account for case where no rewards
+            // distributed over one full epoch (unlikely)
+            if (tnsl != DURATION) tnsl %= DURATION;
+        }
+        _amount += tnsl * rewardRate;
+
         if (timestamp >= periodFinish) {
-            IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
-            // rolling over stuck rewards from previous epoch (if any)
-            uint256 tnsl = pool.timeNoStakedLiquidity();
-            // we must only count tnsl for the previous epoch
-            if (tnsl + timeUntilNext > DURATION) {
-                tnsl -= (DURATION - timeUntilNext); // subtract time in current epoch
-                // skip epochs where no notify occurred, but account for case where no rewards
-                // distributed over one full epoch (unlikely)
-                if (tnsl != DURATION) tnsl %= DURATION;
-            }
-            _amount += tnsl * rewardRate;
             rewardRate = _amount / timeUntilNext;
             pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount, periodFinish: nextPeriodFinish});
         } else {
             uint256 _remaining = periodFinish - timestamp;
             uint256 _leftover = _remaining * rewardRate;
-            IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
             rewardRate = (_amount + _leftover) / timeUntilNext;
             pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount + _leftover, periodFinish: nextPeriodFinish});
         }
