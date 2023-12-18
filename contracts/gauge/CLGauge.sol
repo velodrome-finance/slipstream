@@ -205,7 +205,11 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
         _getReward(tickLower, tickUpper, tokenId, msg.sender);
 
-        pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper, true);
+        // update virtual liquidity in pool only if token has existing liquidity
+        // i.e. not all removed already via decreaseStakedLiquidity
+        if (liquidityToStake != 0) {
+            pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper, true);
+        }
 
         _stakes[msg.sender].remove(tokenId);
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
