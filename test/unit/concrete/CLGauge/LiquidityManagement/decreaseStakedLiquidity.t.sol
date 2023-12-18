@@ -77,6 +77,15 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         assertEqUint(pool.stakedLiquidity(), 0);
         assertEqUint(pool.liquidity(), 0);
         assertEqUint(positionLiquidity, 0);
+
+        // ticks should be cleared
+        int24 minTick = getMinTick(TICK_SPACING_60);
+        int24 maxTick = getMaxTick(TICK_SPACING_60);
+        (, int128 liquidityNet, int128 stakedLiquidityNet,,,,,,,) = pool.ticks(minTick);
+        assertEq(liquidityNet, 0);
+        assertEq(stakedLiquidityNet, 0);
+        (,, stakedLiquidityNet,,,,,,,) = pool.ticks(maxTick);
+        assertEq(stakedLiquidityNet, 0);
     }
 
     function test_DecreaseStakedLiquidityUpdatesFeeGrowthInsideAndTokensOwedCorrectlyAllPositionStaked() public {

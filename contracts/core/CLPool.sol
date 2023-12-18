@@ -541,8 +541,9 @@ contract CLPool is ICLPool {
         }
 
         // Update tick locations where staked liquidity needs to be added or subtracted
-        ticks.updateStake(tickLower, stakedLiquidityDelta, false);
-        ticks.updateStake(tickUpper, stakedLiquidityDelta, true);
+        // Only update ticks if current tick is initialized
+        if (ticks[tickLower].initialized) ticks.updateStake(tickLower, stakedLiquidityDelta, false);
+        if (ticks[tickUpper].initialized) ticks.updateStake(tickUpper, stakedLiquidityDelta, true);
     }
 
     struct SwapCache {
