@@ -118,6 +118,7 @@ contract SwapRouter is
             })
         );
         require(amountOut >= params.amountOutMinimum, "Too little received");
+        refundETH();
     }
 
     /// @inheritdoc ISwapRouter
@@ -155,6 +156,7 @@ contract SwapRouter is
         }
 
         require(amountOut >= params.amountOutMinimum, "Too little received");
+        refundETH();
     }
 
     /// @dev Performs a single exact output swap
@@ -212,6 +214,7 @@ contract SwapRouter is
         require(amountIn <= params.amountInMaximum, "Too much requested");
         // has to be reset even though we don't use it in the single hop case
         amountInCached = DEFAULT_AMOUNT_IN_CACHED;
+        refundETH();
     }
 
     /// @inheritdoc ISwapRouter
@@ -231,5 +234,6 @@ contract SwapRouter is
         amountIn = amountInCached;
         require(amountIn <= params.amountInMaximum, "Too much requested");
         amountInCached = DEFAULT_AMOUNT_IN_CACHED;
+        refundETH();
     }
 }
