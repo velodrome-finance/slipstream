@@ -102,28 +102,29 @@ contract CLFactory is ICLFactory {
 
     /// @inheritdoc ICLFactory
     function setOwner(address _owner) external override {
-        require(msg.sender == owner);
+        address cachedOwner = owner;
+        require(msg.sender == cachedOwner);
         require(_owner != address(0));
-        emit OwnerChanged(owner, _owner);
+        emit OwnerChanged(cachedOwner, _owner);
         owner = _owner;
     }
 
     /// @inheritdoc ICLFactory
     function setSwapFeeManager(address _swapFeeManager) external override {
-        require(msg.sender == swapFeeManager);
+        address cachedSwapFeeManager = swapFeeManager;
+        require(msg.sender == cachedSwapFeeManager);
         require(_swapFeeManager != address(0));
-        address oldFeeManager = swapFeeManager;
         swapFeeManager = _swapFeeManager;
-        emit SwapFeeManagerChanged(oldFeeManager, _swapFeeManager);
+        emit SwapFeeManagerChanged(cachedSwapFeeManager, _swapFeeManager);
     }
 
     /// @inheritdoc ICLFactory
     function setUnstakedFeeManager(address _unstakedFeeManager) external override {
-        require(msg.sender == unstakedFeeManager);
+        address cachedUnstakedFeeManager = unstakedFeeManager;
+        require(msg.sender == cachedUnstakedFeeManager);
         require(_unstakedFeeManager != address(0));
-        address oldFeeManager = unstakedFeeManager;
         unstakedFeeManager = _unstakedFeeManager;
-        emit UnstakedFeeManagerChanged(oldFeeManager, _unstakedFeeManager);
+        emit UnstakedFeeManagerChanged(cachedUnstakedFeeManager, _unstakedFeeManager);
     }
 
     /// @inheritdoc ICLFactory

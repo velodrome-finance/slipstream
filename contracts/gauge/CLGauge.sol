@@ -380,14 +380,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             address _token1 = token1;
             if (_fees0 > DURATION) {
                 fees0 = 0;
-                IERC20(_token0).safeApprove(feesVotingReward, _fees0);
+                IERC20(_token0).safeIncreaseAllowance(feesVotingReward, _fees0);
                 IReward(feesVotingReward).notifyRewardAmount(_token0, _fees0);
             } else {
                 fees0 = _fees0;
             }
             if (_fees1 > DURATION) {
                 fees1 = 0;
-                IERC20(_token1).safeApprove(feesVotingReward, _fees1);
+                IERC20(_token1).safeIncreaseAllowance(feesVotingReward, _fees1);
                 IReward(feesVotingReward).notifyRewardAmount(_token1, _fees1);
             } else {
                 fees1 = _fees1;

@@ -10,13 +10,15 @@ import "../libraries/TransferHelper.sol";
 
 import "./PeripheryImmutableState.sol";
 
-abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableState {
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableState, ReentrancyGuard {
     receive() external payable {
         require(msg.sender == WETH9, "Not WETH9");
     }
 
     /// @inheritdoc IPeripheryPayments
-    function unwrapWETH9(uint256 amountMinimum, address recipient) public payable override {
+    function unwrapWETH9(uint256 amountMinimum, address recipient) public payable override nonReentrant {
         uint256 balanceWETH9 = IWETH9(WETH9).balanceOf(address(this));
         require(balanceWETH9 >= amountMinimum, "Insufficient WETH9");
 
@@ -27,7 +29,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     }
 
     /// @inheritdoc IPeripheryPayments
-    function sweepToken(address token, uint256 amountMinimum, address recipient) public payable override {
+    function sweepToken(address token, uint256 amountMinimum, address recipient) public payable override nonReentrant {
         uint256 balanceToken = IERC20(token).balanceOf(address(this));
         require(balanceToken >= amountMinimum, "Insufficient token");
 
@@ -37,7 +39,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     }
 
     /// @inheritdoc IPeripheryPayments
-    function refundETH() public payable override {
+    function refundETH() public payable override nonReentrant {
         if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 
