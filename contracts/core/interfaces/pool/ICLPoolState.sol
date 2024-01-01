@@ -65,8 +65,10 @@ interface ICLPoolState {
     /// @notice last time the rewardReserve and rewardRate were updated
     function lastUpdated() external view returns (uint32);
 
-    /// @notice tracks total time spent with no staked liquidity between calls to notifyRewardAmount by the gauge
-    function timeNoStakedLiquidity() external view returns (uint32);
+    /// @notice tracks total rewards distributed when no staked liquidity in active tick for epoch ending at periodFinish
+    /// @notice this amount is rolled over on the next call to notifyRewardAmount
+    /// @dev rollover will always be smaller than the rewards distributed that epoch
+    function rollover() external view returns (uint256);
 
     /// @notice The currently in range liquidity available to the pool
     /// @dev This value has no relationship to the total liquidity across all ticks

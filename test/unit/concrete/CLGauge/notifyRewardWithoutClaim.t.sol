@@ -170,8 +170,9 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(pool.rewardRate(), reward / WEEK);
-        assertEqUint(pool.rewardReserve(), reward);
-        assertEqUint(pool.timeNoStakedLiquidity(), 2 days);
+        uint256 rollover = reward / WEEK * 2 days;
+        assertEqUint(pool.rewardReserve(), reward - rollover);
+        assertEqUint(pool.rollover(), rollover);
 
         skip(4 days);
 
@@ -182,15 +183,14 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         gauge.notifyRewardWithoutClaim(reward2);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
-        uint256 rollover = reward * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)
+        rollover = reward * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)
         uint256 remaining = reward * (1 days) / WEEK; // remaining rewards for the week
         assertEqUint(pool.rewardRate(), (rollover + remaining + reward2) / (1 days));
-        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+        assertEqUint(pool.rollover(), 0);
 
         skipToNextEpoch(0);
 
         // alice claims her rewards
-        // expect ~all rewards to be claimable as tnsl should have rolled over
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
@@ -217,8 +217,9 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(pool.rewardRate(), reward2 / WEEK);
-        assertEqUint(pool.rewardReserve(), reward2);
-        assertEqUint(pool.timeNoStakedLiquidity(), 2 days);
+        uint256 rollover = reward2 / WEEK * 2 days;
+        assertEqUint(pool.rewardReserve(), reward2 - rollover);
+        assertEqUint(pool.rollover(), rollover);
 
         skip(4 days);
 
@@ -226,15 +227,14 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         addRewardToGauge(address(voter), address(gauge), reward);
 
         assertEqUint(pool.lastUpdated(), block.timestamp);
-        uint256 rollover = reward2 * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)
+        rollover = reward2 * (2 days) / WEEK; // amount to rollover (i.e. time with no staked liquidity)
         uint256 remaining = reward2 * (1 days) / WEEK; // remaining rewards for the week
         assertEqUint(pool.rewardRate(), (rollover + remaining + reward) / (1 days));
-        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+        assertEqUint(pool.rollover(), 0);
 
         skipToNextEpoch(0);
 
         // alice claims her rewards
-        // expect ~all rewards to be claimable as tnsl should have rolled over
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 

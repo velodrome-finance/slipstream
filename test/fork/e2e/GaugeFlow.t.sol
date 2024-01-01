@@ -153,7 +153,7 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(address(voter));
         gauge.notifyRewardAmount(EMISSION);
 
-        checkEmissions(users.alice, tokenIdAlice, 999999999999571895);
+        checkEmissions(users.alice, tokenIdAlice, 999999999999999999);
 
         //check fees accrued by bob - unstaked lper
         vm.startPrank(users.bob);
@@ -174,8 +174,8 @@ contract GaugeFlowTest is BaseForkFixture {
         gauge.deposit(tokenIdBob);
         vm.stopPrank();
 
-        //emission = TOKEN_1 ~ 999999999999571895
-        checkEmissions(users.alice, tokenIdAlice, 999999999999571895);
+        //emission = TOKEN_1 ~ 999999999999999999
+        checkEmissions(users.alice, tokenIdAlice, 999999999999999999);
         checkEmissions(users.bob, tokenIdBob, 0);
 
         //going to epoch 3
@@ -184,10 +184,10 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(address(voter));
         gauge.notifyRewardAmount(EMISSION);
 
-        //emission = TOKEN_1 ~ 999999999999571895
-        // emission for each user = TOKEN_1 / 2 ~ 499999999999785947
-        checkEmissions(users.alice, tokenIdAlice, 1499999999999357842);
-        checkEmissions(users.bob, tokenIdBob, 499999999999785947);
+        //emission = TOKEN_1 ~ 999999999999999999
+        // emission for each user = TOKEN_1 / 2 ~ 499999999999999999
+        checkEmissions(users.alice, tokenIdAlice, 1499999999999999998);
+        checkEmissions(users.bob, tokenIdBob, 499999999999999999);
 
         //going to epoch 4
         doSomeSwaps();
@@ -195,8 +195,8 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(address(voter));
         gauge.notifyRewardAmount(EMISSION);
 
-        checkEmissions(users.alice, tokenIdAlice, 1999999999999143789);
-        checkEmissions(users.bob, tokenIdBob, 999999999999571894);
+        checkEmissions(users.alice, tokenIdAlice, 1999999999999999997);
+        checkEmissions(users.bob, tokenIdBob, 999999999999999998);
 
         // Alice creates veNFT to vote
         deal(address(rewardToken), users.alice, TOKEN_1 * 1_000);
@@ -213,8 +213,8 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(address(voter));
         gauge.notifyRewardAmount(EMISSION);
 
-        checkEmissions(users.alice, tokenIdAlice, 499999999999785947);
-        checkEmissions(users.bob, tokenIdBob, 1499999999999357841);
+        checkEmissions(users.alice, tokenIdAlice, 499999999999999999);
+        checkEmissions(users.bob, tokenIdBob, 1499999999999999997);
         checkFees(users.alice, tokenIdVeAlice, 0, 0);
 
         // Alice votes
@@ -232,8 +232,8 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(address(voter));
         gauge.notifyRewardAmount(EMISSION);
 
-        checkEmissions(users.alice, tokenIdAlice, 999999999999547448);
-        checkEmissions(users.bob, tokenIdBob, 1999999999999119342);
+        checkEmissions(users.alice, tokenIdAlice, 999999999999999998);
+        checkEmissions(users.bob, tokenIdBob, 1999999999999999996);
         checkFees(users.alice, tokenIdVeAlice, 300000000000000001, 30000000000000000001);
 
         //Bob creates veNFT to vote
@@ -249,8 +249,8 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(address(voter));
         gauge.notifyRewardAmount(EMISSION);
 
-        checkEmissions(users.alice, tokenIdAlice, 1499999999999333395);
-        checkEmissions(users.bob, tokenIdBob, 499999999999785947);
+        checkEmissions(users.alice, tokenIdAlice, 1499999999999999997);
+        checkEmissions(users.bob, tokenIdBob, 499999999999999999);
         checkFees(users.alice, tokenIdVeAlice, 600000000000000002, 60000000000000000002);
         checkFees(users.bob, tokenIdVeBob, 148499999999999999, 14849999999999999999);
 
@@ -259,8 +259,8 @@ contract GaugeFlowTest is BaseForkFixture {
         voter.vote(tokenIdVeBob, pools, votes);
         vm.stopPrank();
 
-        checkEmissions(users.alice, tokenIdAlice, 1499999999999333395);
-        checkEmissions(users.bob, tokenIdBob, 499999999999785947);
+        checkEmissions(users.alice, tokenIdAlice, 1499999999999999997);
+        checkEmissions(users.bob, tokenIdBob, 499999999999999999);
         checkFees(users.alice, tokenIdVeAlice, 600000000000000002, 60000000000000000002);
         checkFees(users.bob, tokenIdVeBob, 148499999999999999, 14849999999999999999);
 
@@ -284,16 +284,16 @@ contract GaugeFlowTest is BaseForkFixture {
         rewardToken.approve(address(gauge), 0);
         minter.updatePeriod();
 
-        assertEq(rewardToken.balanceOf(address(gauge)), 1000000000002617527);
+        assertEq(rewardToken.balanceOf(address(gauge)), 1000000000000000011);
         address[] memory gauges = new address[](1);
         gauges[0] = address(gauge);
         voter.distribute(gauges);
         skip(1);
-        assertEq(rewardToken.balanceOf(address(gauge)), 35494346173824038215);
+        assertEq(rewardToken.balanceOf(address(gauge)), 35494346173821420699);
 
-        checkEmissions(users.alice, tokenIdAlice, 1507737538783700416);
-        checkEmissions(users.bob, tokenIdBob, 507737538784152968);
-        checkEmissions(largeTokenHolder, tokenIdLarge, 984582298351530379);
+        checkEmissions(users.alice, tokenIdAlice, 1507737538784370709);
+        checkEmissions(users.bob, tokenIdBob, 507737538784370711);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 984582298351999995);
         checkFees(users.alice, tokenIdVeAlice, 750000000000000002, 75000000000000000002);
         checkFees(users.bob, tokenIdVeBob, 298499999999999999, 29849999999999999999);
 
@@ -301,10 +301,10 @@ contract GaugeFlowTest is BaseForkFixture {
         doSomeSwaps();
         skipToNextEpoch(1 hours + 1);
         minter.updatePeriod();
-        assertEq(rewardToken.balanceOf(address(gauge)), 34494288797903773794);
+        assertEq(rewardToken.balanceOf(address(gauge)), 34494288797900679280);
         gauges[0] = address(gauge);
         voter.distribute(gauges);
-        assertEq(rewardToken.balanceOf(address(gauge)), 68643691509986979045);
+        assertEq(rewardToken.balanceOf(address(gauge)), 68643691509983884531);
         skip(1);
 
         //large token holder creates lock
@@ -323,15 +323,15 @@ contract GaugeFlowTest is BaseForkFixture {
         doSomeSwaps();
         skipToNextEpoch(1 hours + 1);
         minter.updatePeriod();
-        assertEq(rewardToken.balanceOf(address(gauge)), 68643691509986979045);
+        assertEq(rewardToken.balanceOf(address(gauge)), 68643691509983884531);
         gauges[0] = address(gauge);
         voter.distribute(gauges);
-        assertEq(rewardToken.balanceOf(address(gauge)), 1504525486055946921860110);
+        assertEq(rewardToken.balanceOf(address(gauge)), 1504525486055946918765596);
         skip(1);
 
-        checkEmissions(users.alice, tokenIdAlice, 2058201809708669458);
-        checkEmissions(users.bob, tokenIdBob, 1058201809709122010);
-        checkEmissions(largeTokenHolder, tokenIdLarge, 70045190354679768846);
+        checkEmissions(users.alice, tokenIdAlice, 2058201809709345864);
+        checkEmissions(users.bob, tokenIdBob, 1058201809709345866);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 70045190354680546784);
         checkFees(users.alice, tokenIdVeAlice, 900002985517110672, 90000298551711067029);
         checkFees(users.bob, tokenIdVeBob, 448502985517110669, 44850298551711067026);
         checkFees(largeTokenHolder, tokenIdVeLarge, 299994028965778659, 29999402896577865944);
@@ -340,15 +340,15 @@ contract GaugeFlowTest is BaseForkFixture {
         doSomeSwaps();
         skipToNextEpoch(1 hours + 1);
         minter.updatePeriod();
-        assertEq(rewardToken.balanceOf(address(gauge)), 1504454339937050392153180);
+        assertEq(rewardToken.balanceOf(address(gauge)), 1504454339937050388268502);
         gauges[0] = address(gauge);
         voter.distribute(gauges);
-        assertEq(rewardToken.balanceOf(address(gauge)), 2993866613877842953696428);
+        assertEq(rewardToken.balanceOf(address(gauge)), 2993866613877842949811750);
         skip(1);
 
-        checkEmissions(users.alice, tokenIdAlice, 11642183312494373616688);
-        checkEmissions(users.bob, tokenIdBob, 11641183312494374069240);
-        checkEmissions(largeTokenHolder, tokenIdLarge, 1481246612309148419088075);
+        checkEmissions(users.alice, tokenIdAlice, 11642183312494374294651);
+        checkEmissions(users.bob, tokenIdBob, 11641183312494374294653);
+        checkEmissions(largeTokenHolder, tokenIdLarge, 1481246612309148420064141);
         checkFees(users.alice, tokenIdVeAlice, 900005971034221342, 90000597103422134056);
         checkFees(users.bob, tokenIdVeBob, 448505971034221339, 44850597103422134053);
         checkFees(largeTokenHolder, tokenIdVeLarge, 599988057931557318, 59998805793155731888);

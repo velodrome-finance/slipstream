@@ -95,9 +95,9 @@ contract CLPool is ICLPool {
     /// @inheritdoc ICLPoolState
     uint256 public override periodFinish;
     /// @inheritdoc ICLPoolState
-    uint32 public override lastUpdated;
+    uint256 public override rollover;
     /// @inheritdoc ICLPoolState
-    uint32 public override timeNoStakedLiquidity;
+    uint32 public override lastUpdated;
 
     /// @inheritdoc ICLPoolState
     uint128 public override liquidity;
@@ -848,35 +848,21 @@ contract CLPool is ICLPool {
 
     /// @dev timeDelta != 0 handles case when function is called twice in the same block.
     /// @dev stakedLiquidity > 0 handles case when depositing staked liquidity and there is no liquidity staked yet,
-    /// or when notifying rewards when there is no liquidity stake
+    /// @dev or when notifying rewards when there is no liquidity stake
     function _updateRewardsGrowthGlobal() internal {
         uint32 timestamp = _blockTimestamp();
         uint256 _lastUpdated = lastUpdated;
-        uint256 timeDelta = timestamp - _lastUpdated;
+        uint256 timeDelta = timestamp - _lastUpdated; // skip if second call in same block
 
         if (timeDelta != 0) {
             if (rewardReserve > 0) {
+                uint256 reward = rewardRate * timeDelta;
+                if (reward > rewardReserve) reward = rewardReserve;
+                rewardReserve -= reward;
                 if (stakedLiquidity > 0) {
-                    // in case of late notify we only account till the end of the epoch
-                    uint256 _lastUpdatedEpoch = VelodromeTimeLibrary.epochStart(_lastUpdated);
-                    if (
-                        periodFinish > _lastUpdatedEpoch
-                            && VelodromeTimeLibrary.epochStart(timestamp) > _lastUpdatedEpoch
-                    ) {
-                        timeDelta = VelodromeTimeLibrary.epochNext(_lastUpdated) - _lastUpdated;
-                    } else if (periodFinish <= VelodromeTimeLibrary.epochStart(timestamp)) {
-                        // new epoch, notify has yet to be called so we skip the update
-                        timeDelta = 0;
-                    }
-                    uint256 reward = rewardRate * timeDelta;
-                    // ensures any remaining rewards for the past epoch are distributed
-                    if (reward > rewardReserve) reward = rewardReserve;
-                    rewardReserve -= reward;
                     rewardGrowthGlobalX128 += FullMath.mulDiv(reward, FixedPoint128.Q128, stakedLiquidity);
                 } else {
-                    // gauge can compute a different value and use that instead of the actual,
-                    // depending on unstaked time crossing epoch flips
-                    timeNoStakedLiquidity += uint32(timeDelta);
+                    rollover += reward;
                 }
             }
             lastUpdated = timestamp;
@@ -893,7 +879,7 @@ contract CLPool is ICLPool {
         rewardRate = _rewardRate;
         rewardReserve = _rewardReserve;
         periodFinish = _periodFinish;
-        delete timeNoStakedLiquidity;
+        delete rollover;
     }
 
     /// @notice Calculates the fees owed to staked liquidity, then calculates fee levied on unstaked liquidity

@@ -63,6 +63,9 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         assertEq(gauge.rewardRate(), reward / 6 days);
         assertEq(gauge.periodFinish(), block.timestamp + 6 days);
+        assertEq(pool.rewardRate(), reward / 6 days);
+        assertEq(pool.rewardReserve(), reward);
+        assertEq(pool.periodFinish(), block.timestamp + 6 days);
     }
 
     function test_NotifyRewardAmountUpdatesGaugeStateCorrectlyOnAdditionalRewardInSameEpoch() public {
@@ -87,6 +90,9 @@ contract NotifyRewardAmountTest is CLGaugeTest {
 
         assertEq(gauge.rewardRate(), (reward * 2) / 5 days);
         assertEq(gauge.periodFinish(), block.timestamp + 5 days);
+        assertEq(pool.rewardRate(), (reward * 2) / 5 days);
+        assertEq(pool.rewardReserve(), reward + reward / (6 days) * (6 days));
+        assertEq(pool.periodFinish(), block.timestamp + 5 days);
     }
 
     function test_NotifyRewardAmountCollectsFeesForAllPositionsStakedWithIntermediaryFlashCorrectly() public {

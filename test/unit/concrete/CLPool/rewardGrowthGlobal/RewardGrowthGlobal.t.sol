@@ -261,7 +261,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardReserve(), 1e18 - accumulatedReward);
     }
 
-    function test_StuckRewardsRolledOverToNextEpochIfThereIsNoStakedLiquidityAtRewardDistribution() public {
+    function test_RewardsRolledOverToNextEpochIfThereIsNoStakedLiquidityAtRewardDistribution() public {
         uint128 liquidity = 10e18;
         uint128 stakedLiquidity = 10e18;
 
@@ -298,8 +298,9 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
         assertEqUint(pool.lastUpdated(), block.timestamp);
         assertEqUint(rewardRate, reward / WEEK);
-        assertEqUint(pool.rewardReserve(), reward);
-        assertEqUint(pool.timeNoStakedLiquidity(), WEEK / 2);
+        uint256 rollover = reward / WEEK * (WEEK / 2);
+        assertEqUint(pool.rewardReserve(), reward - rollover);
+        assertEqUint(pool.rollover(), rollover);
 
         skipToNextEpoch(0);
 
@@ -316,9 +317,9 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         // we are validating an undesirabled state, this should roll over to the next epoch
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
-        assertApproxEqAbs(pool.rewardReserve(), reward / 2, 1e5);
-
-        assertEqUint(pool.timeNoStakedLiquidity(), WEEK / 2);
+        rollover = reward / WEEK * (WEEK / 2);
+        assertApproxEqAbs(pool.rewardReserve(), reward / 2 - rollover, 1e5);
+        assertEqUint(pool.rollover(), rollover);
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
@@ -336,7 +337,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         // rewardRate and rewardReserve should account for stuck rewards from previous epoch
         assertEqUint(rewardRate, (reward + reward / 2) / WEEK);
         assertApproxEqAbs(pool.rewardReserve(), reward + reward / 2, 1e5);
-        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+        assertEqUint(pool.rollover(), 0);
 
         skipToNextEpoch(0);
 
@@ -389,7 +390,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        assertEqUint(pool.timeNoStakedLiquidity(), 1 days);
+        assertEqUint(pool.rollover(), reward / WEEK * (1 days));
 
         skipToNextEpoch(0);
 
@@ -399,8 +400,8 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         aliceRewardBalance = rewardToken.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / 7 * 6, 1e5);
 
-        // at the start of the new epoch reserves should be 1 day worth of reward
-        assertApproxEqAbs(pool.rewardReserve(), reward / 7, 1e5);
+        // at the start of the new epoch reserves should be dust
+        assertApproxEqAbs(pool.rewardReserve(), reward - reward / WEEK * WEEK, 1e5);
 
         // assert that emissions got stuck in the gauge for the current epoch, 1 day worth of reward
         // will be rolled over to next epoch
@@ -414,7 +415,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         // rewardRate and rewardReserve should account for stuck rewards from previous epoch
         assertEqUint(rewardRate, (reward + reward / 7) / WEEK);
         assertApproxEqAbs(pool.rewardReserve(), reward + reward / 7, 1e5);
-        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+        assertEqUint(pool.rollover(), 0);
 
         skipToNextEpoch(0);
 
@@ -469,10 +470,9 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 accumulatedReward = rewardRate * 4 days;
         uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
 
-        // we are validating an undesirabled state, probably will change
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
-        assertApproxEqAbs(pool.rewardReserve(), reward / 7 * 3, 1e6);
-        assertEqUint(pool.timeNoStakedLiquidity(), 1 days);
+        assertApproxEqAbs(pool.rewardReserve(), reward / 7 * 2, 1e6);
+        assertEqUint(pool.rollover(), rewardRate * 1 days);
 
         skipToNextEpoch(0);
 
@@ -497,6 +497,61 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
     }
 
+    function test_RewardsRolledOverIfHolesAcrossAdjacentEpochs() public {
+        uint256 reward = TOKEN_1;
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), reward / WEEK);
+        assertEqUint(pool.rewardReserve(), reward);
+
+        // 2 day gap
+        skip(2 days);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(1 days);
+
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), (reward * 2 / 7 + reward * 2) / (6 days));
+        assertApproxEqAbs(pool.rewardReserve(), reward * 2 / 7 + reward * 2, 1e6);
+    }
+
+    function test_RewardsRolledOverIfHolesAcrossNonAdjacentEpochs() public {
+        uint256 reward = TOKEN_1;
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), reward / WEEK);
+        assertEqUint(pool.rewardReserve(), reward);
+
+        // 2 day gap
+        skip(2 days);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+        skipToNextEpoch(1 days);
+
+        addRewardToGauge(address(voter), address(gauge), reward * 2);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), (reward * 2 / 7 + reward * 2) / (6 days));
+        assertApproxEqAbs(pool.rewardReserve(), reward * 2 / 7 + reward * 2, 1e6);
+    }
+
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenRewardReserveIsZeroAndRewardRateGreaterThanZeroUpdateTriggeredByWithdraw(
     ) public {
         uint128 stakedLiquidity = 10e18;
@@ -516,11 +571,8 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.withdraw(tokenId);
 
-        // calculate the rewardRate by hand because we lose some precision during the division
-        uint256 rewardRate = reward / WEEK;
-        uint256 accumulatedReward = rewardRate * WEEK;
         // all rewardReserves should be accounted in the accumulator
-        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
+        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(reward, Q128, stakedLiquidity);
 
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertEq(pool.rewardRate(), reward / WEEK);
@@ -545,12 +597,9 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         // add new rewards to update RewardGrowthGlobal
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        // calculate the rewardRate by hand because we lose some precision during the division
-        uint256 previousRewardRate = reward / WEEK;
-        uint256 accumulatedReward = previousRewardRate * WEEK;
-
         // all rewardReserves should be accounted in the accumulator
-        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(accumulatedReward, Q128, stakedLiquidity);
+        // possible to rollover full amount if sufficient time passes
+        uint256 rewardGrowthGlobalX128 = FullMath.mulDiv(reward, Q128, stakedLiquidity);
 
         assertEqUint(pool.rewardGrowthGlobalX128(), rewardGrowthGlobalX128);
         assertEq(pool.rewardRate(), reward / (WEEK - 1));
@@ -564,7 +613,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         gauge.getReward(tokenId);
 
         uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
-        assertApproxEqAbs(aliceRewardBalance, accumulatedReward, 1);
+        assertApproxEqAbs(aliceRewardBalance, reward, 1);
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWhenNoStakeLiquidityPresentForMoreThanOneEpoch() public {
@@ -580,11 +629,11 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
-        assertEq(pool.timeNoStakedLiquidity(), WEEK + 60);
+        assertEq(pool.rollover(), reward);
 
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        assertEqUint(pool.timeNoStakedLiquidity(), 0);
+        assertEqUint(pool.rollover(), 0);
 
         assertEqUint(pool.rewardGrowthGlobalX128(), 0);
         assertEq(pool.rewardRate(), (reward * 2) / (WEEK - 60));
@@ -851,14 +900,14 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, reward / WEEK * (WEEK - 120), 1e6);
-        assertApproxEqAbs(pool.rewardReserve(), reward / WEEK * 120, 1e6);
-        assertEqUint(pool.timeNoStakedLiquidity(), 60); // only 60 recorded so far
+        assertApproxEqAbs(pool.rewardReserve(), reward - reward / WEEK * (WEEK - 60), 1e6);
+        assertEqUint(pool.rollover(), reward / WEEK * 60);
 
         skipToNextEpoch(200);
 
         addRewardToGauge(address(voter), address(gauge), reward * 2);
-        assertEqUint(pool.timeNoStakedLiquidity(), 0);
-        assertEq(pool.rewardRate(), (reward * 2 + reward / WEEK * 120) / (WEEK - 200));
+        assertEqUint(pool.rollover(), 0);
+        assertEq(pool.rewardRate(), (reward * 2 + reward - (reward / WEEK * (WEEK - 120))) / (WEEK - 200));
         assertApproxEqAbs(pool.rewardReserve(), (reward * 2 + reward / WEEK * 120), 1e6);
     }
 
@@ -882,7 +931,7 @@ contract RewardGrowthGlobalTest is CLPoolTest {
 
         uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
         assertApproxEqAbs(aliceRewardBalance, (reward / 7 * 6), 1e6);
-        assertApproxEqAbs(pool.rewardReserve(), (reward / 7), 1e6);
+        assertApproxEqAbs(pool.rewardReserve(), reward - reward / WEEK * WEEK, 1e6);
     }
 
     function test_RewardGrowthGlobalUpdatesCorrectlyWithMultipleCallsToUpdateRewardsGrowthGlobalAfterEpochFlip()
@@ -894,7 +943,6 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         uint256 reward = TOKEN_1;
         addRewardToGauge(address(voter), address(gauge), reward);
 
-        // tnsl
         skip(1 days);
 
         vm.startPrank(users.alice);
@@ -906,7 +954,6 @@ contract RewardGrowthGlobalTest is CLPoolTest {
         vm.startPrank(users.alice);
         gauge.getReward(tokenId);
 
-        // the delay being accounted as well in case of tnsl
         skip(1 days);
         addRewardToGauge(address(voter), address(gauge), reward);
 

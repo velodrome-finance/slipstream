@@ -141,4 +141,75 @@ contract RewardGrowthGlobalFuzzTest is CLPoolTest {
         assertEqUint(pool.rewardReserve(), reward2 + (reward / 6 days) * 6 days);
         assertEqUint(pool.lastUpdated(), block.timestamp);
     }
+
+    function testFuzz_RewardsRolledOverIfHolesAcrossAdjacentEpochs(
+        uint256 reward,
+        uint256 reward2,
+        uint256 time,
+        uint256 time2
+    ) public {
+        reward = bound(reward, 1 ether, 1_000_000 ether);
+        reward2 = bound(reward2, 1 ether, 1_000_000 ether);
+        time = bound(time, 1, WEEK - 1);
+        // bounding by WEEK - 1 results in large rounding errors in rewardRate when time2 -> WEEK - 1
+        time2 = bound(time2, 1, WEEK * 4 / 5);
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), reward / WEEK);
+        assertEqUint(pool.rewardReserve(), reward);
+
+        skip(time);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(time2);
+
+        addRewardToGauge(address(voter), address(gauge), reward2);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertApproxEqAbs(pool.rewardRate(), (reward * time / WEEK + reward2) / (WEEK - time2), 5);
+        assertApproxEqAbs(pool.rewardReserve(), reward * time / WEEK + reward2, 1e6);
+    }
+
+    function testFuzz_RewardsRolledOverIfHolesAcrossNonAdjacentEpochs(
+        uint256 reward,
+        uint256 reward2,
+        uint256 time,
+        uint256 time2
+    ) public {
+        reward = bound(reward, 1 ether, 1_000_000 ether);
+        reward2 = bound(reward2, 1 ether, 1_000_000 ether);
+        time = bound(time, 1, WEEK - 1);
+        // bounding by WEEK - 1 results in large rounding errors in rewardRate when time2 -> WEEK - 1
+        time2 = bound(time2, 1, WEEK * 4 / 5);
+
+        uint256 tokenId =
+            nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1 * 10, TOKEN_1 * 10, users.alice);
+
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertEqUint(pool.rewardRate(), reward / WEEK);
+        assertEqUint(pool.rewardReserve(), reward);
+
+        skip(time);
+        vm.startPrank(users.alice);
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        skipToNextEpoch(0);
+        skipToNextEpoch(time2);
+
+        addRewardToGauge(address(voter), address(gauge), reward2);
+
+        assertEqUint(pool.lastUpdated(), block.timestamp);
+        assertApproxEqAbs(pool.rewardRate(), (reward * time / WEEK + reward2) / (WEEK - time2), 5);
+        assertApproxEqAbs(pool.rewardReserve(), reward * time / WEEK + reward2, 1e6);
+    }
 }

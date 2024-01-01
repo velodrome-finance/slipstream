@@ -120,14 +120,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 rewardGrowthGlobalX128 = pool.rewardGrowthGlobalX128();
         uint256 rewardReserve = pool.rewardReserve();
 
-        if (timeDelta != 0 && pool.stakedLiquidity() > 0 && rewardReserve > 0) {
-            uint256 lastUpdatedEpoch = VelodromeTimeLibrary.epochStart(lastUpdated);
-            if (periodFinish > lastUpdatedEpoch && VelodromeTimeLibrary.epochStart(block.timestamp) > lastUpdatedEpoch)
-            {
-                timeDelta = VelodromeTimeLibrary.epochNext(lastUpdated) - lastUpdated;
-            } else if (periodFinish <= VelodromeTimeLibrary.epochStart(block.timestamp)) {
-                timeDelta = 0;
-            }
+        if (timeDelta != 0 && rewardReserve > 0 && pool.stakedLiquidity() > 0) {
             uint256 reward = rewardRate * timeDelta;
             if (reward > rewardReserve) reward = rewardReserve;
 
@@ -345,15 +338,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
         IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
         // rolling over stuck rewards from previous epoch (if any)
-        uint256 tnsl = pool.timeNoStakedLiquidity();
-        // we must only count tnsl for the previous epoch
-        if (tnsl + timeUntilNext > DURATION) {
-            tnsl -= (DURATION - timeUntilNext); // subtract time in current epoch
-            // skip epochs where no notify occurred, but account for case where no rewards
-            // distributed over one full epoch (unlikely)
-            if (tnsl != DURATION) tnsl %= DURATION;
-        }
-        _amount += tnsl * rewardRate;
+        _amount += pool.rollover();
 
         if (timestamp >= periodFinish) {
             rewardRate = _amount / timeUntilNext;
