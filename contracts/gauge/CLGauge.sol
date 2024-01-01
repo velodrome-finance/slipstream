@@ -57,13 +57,15 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     mapping(uint256 => uint256) public override lastUpdateTime;
 
     /// @inheritdoc ICLGauge
+    uint256 public override fees0;
+    /// @inheritdoc ICLGauge
+    uint256 public override fees1;
+    /// @inheritdoc ICLGauge
     address public override token0;
     /// @inheritdoc ICLGauge
     address public override token1;
     /// @inheritdoc ICLGauge
-    uint256 public override fees0;
-    /// @inheritdoc ICLGauge
-    uint256 public override fees1;
+    int24 public override tickSpacing;
 
     /// @inheritdoc ICLGauge
     bool public override isPool;
@@ -78,6 +80,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         address _nft,
         address _token0,
         address _token1,
+        int24 _tickSpacing,
         bool _isPool
     ) external override {
         require(address(pool) == address(0), "AI");
@@ -89,6 +92,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         nft = INonfungiblePositionManager(_nft);
         token0 = _token0;
         token1 = _token1;
+        tickSpacing = _tickSpacing;
         isPool = _isPool;
     }
 
@@ -164,6 +168,9 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     function deposit(uint256 tokenId) external override nonReentrant {
         require(nft.ownerOf(tokenId) == msg.sender, "NA");
         require(voter.isAlive(address(this)), "GK");
+        (,, address _token0, address _token1, int24 _tickSpacing, int24 tickLower, int24 tickUpper,,,,,) =
+            nft.positions(tokenId);
+        require(token0 == _token0 && token1 == _token1 && tickSpacing == _tickSpacing, "PM");
 
         // trigger update on staked position so NFT will be in sync with the pool
         nft.collect(
@@ -178,7 +185,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         nft.safeTransferFrom(msg.sender, address(this), tokenId);
         _stakes[msg.sender].add(tokenId);
 
-        (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
+        (,,,,,,, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
         pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper, true);
 
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);

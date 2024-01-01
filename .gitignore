@@ -10,6 +10,4 @@ broadcast
 .vscode
 .env
 
-echidna_other_corpus/
-echidna_e2e_swap_corpus/
-echidna_e2e_mint_burn_corpus/
+echidna_*_corpus/

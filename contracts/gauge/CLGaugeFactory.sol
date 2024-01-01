@@ -51,6 +51,7 @@ contract CLGaugeFactory is ICLGaugeFactory {
             _nft: nft,
             _token0: token0,
             _token1: token1,
+            _tickSpacing: tickSpacing,
             _isPool: _isPool
         });
     }

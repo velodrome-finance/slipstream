@@ -132,9 +132,10 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         clCallee = new TestCLCallee();
         nftCallee = new NFTManagerCallee(address(token0), address(token1), address(nft));
 
-        // Setting up alice for the tests since she's the default test user
         deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
         deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
+        deal({token: address(token0), to: users.charlie, give: TOKEN_1 * 100});
+        deal({token: address(token1), to: users.charlie, give: TOKEN_1 * 100});
 
         vm.startPrank(users.alice);
         token0.approve(address(nft), type(uint256).max);
@@ -143,6 +144,9 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         token1.approve(address(clCallee), type(uint256).max);
         token0.approve(address(nftCallee), type(uint256).max);
         token1.approve(address(nftCallee), type(uint256).max);
+        vm.startPrank(users.charlie);
+        token0.approve(address(nft), type(uint256).max);
+        token1.approve(address(nft), type(uint256).max);
         vm.stopPrank();
 
         labelContracts();

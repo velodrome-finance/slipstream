@@ -25,6 +25,7 @@ contract InitializeTest is CLGaugeTest {
             _nft: address(nft),
             _token0: address(token0),
             _token1: address(token1),
+            _tickSpacing: TICK_SPACING_60,
             _isPool: true
         });
     }

@@ -73,6 +73,73 @@ contract DepositTest is CLGaugeTest {
         gauge.deposit({tokenId: tokenId});
     }
 
+    function test_RevertIf_DepositIsNotFromCorrespondingPoolWithDifferentTokensSameTickSize() public {
+        ERC20 tokenA = new ERC20("", "");
+        ERC20 tokenB = new ERC20("", "");
+        (ERC20 testToken0, ERC20 testToken1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
+        deal({token: address(testToken0), to: users.charlie, give: TOKEN_1});
+        deal({token: address(testToken1), to: users.charlie, give: TOKEN_1});
+
+        poolFactory.createPool({
+            tokenA: address(testToken0),
+            tokenB: address(testToken1),
+            tickSpacing: TICK_SPACING_60,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
+
+        vm.startPrank(users.charlie);
+        testToken0.approve(address(nft), type(uint256).max);
+        testToken1.approve(address(nft), type(uint256).max);
+
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: address(testToken0),
+            token1: address(testToken1),
+            tickSpacing: TICK_SPACING_60,
+            tickLower: getMinTick(TICK_SPACING_60),
+            tickUpper: getMaxTick(TICK_SPACING_60),
+            recipient: users.charlie,
+            amount0Desired: TOKEN_1,
+            amount1Desired: TOKEN_1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: 10
+        });
+        (uint256 tokenId,,,) = nft.mint(params);
+
+        nft.approve(address(gauge), tokenId);
+        vm.expectRevert(abi.encodePacked("PM"));
+        gauge.deposit({tokenId: tokenId});
+    }
+
+    function test_RevertIf_DepositIsNotFromCorrespondingPoolWithSameTokensDifferentTickSize() public {
+        poolFactory.createPool({
+            tokenA: address(token0),
+            tokenB: address(token1),
+            tickSpacing: TICK_SPACING_10,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
+
+        vm.startPrank(users.charlie);
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: address(token0),
+            token1: address(token1),
+            tickSpacing: TICK_SPACING_10,
+            tickLower: getMinTick(TICK_SPACING_10),
+            tickUpper: getMaxTick(TICK_SPACING_10),
+            recipient: users.charlie,
+            amount0Desired: TOKEN_1,
+            amount1Desired: TOKEN_1,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: 10
+        });
+        (uint256 tokenId,,,) = nft.mint(params);
+
+        nft.approve(address(gauge), tokenId);
+        vm.expectRevert(abi.encodePacked("PM"));
+        gauge.deposit({tokenId: tokenId});
+    }
+
     function test_DepositWithPositionInCurrentPrice() public {
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: address(token0),
