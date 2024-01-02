@@ -17,7 +17,6 @@ import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 import {IReward} from "contracts/gauge/interfaces/IReward.sol";
-import {TransferHelper} from "contracts/periphery/libraries/TransferHelper.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
@@ -232,8 +231,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         IERC20(token0).safeIncreaseAllowance(address(nft), amount0Desired);
         IERC20(token1).safeIncreaseAllowance(address(nft), amount1Desired);
 
-        TransferHelper.safeTransferFrom(token0, msg.sender, address(this), amount0Desired);
-        TransferHelper.safeTransferFrom(token1, msg.sender, address(this), amount1Desired);
+        IERC20(token0).safeTransferFrom(msg.sender, address(this), amount0Desired);
+        IERC20(token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
 
         (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
         updateRewards(tokenId, tickLower, tickUpper);
@@ -255,10 +254,10 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount1Surplus = amount1Desired - amount1;
 
         if (amount0Surplus > 0) {
-            TransferHelper.safeTransfer(token0, msg.sender, amount0Surplus);
+            IERC20(token0).safeTransfer(msg.sender, amount0Surplus);
         }
         if (amount1Surplus > 0) {
-            TransferHelper.safeTransfer(token1, msg.sender, amount1Surplus);
+            IERC20(token1).safeTransfer(msg.sender, amount1Surplus);
         }
     }
 

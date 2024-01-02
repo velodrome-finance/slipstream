@@ -305,6 +305,9 @@ contract NonfungiblePositionManager is
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
 
+        /// @dev Casting to u128 and the sum of tokensOwed overflow can cause a loss to users.
+        /// @dev This is more probable for tokens that have very high decimals.
+        /// @dev The amount of tokens necessary for the loss is: 3.4028237e+38.
         position.tokensOwed0 += uint128(amount0);
         position.tokensOwed1 += uint128(amount1);
 

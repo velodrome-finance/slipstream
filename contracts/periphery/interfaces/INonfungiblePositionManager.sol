@@ -163,6 +163,10 @@ interface INonfungiblePositionManager is
     /// deadline The time by which the transaction must be included to effect the change
     /// @return amount0 The amount of token0 accounted to the position's tokens owed
     /// @return amount1 The amount of token1 accounted to the position's tokens owed
+    /// @dev The use of this function can cause a loss to users of the NonfungiblePositionManager
+    /// @dev for tokens that have very high decimals.
+    /// @dev The amount of tokens necessary for the loss is: 3.4028237e+38.
+    /// @dev This is equivalent to 1e20 value with 18 decimals.
     function decreaseLiquidity(DecreaseLiquidityParams calldata params)
         external
         payable
