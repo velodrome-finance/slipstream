@@ -47,12 +47,6 @@ contract CLPool is ICLPool {
     /// @inheritdoc ICLPoolConstants
     address public override nft;
 
-    /// @inheritdoc ICLPoolConstants
-    int24 public override tickSpacing;
-
-    /// @inheritdoc ICLPoolConstants
-    uint128 public override maxLiquidityPerTick;
-
     struct Slot0 {
         // the current price
         uint160 sqrtPriceX96;
@@ -96,13 +90,18 @@ contract CLPool is ICLPool {
     uint256 public override periodFinish;
     /// @inheritdoc ICLPoolState
     uint256 public override rollover;
+
+    /// @inheritdoc ICLPoolState
+    uint128 public override stakedLiquidity;
     /// @inheritdoc ICLPoolState
     uint32 public override lastUpdated;
+    /// @inheritdoc ICLPoolConstants
+    int24 public override tickSpacing;
 
     /// @inheritdoc ICLPoolState
     uint128 public override liquidity;
-    /// @inheritdoc ICLPoolState
-    uint128 public override stakedLiquidity;
+    /// @inheritdoc ICLPoolConstants
+    uint128 public override maxLiquidityPerTick;
 
     /// @inheritdoc ICLPoolState
     mapping(int24 => Tick.Info) public override ticks;
@@ -571,6 +570,10 @@ contract CLPool is ICLPool {
         uint160 sqrtPriceX96;
         // the tick associated with the current price
         int24 tick;
+        // the fee associated with the pool
+        uint24 fee;
+        // wether we've updated the fees in the current swap
+        bool hasUpdatedFees;
         // the global fee growth of the input token
         uint256 feeGrowthGlobalX128;
         // amount of input token paid as gauge fee
@@ -636,6 +639,8 @@ contract CLPool is ICLPool {
             amountCalculated: 0,
             sqrtPriceX96: slot0Start.sqrtPriceX96,
             tick: slot0Start.tick,
+            fee: fee(),
+            hasUpdatedFees: false,
             feeGrowthGlobalX128: zeroForOne ? feeGrowthGlobal0X128 : feeGrowthGlobal1X128,
             gaugeFee: 0,
             liquidity: cache.liquidityStart,
@@ -669,7 +674,7 @@ contract CLPool is ICLPool {
                     : step.sqrtPriceNextX96,
                 state.liquidity,
                 state.amountSpecifiedRemaining,
-                fee()
+                state.fee
             );
 
             if (exactInput) {
@@ -706,7 +711,10 @@ contract CLPool is ICLPool {
                         );
                         cache.computedLatestObservation = true;
                     }
-                    _updateRewardsGrowthGlobal();
+                    if (!state.hasUpdatedFees) {
+                        _updateRewardsGrowthGlobal();
+                        state.hasUpdatedFees = true;
+                    }
                     Tick.LiquidityNets memory nets = ticks.cross(
                         step.tickNext,
                         (zeroForOne ? state.feeGrowthGlobalX128 : feeGrowthGlobal0X128),
@@ -940,17 +948,17 @@ contract CLPool is ICLPool {
     function collectFees() external override lock onlyGauge returns (uint128 amount0, uint128 amount1) {
         amount0 = gaugeFees.token0;
         amount1 = gaugeFees.token1;
-        if (amount0 > 0) {
-            amount0--; // ensure that the slot is not cleared, for gas savings
-            gaugeFees.token0 -= amount0;
-            TransferHelper.safeTransfer(token0, gauge, amount0);
+        if (amount0 > 1) {
+            // ensure that the slot is not cleared, for gas savings
+            gaugeFees.token0 = 1;
+            TransferHelper.safeTransfer(token0, msg.sender, --amount0);
         }
-        if (amount1 > 0) {
-            amount1--; // ensure that the slot is not cleared, for gas savings
-            gaugeFees.token1 -= amount1;
-            TransferHelper.safeTransfer(token1, gauge, amount1);
+        if (amount1 > 1) {
+            // ensure that the slot is not cleared, for gas savings
+            gaugeFees.token1 = 1;
+            TransferHelper.safeTransfer(token1, msg.sender, --amount1);
         }
 
-        emit CollectFees(gauge, amount0, amount1);
+        emit CollectFees(msg.sender, amount0, amount1);
     }
 }
