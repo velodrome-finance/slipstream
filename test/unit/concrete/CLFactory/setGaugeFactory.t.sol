@@ -44,7 +44,7 @@ contract SetGaugeFactoryTest is CLFactoryTest {
 
     function test_RevertIf_CallerNotDeployer() public {
         vm.prank({msgSender: users.alice});
-        vm.expectRevert(abi.encodePacked("AI"));
+        vm.expectRevert(abi.encodePacked("NA"));
         poolFactory.setGaugeFactory({
             _gaugeFactory: address(gaugeFactory),
             _gaugeImplementation: address(gaugeImplementation)

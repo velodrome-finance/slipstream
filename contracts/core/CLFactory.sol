@@ -40,9 +40,7 @@ contract CLFactory is ICLFactory {
     int24[] private _tickSpacings;
 
     constructor(address _voter, address _poolImplementation) {
-        nft = msg.sender;
         owner = msg.sender;
-        gaugeFactory = msg.sender;
         swapFeeManager = msg.sender;
         unstakedFeeManager = msg.sender;
         voter = IVoter(_voter);
@@ -51,21 +49,11 @@ contract CLFactory is ICLFactory {
         emit SwapFeeManagerChanged(address(0), msg.sender);
         emit UnstakedFeeManagerChanged(address(0), msg.sender);
 
-        tickSpacingToFee[1] = 100;
-        _tickSpacings.push(1);
-        emit TickSpacingEnabled(1, 100);
-        tickSpacingToFee[50] = 500;
-        _tickSpacings.push(50);
-        emit TickSpacingEnabled(50, 500);
-        tickSpacingToFee[100] = 500;
-        _tickSpacings.push(100);
-        emit TickSpacingEnabled(100, 500);
-        tickSpacingToFee[200] = 3_000;
-        _tickSpacings.push(200);
-        emit TickSpacingEnabled(200, 3_000);
-        tickSpacingToFee[2_000] = 10_000;
-        _tickSpacings.push(2_000);
-        emit TickSpacingEnabled(2_000, 10_000);
+        enableTickSpacing(1, 100);
+        enableTickSpacing(50, 500);
+        enableTickSpacing(100, 500);
+        enableTickSpacing(200, 3_000);
+        enableTickSpacing(2_000, 10_000);
     }
 
     /// @inheritdoc ICLFactory
@@ -148,10 +136,12 @@ contract CLFactory is ICLFactory {
     /// @inheritdoc ICLFactory
     function getSwapFee(address pool) external view override returns (uint24) {
         if (swapFeeModule != address(0)) {
-            return IFeeModule(swapFeeModule).getFee(pool);
-        } else {
-            return tickSpacingToFee[CLPool(pool).tickSpacing()];
+            uint24 fee = IFeeModule(swapFeeModule).getFee(pool);
+            if (fee <= 100_000) {
+                return fee;
+            }
         }
+        return tickSpacingToFee[CLPool(pool).tickSpacing()];
     }
 
     /// @inheritdoc ICLFactory
@@ -160,17 +150,19 @@ contract CLFactory is ICLFactory {
             return 0;
         }
         if (unstakedFeeModule != address(0)) {
-            return IFeeModule(unstakedFeeModule).getFee(pool);
-        } else {
-            // Default unstaked fee is 10%
-            return 100_000;
+            uint24 fee = IFeeModule(unstakedFeeModule).getFee(pool);
+            if (fee <= 1_000_000) {
+                return fee;
+            }
         }
+        // Default unstaked fee is 10%
+        return 100_000;
     }
 
     /// @inheritdoc ICLFactory
     function enableTickSpacing(int24 tickSpacing, uint24 fee) public override {
         require(msg.sender == owner);
-        require(fee <= 100_000);
+        require(fee > 0 && fee <= 100_000);
         // tick spacing is capped at 16384 to prevent the situation where tickSpacing is so large that
         // TickBitmap#nextInitializedTickWithinOneWord overflows int24 container from a valid tick
         // 16384 ticks represents a >5x price change with ticks of 1 bips
@@ -194,7 +186,8 @@ contract CLFactory is ICLFactory {
 
     /// @inheritdoc ICLFactory
     function setGaugeFactory(address _gaugeFactory, address _gaugeImplementation) external override {
-        require(gaugeFactory == msg.sender, "AI");
+        require(gaugeFactory == address(0), "AI");
+        require(owner == msg.sender, "NA");
         require(_gaugeFactory != address(0) && _gaugeImplementation != address(0));
         gaugeFactory = _gaugeFactory;
         gaugeImplementation = _gaugeImplementation;
@@ -202,7 +195,8 @@ contract CLFactory is ICLFactory {
 
     /// @inheritdoc ICLFactory
     function setNonfungiblePositionManager(address _nft) external override {
-        require(nft == msg.sender, "AI");
+        require(nft == address(0), "AI");
+        require(owner == msg.sender, "NA");
         require(_nft != address(0));
         nft = _nft;
     }

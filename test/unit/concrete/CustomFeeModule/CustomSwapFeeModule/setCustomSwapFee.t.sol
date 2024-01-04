@@ -1,7 +1,7 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import {CustomSwapFeeModuleTest} from "./CustomSwapFeeModule.t.sol";
+import "./CustomSwapFeeModule.t.sol";
 
 contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
     function setUp() public override {
@@ -68,5 +68,40 @@ contract SetCustomSwapFeeTest is CustomSwapFeeModuleTest {
         assertEqUint(customSwapFeeModule.customFee(pool), 420);
         assertEqUint(customSwapFeeModule.getFee(pool), 0);
         assertEqUint(poolFactory.getSwapFee(pool), 0);
+    }
+
+    function test_CannotExceedMaxSwapFee() public {
+        address pool = createAndCheckPool({
+            factory: poolFactory,
+            token0: TEST_TOKEN_0,
+            token1: TEST_TOKEN_1,
+            tickSpacing: TICK_SPACING_LOW,
+            sqrtPriceX96: encodePriceSqrt(1, 1)
+        });
+        uint24 initialFee = poolFactory.getSwapFee(pool);
+        uint24 maxFee = 100_000;
+
+        // simulating a malicious SwapFeeModule without max fees
+        vm.mockCall(
+            address(customSwapFeeModule),
+            abi.encodeWithSelector(CustomSwapFeeModule.getFee.selector, pool),
+            abi.encode(maxFee)
+        );
+
+        // malicious Fee module with max fees
+        assertEqUint(customSwapFeeModule.getFee(pool), maxFee);
+        // max fee still allowed by PoolFactory
+        assertEqUint(poolFactory.getSwapFee(pool), maxFee);
+
+        vm.mockCall(
+            address(customSwapFeeModule),
+            abi.encodeWithSelector(CustomSwapFeeModule.getFee.selector, pool),
+            abi.encode(maxFee + 1)
+        );
+
+        // malicious Fee module with exceedingly large fees
+        assertEqUint(customSwapFeeModule.getFee(pool), maxFee + 1);
+        // if fee is too large, PoolFactory returns original fee
+        assertEqUint(poolFactory.getSwapFee(pool), initialFee);
     }
 }

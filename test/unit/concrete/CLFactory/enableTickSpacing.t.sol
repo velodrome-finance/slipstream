@@ -36,6 +36,11 @@ contract EnableTickSpacingTest is CLFactoryTest {
         poolFactory.enableTickSpacing({tickSpacing: 250, fee: 1_000_000});
     }
 
+    function test_RevertIf_FeeIsZero() public {
+        vm.expectRevert();
+        poolFactory.enableTickSpacing({tickSpacing: 250, fee: 0});
+    }
+
     function test_EnableTickSpacing() public {
         vm.expectEmit(true, false, false, false, address(poolFactory));
         emit TickSpacingEnabled({tickSpacing: 250, fee: 5_000});

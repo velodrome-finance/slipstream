@@ -13,20 +13,24 @@ contract CLGaugeFactory is ICLGaugeFactory {
     address public immutable override implementation;
     /// @inheritdoc ICLGaugeFactory
     address public override nft;
+    address private owner;
 
     constructor(address _voter, address _implementation) {
         voter = _voter;
-        nft = msg.sender;
+        owner = msg.sender;
         implementation = _implementation;
     }
 
     /// @inheritdoc ICLGaugeFactory
     function setNonfungiblePositionManager(address _nft) external override {
-        require(nft == msg.sender, "AI");
+        require(nft == address(0), "AI");
+        require(owner == msg.sender, "NA");
         require(_nft != address(0), "ZA");
         nft = _nft;
+        delete owner;
     }
 
+    /// @inheritdoc ICLGaugeFactory
     function createGauge(
         address _forwarder,
         address _pool,

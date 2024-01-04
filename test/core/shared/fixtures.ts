@@ -91,6 +91,8 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     mockTimePoolDeployer.address
   )) as CustomUnstakedFeeModule
   await mockTimePoolDeployer.setUnstakedFeeModule(customUnstakedFeeModule.address)
+  await mockTimePoolDeployer.setGaugeFactory(gaugeFactory.address, gaugeImplementation.address)
+  await mockTimePoolDeployer.setNonfungiblePositionManager('0x0000000000000000000000000000000000000001')
   // approve pool factory <=> gauge factory combination
   const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory
   await mockFactoryRegistry.approve(

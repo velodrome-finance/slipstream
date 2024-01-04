@@ -41,7 +41,7 @@ contract SetNFTManagerTest is CLFactoryTest {
 
     function test_RevertIf_CallerNotDeployer() public {
         vm.prank({msgSender: users.alice});
-        vm.expectRevert(abi.encodePacked("AI"));
+        vm.expectRevert(abi.encodePacked("NA"));
         poolFactory.setNonfungiblePositionManager({_nft: address(nft)});
     }
 
