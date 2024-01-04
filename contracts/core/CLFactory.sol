@@ -156,6 +156,9 @@ contract CLFactory is ICLFactory {
 
     /// @inheritdoc ICLFactory
     function getUnstakedFee(address pool) external view override returns (uint24) {
+        if (!IVoter(voter).isAlive(ICLPool(pool).gauge())) {
+            return 0;
+        }
         if (unstakedFeeModule != address(0)) {
             return IFeeModule(unstakedFeeModule).getFee(pool);
         } else {
