@@ -16,6 +16,20 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
         gauge.increaseStakedLiquidity(tokenId, TOKEN_1, TOKEN_1, 0, 0, block.timestamp);
     }
 
+    function test_RevertIf_GaugeIsNotAlive() public {
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        vm.startPrank(voter.emergencyCouncil());
+        voter.killGauge(address(gauge));
+
+        vm.startPrank(users.alice);
+        vm.expectRevert(abi.encodePacked("GK"));
+        gauge.increaseStakedLiquidity(tokenId, TOKEN_1, TOKEN_1, 0, 0, block.timestamp);
+    }
+
     function test_IncreaseStakedLiquidity() public {
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 

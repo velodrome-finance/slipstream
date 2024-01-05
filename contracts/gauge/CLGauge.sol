@@ -31,13 +31,9 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     ICLPool public override pool;
 
     /// @inheritdoc ICLGauge
-    address public override forwarder;
-    /// @inheritdoc ICLGauge
     address public override feesVotingReward;
     /// @inheritdoc ICLGauge
     address public override rewardToken;
-
-    uint256 internal constant DURATION = 7 days; // rewards are released over 7 days
 
     /// @inheritdoc ICLGauge
     uint256 public override periodFinish;
@@ -71,7 +67,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
     /// @inheritdoc ICLGauge
     function initialize(
-        address _forwarder,
         address _pool,
         address _feesVotingReward,
         address _rewardToken,
@@ -83,7 +78,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         bool _isPool
     ) external override {
         require(address(pool) == address(0), "AI");
-        forwarder = _forwarder;
         pool = ICLPool(_pool);
         feesVotingReward = _feesVotingReward;
         rewardToken = _rewardToken;
@@ -96,7 +90,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     // updates the claimable rewards and lastUpdateTime for tokenId
-    function updateRewards(uint256 tokenId, int24 tickLower, int24 tickUpper) internal {
+    function _updateRewards(uint256 tokenId, int24 tickLower, int24 tickUpper) internal {
         if (lastUpdateTime[tokenId] == block.timestamp) return;
         pool.updateRewardsGrowthGlobal();
         lastUpdateTime[tokenId] = block.timestamp;
@@ -145,7 +139,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     function _getReward(int24 tickLower, int24 tickUpper, uint256 tokenId, address owner) internal {
-        updateRewards(tokenId, tickLower, tickUpper);
+        _updateRewards(tokenId, tickLower, tickUpper);
 
         uint256 reward = rewards[tokenId];
 
@@ -226,6 +220,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 deadline
     ) external override nonReentrant returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
         require(_stakes[msg.sender].contains(tokenId), "NA");
+        require(voter.isAlive(address(this)), "GK");
 
         // NFT manager will send these tokens to the pool
         IERC20(token0).safeIncreaseAllowance(address(nft), amount0Desired);
@@ -235,7 +230,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         IERC20(token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
 
         (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
-        updateRewards(tokenId, tickLower, tickUpper);
+        _updateRewards(tokenId, tickLower, tickUpper);
 
         (liquidity, amount0, amount1) = nft.increaseLiquidity(
             INonfungiblePositionManager.IncreaseLiquidityParams({
@@ -272,7 +267,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
         (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
-        updateRewards(tokenId, tickLower, tickUpper);
+        _updateRewards(tokenId, tickLower, tickUpper);
 
         (amount0, amount1) = nft.decreaseLiquidity(
             INonfungiblePositionManager.DecreaseLiquidityParams({
@@ -343,8 +338,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             rewardRate = _amount / timeUntilNext;
             pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount, periodFinish: nextPeriodFinish});
         } else {
-            uint256 _remaining = periodFinish - timestamp;
-            uint256 _leftover = _remaining * rewardRate;
+            uint256 _leftover = timeUntilNext * rewardRate;
             rewardRate = (_amount + _leftover) / timeUntilNext;
             pool.syncReward({rewardRate: rewardRate, rewardReserve: _amount + _leftover, periodFinish: nextPeriodFinish});
         }
@@ -369,14 +363,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             uint256 _fees1 = fees1 + claimed1;
             address _token0 = token0;
             address _token1 = token1;
-            if (_fees0 > DURATION) {
+            if (_fees0 > VelodromeTimeLibrary.WEEK) {
                 fees0 = 0;
                 IERC20(_token0).safeIncreaseAllowance(feesVotingReward, _fees0);
                 IReward(feesVotingReward).notifyRewardAmount(_token0, _fees0);
             } else {
                 fees0 = _fees0;
             }
-            if (_fees1 > DURATION) {
+            if (_fees1 > VelodromeTimeLibrary.WEEK) {
                 fees1 = 0;
                 IERC20(_token1).safeIncreaseAllowance(feesVotingReward, _fees1);
                 IReward(feesVotingReward).notifyRewardAmount(_token1, _fees1);

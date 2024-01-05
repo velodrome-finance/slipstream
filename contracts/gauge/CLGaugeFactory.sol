@@ -32,7 +32,7 @@ contract CLGaugeFactory is ICLGaugeFactory {
 
     /// @inheritdoc ICLGaugeFactory
     function createGauge(
-        address _forwarder,
+        address, /* _forwarder */
         address _pool,
         address _feesVotingReward,
         address _rewardToken,
@@ -47,7 +47,6 @@ contract CLGaugeFactory is ICLGaugeFactory {
             salt: keccak256(abi.encode(token0, token1, tickSpacing))
         });
         ICLGauge(_gauge).initialize({
-            _forwarder: _forwarder,
             _pool: _pool,
             _feesVotingReward: _feesVotingReward,
             _rewardToken: _rewardToken,

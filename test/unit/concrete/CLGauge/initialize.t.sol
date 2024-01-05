@@ -17,7 +17,6 @@ contract InitializeTest is CLGaugeTest {
 
         vm.expectRevert(abi.encodePacked("AI"));
         CLGauge(gauge).initialize({
-            _forwarder: forwarder,
             _pool: pool,
             _feesVotingReward: feesVotingReward,
             _rewardToken: address(rewardToken),

@@ -24,15 +24,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
         });
         vm.expectRevert(abi.encodePacked("NV"));
         vm.startPrank(users.charlie);
-        CLGauge(
-            gaugeFactory.createGauge({
-                _forwarder: forwarder,
-                _pool: pool,
-                _feesVotingReward: address(feesVotingReward),
-                _rewardToken: address(rewardToken),
-                _isPool: true
-            })
-        );
+        CLGauge(gaugeFactory.createGauge(forwarder, pool, address(feesVotingReward), address(rewardToken), true));
     }
 
     function test_RevertIf_AlreadyCreated() public {
@@ -43,15 +35,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
         vm.expectRevert(abi.encodePacked("ERC1167: create2 failed"));
-        CLGauge(
-            gaugeFactory.createGauge({
-                _forwarder: forwarder,
-                _pool: pool,
-                _feesVotingReward: address(feesVotingReward),
-                _rewardToken: address(rewardToken),
-                _isPool: true
-            })
-        );
+        CLGauge(gaugeFactory.createGauge(forwarder, pool, address(feesVotingReward), address(rewardToken), true));
     }
 
     function test_CreateGauge() public {
@@ -64,7 +48,6 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
         CLGauge gauge = CLGauge(voter.gauges(pool));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 
-        assertEq(gauge.forwarder(), forwarder);
         assertEq(address(gauge.pool()), pool);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));

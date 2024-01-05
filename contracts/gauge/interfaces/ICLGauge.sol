@@ -21,9 +21,6 @@ interface ICLGauge {
     /// @notice Address of the CL pool linked to the gauge
     function pool() external view returns (ICLPool);
 
-    /// @notice Address of the forwarder
-    function forwarder() external view returns (address);
-
     /// @notice Address of the FeesVotingReward contract linked to the gauge
     function feesVotingReward() external view returns (address);
 
@@ -72,7 +69,6 @@ interface ICLGauge {
     function rewardGrowthInside(uint256 tokenId) external view returns (uint256);
 
     /// @notice Called on gauge creation by CLGaugeFactory
-    /// @param _forwarder The address of the forwarder contract
     /// @param _pool The address of the pool
     /// @param _feesVotingReward The address of the feesVotingReward contract
     /// @param _rewardToken The address of the reward token
@@ -83,7 +79,6 @@ interface ICLGauge {
     /// @param _tickSpacing The tick spacing of the pool
     /// @param _isPool Whether the attached pool is a real pool or not
     function initialize(
-        address _forwarder,
         address _pool,
         address _feesVotingReward,
         address _rewardToken,

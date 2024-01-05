@@ -76,7 +76,6 @@ contract CreatePoolTest is CLFactoryTest {
         address feesVotingReward = voter.gaugeToFees(address(gauge));
         assertEq(CLPool(pool).gauge(), address(gauge));
         assertEq(address(gauge.pool()), address(pool));
-        assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertTrue(gauge.isPool());
@@ -96,7 +95,6 @@ contract CreatePoolTest is CLFactoryTest {
         address feesVotingReward = voter.gaugeToFees(address(gauge));
         assertEq(CLPool(pool).gauge(), address(gauge));
         assertEq(address(gauge.pool()), address(pool));
-        assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertTrue(gauge.isPool());
@@ -116,7 +114,6 @@ contract CreatePoolTest is CLFactoryTest {
         address feesVotingReward = voter.gaugeToFees(address(gauge));
         assertEq(CLPool(pool).gauge(), address(gauge));
         assertEq(address(gauge.pool()), address(pool));
-        assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertTrue(gauge.isPool());
@@ -136,7 +133,6 @@ contract CreatePoolTest is CLFactoryTest {
         address feesVotingReward = voter.gaugeToFees(address(gauge));
         assertEq(CLPool(pool).gauge(), address(gauge));
         assertEq(address(gauge.pool()), address(pool));
-        assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertTrue(gauge.isPool());
@@ -156,7 +152,6 @@ contract CreatePoolTest is CLFactoryTest {
         address feesVotingReward = voter.gaugeToFees(address(gauge));
         assertEq(CLPool(pool).gauge(), address(gauge));
         assertEq(address(gauge.pool()), address(pool));
-        assertEq(gauge.forwarder(), forwarder);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertTrue(gauge.isPool());
