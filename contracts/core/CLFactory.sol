@@ -5,11 +5,14 @@ import "./interfaces/ICLFactory.sol";
 import "./interfaces/fees/IFeeModule.sol";
 import "./interfaces/IVoter.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "@nomad-xyz/src/ExcessivelySafeCall.sol";
 import "./CLPool.sol";
 
 /// @title Canonical CL factory
 /// @notice Deploys CL pools and manages ownership and control over pool protocol fees
 contract CLFactory is ICLFactory {
+    using ExcessivelySafeCall for address;
+
     /// @inheritdoc ICLFactory
     IVoter public immutable override voter;
     /// @inheritdoc ICLFactory
@@ -136,9 +139,14 @@ contract CLFactory is ICLFactory {
     /// @inheritdoc ICLFactory
     function getSwapFee(address pool) external view override returns (uint24) {
         if (swapFeeModule != address(0)) {
-            uint24 fee = IFeeModule(swapFeeModule).getFee(pool);
-            if (fee <= 100_000) {
-                return fee;
+            (bool success, bytes memory data) = swapFeeModule.excessivelySafeStaticCall(
+                200_000, 32, abi.encodeWithSelector(IFeeModule.getFee.selector, pool)
+            );
+            if (success) {
+                uint24 fee = abi.decode(data, (uint24));
+                if (fee <= 100_000) {
+                    return fee;
+                }
             }
         }
         return tickSpacingToFee[CLPool(pool).tickSpacing()];
@@ -150,9 +158,14 @@ contract CLFactory is ICLFactory {
             return 0;
         }
         if (unstakedFeeModule != address(0)) {
-            uint24 fee = IFeeModule(unstakedFeeModule).getFee(pool);
-            if (fee <= 1_000_000) {
-                return fee;
+            (bool success, bytes memory data) = unstakedFeeModule.excessivelySafeStaticCall(
+                200_000, 32, abi.encodeWithSelector(IFeeModule.getFee.selector, pool)
+            );
+            if (success) {
+                uint24 fee = abi.decode(data, (uint24));
+                if (fee <= 1_000_000) {
+                    return fee;
+                }
             }
         }
         // Default unstaked fee is 10%
