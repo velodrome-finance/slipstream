@@ -4,6 +4,8 @@ import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
 import "hardhat-preprocessor";
 import fs from "fs"
+import dotenv from 'dotenv'
+dotenv.config()
 
 function getRemappings() {
   return fs

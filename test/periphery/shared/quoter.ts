@@ -1,4 +1,4 @@
-import { Wallet } from 'ethers'
+import { Contract, Wallet } from 'ethers'
 import { MockTimeNonfungiblePositionManager } from '../../../typechain'
 import { FeeAmount, TICK_SPACINGS } from './constants'
 import { encodePriceSqrt } from './encodePriceSqrt'
@@ -150,4 +150,24 @@ export async function createPoolWithZeroTickInitialized(
   }
 
   return nft.mint(liquidityParams3)
+}
+
+/**
+ * Create V2 pairs for testing with IL routes
+ */
+export async function createPair(
+  v2Factory: Contract,
+  tokenAddressA: string,
+  tokenAddressB: string,
+  stable: boolean
+): Promise<string> {
+  // .createPair() sorts the tokens already
+  const receipt = await (
+    await v2Factory['createPool(address,address,bool)'](tokenAddressA, tokenAddressB, stable)
+  ).wait()
+  // we can extract the pair address from the emitted event
+  // always the 4th element:         emit PairCreated(token0, token1, stable, pair, allPairs.length);
+  const pairAddress = receipt.events[0].args[3]
+  if (!pairAddress) throw new Error('pairAddress not found in txn receipt')
+  return pairAddress
 }

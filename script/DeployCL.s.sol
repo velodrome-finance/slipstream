@@ -12,6 +12,8 @@ import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
+import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 
 contract DeployCL is Script {
     using stdJson for string;
@@ -29,6 +31,7 @@ contract DeployCL is Script {
     address public factoryRegistry;
     address public poolFactoryOwner;
     address public feeManager;
+    address public factoryV2;
 
     // deployed contracts
     CLPool public poolImplementation;
@@ -39,6 +42,8 @@ contract DeployCL is Script {
     CLGaugeFactory public gaugeFactory;
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
+    MixedRouteQuoterV1 public mixedQuoter;
+    QuoterV2 public quoter;
 
     function run() public {
         string memory root = vm.projectRoot();
@@ -52,6 +57,7 @@ contract DeployCL is Script {
         factoryRegistry = abi.decode(vm.parseJson(jsonConstants, ".FactoryRegistry"), (address));
         poolFactoryOwner = abi.decode(vm.parseJson(jsonConstants, ".poolFactoryOwner"), (address));
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
+        factoryV2 = abi.decode(vm.parseJson(jsonConstants, ".factoryV2"), (address));
 
         require(address(voter) != address(0)); // sanity check for constants file fillled out correctly
 
@@ -89,11 +95,14 @@ contract DeployCL is Script {
         poolFactory.setSwapFeeModule({_swapFeeModule: address(swapFeeModule)});
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
 
-        // transfer permissions
+        // transfer permissionsx
         nft.setOwner(team);
         poolFactory.setOwner(poolFactoryOwner);
         poolFactory.setSwapFeeManager(feeManager);
         poolFactory.setUnstakedFeeManager(feeManager);
+
+        mixedQuoter = new MixedRouteQuoterV1({_factory: address(poolFactory), _factoryV2: factoryV2, _WETH9: weth});
+        quoter = new QuoterV2({_factory: address(poolFactory), _WETH9: weth});
         vm.stopBroadcast();
 
         // write to file
@@ -107,6 +116,8 @@ contract DeployCL is Script {
         vm.writeJson(vm.serializeAddress("", "GaugeFactory", address(gaugeFactory)), path);
         vm.writeJson(vm.serializeAddress("", "SwapFeeModule", address(swapFeeModule)), path);
         vm.writeJson(vm.serializeAddress("", "UnstakedFeeModule", address(unstakedFeeModule)), path);
+        vm.writeJson(vm.serializeAddress("", "MixedQuoter", address(mixedQuoter)), path);
+        vm.writeJson(vm.serializeAddress("", "Quoter", address(quoter)), path);
     }
 
     function concat(string memory a, string memory b) internal pure returns (string memory) {

@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NonfungiblePositionManager #burn gas 1`] = `41284`;
+exports[`NonfungiblePositionManager #burn gas 1`] = `66054`;
 
-exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `115498`;
+exports[`NonfungiblePositionManager #collect gas transfers both 1`] = `135898`;
 
 exports[`NonfungiblePositionManager #collect gas transfers token0 only 1`] = `126638`;
 
 exports[`NonfungiblePositionManager #collect gas transfers token1 only 1`] = `126845`;
 
-exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`] = `103422`;
+exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`] = `170443`;
 
 exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `171207`;
 
@@ -30,8 +30,8 @@ exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] 
 
 exports[`NonfungiblePositionManager #positions gas 1`] = `19999`;
 
-exports[`NonfungiblePositionManager #transferFrom gas 1`] = `79196`;
+exports[`NonfungiblePositionManager #transferFrom gas 1`] = `109796`;
 
-exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `67602`;
+exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `108402`;
 
-exports[`NonfungiblePositionManager multicall exit gas 1`] = `157050`;
+exports[`NonfungiblePositionManager multicall exit gas 1`] = `251280`;

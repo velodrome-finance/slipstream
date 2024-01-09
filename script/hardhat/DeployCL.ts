@@ -10,6 +10,8 @@ import {
   CLGaugeFactory,
   CustomSwapFeeModule,
   CustomUnstakedFeeModule,
+  MixedRouteQuoterV1,
+  QuoterV2,
 } from '../../typechain'
 import jsonConstants from '../constants/Optimism.json'
 
@@ -75,6 +77,9 @@ async function main() {
   await poolFactory.setSwapFeeManager(jsonConstants.feeManager)
   await poolFactory.setUnstakedFeeManager(jsonConstants.feeManager)
 
+  const mixedQuoter = await deploy<MixedRouteQuoterV1>('MixedRouteQuoterV1', undefined, poolFactory.address, jsonConstants.factoryV2, jsonConstants.WETH)
+  const quoter = await deploy<QuoterV2>('QuoterV2', undefined, jsonConstants.factoryV2, jsonConstants.WETH)
+
   console.log(`Pool Implementation deployed to: ${poolImplementation.address}`)
   console.log(`Pool Factory deployed to: ${poolFactory.address}`)
   console.log(`NFT Position Descriptor deployed to: ${nftDescriptor.address}`)
@@ -83,6 +88,8 @@ async function main() {
   console.log(`Gauge Factory deployed to: ${gaugeFactory.address}`)
   console.log(`Swap Fee Module deployed to: ${swapFeeModule.address}`)
   console.log(`Unstaked Fee Module deployed to: ${unstakedFeeModule.address}`)
+  console.log(`Mixed Quoter deployed to: ${mixedQuoter.address}`)
+  console.log(`Quoter deployed to: ${quoter.address}`)
 }
 
 main().catch((error) => {

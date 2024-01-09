@@ -1,37 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SwapRouter gas tests #exactInput 0 -> 1 -> 2 1`] = `244622`;
+exports[`SwapRouter gas tests #exactInput 0 -> 1 -> 2 1`] = `244634`;
 
-exports[`SwapRouter gas tests #exactInput 0 -> 1 1`] = `153044`;
+exports[`SwapRouter gas tests #exactInput 0 -> 1 1`] = `153056`;
 
 exports[`SwapRouter gas tests #exactInput 0 -> 1 minimal 1`] = `140852`;
 
 exports[`SwapRouter gas tests #exactInput 0 -> WETH9 1`] = `173293`;
 
-exports[`SwapRouter gas tests #exactInput 2 trades (via router) 1`] = `251494`;
+exports[`SwapRouter gas tests #exactInput 2 trades (via router) 1`] = `261706`;
 
-exports[`SwapRouter gas tests #exactInput 3 trades (directly to sender) 1`] = `348073`;
+exports[`SwapRouter gas tests #exactInput 3 trades (directly to sender) 1`] = `358297`;
 
 exports[`SwapRouter gas tests #exactInput WETH9 -> 0 1`] = `151127`;
 
-exports[`SwapRouter gas tests #exactInputSingle 0 -> 1 1`] = `152494`;
+exports[`SwapRouter gas tests #exactInputSingle 0 -> 1 1`] = `152506`;
 
 exports[`SwapRouter gas tests #exactInputSingle 0 -> WETH9 1`] = `172737`;
 
 exports[`SwapRouter gas tests #exactInputSingle WETH9 -> 0 1`] = `150577`;
 
-exports[`SwapRouter gas tests #exactOutput 0 -> 1 -> 2 1`] = `241240`;
+exports[`SwapRouter gas tests #exactOutput 0 -> 1 -> 2 1`] = `241252`;
 
-exports[`SwapRouter gas tests #exactOutput 0 -> 1 1`] = `157058`;
+exports[`SwapRouter gas tests #exactOutput 0 -> 1 1`] = `157070`;
 
 exports[`SwapRouter gas tests #exactOutput 0 -> WETH9 1`] = `174521`;
 
 exports[`SwapRouter gas tests #exactOutput WETH9 -> 0 1`] = `165173`;
 
-exports[`SwapRouter gas tests #exactOutputSingle 0 -> 1 1`] = `157292`;
+exports[`SwapRouter gas tests #exactOutputSingle 0 -> 1 1`] = `157304`;
 
 exports[`SwapRouter gas tests #exactOutputSingle 0 -> WETH9 1`] = `174755`;
 
 exports[`SwapRouter gas tests #exactOutputSingle WETH9 -> 0 1`] = `159945`;
 
-exports[`SwapRouter gas tests 3 trades (directly to sender) 1`] = `241598`;
+exports[`SwapRouter gas tests 3 trades (directly to sender) 1`] = `251810`;
