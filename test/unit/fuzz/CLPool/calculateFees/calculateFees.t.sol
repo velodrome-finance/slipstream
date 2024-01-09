@@ -72,6 +72,14 @@ contract CalculateFeesFuzzTest is CLPoolTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit(tokenId);
 
+        // ensure liquidity did not deviate much from original amount
+        assertApproxEqAbs(liquidity1, pool.stakedLiquidity(), 1);
+        assertApproxEqAbs(liquidity2, pool.liquidity() - pool.stakedLiquidity(), 1);
+
+        // use pool's staked liquidity instead of original one
+        (,,,,,,, liquidity1,,,,) = nft.positions(tokenId);
+        (,,,,,,, liquidity2,,,,) = nft.positions(tokenId2);
+
         uint256 feeGrowthGlobal0X128;
         uint256 feeGrowthGlobal1X128;
 
@@ -103,6 +111,13 @@ contract CalculateFeesFuzzTest is CLPoolTest {
 
             nft.approve(address(gauge), tokenId);
             gauge.deposit(tokenId);
+
+            // ensure liquidity did not deviate much from original amount
+            assertApproxEqAbs(liquidity1, pool.stakedLiquidity(), 1);
+            assertApproxEqAbs(liquidity2, pool.liquidity() - pool.stakedLiquidity(), 1);
+            // use pool's staked liquidity instead of original one
+            (,,,,,,, liquidity1,,,,) = nft.positions(tokenId);
+            (,,,,,,, liquidity2,,,,) = nft.positions(tokenId2);
 
             uint256 token0FeeDuringSwapForTokenId = FullMath.mulDiv(9e15, liquidity1, (liquidity1 + liquidity2));
             uint256 token1FeeDuringSwapForTokenId = FullMath.mulDiv(3e15, liquidity1, (liquidity1 + liquidity2));
