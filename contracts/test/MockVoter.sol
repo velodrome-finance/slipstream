@@ -38,9 +38,9 @@ contract MockVoter is IVoter {
         emergencyCouncil = msg.sender;
     }
 
-    function claimFees(address[] memory _fees, address[][] memory _tokens, uint256 _tokenId) external override {}
+    function claimFees(address[] memory, address[][] memory, uint256) external override {}
 
-    function distribute(address[] memory _gauges) external override {
+    function distribute(address[] memory) external pure override {
         revert("Not implemented");
     }
 

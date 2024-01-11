@@ -216,14 +216,14 @@ contract CLMinter is ERC721Holder {
         rewardToken = _rewardToken;
     }
 
-    function uniswapV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata data) external {
+    function uniswapV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata) external {
         if (amount0Owed > 0) token0.transfer(address(pool), amount0Owed);
         if (amount1Owed > 0) token1.transfer(address(pool), amount1Owed);
     }
 
     function get_random_decrease_amount(uint128 _seed, uint128 _positionAmount)
         internal
-        view
+        pure
         returns (uint128 burnAmount)
     {
         burnAmount = _seed % _positionAmount;
@@ -338,7 +338,7 @@ contract CLMinter is ERC721Holder {
         uint256 token1;
     }
 
-    function getBalances() internal returns (Balances memory b) {
+    function getBalances() internal view returns (Balances memory b) {
         b.rewardToken = rewardToken.balanceOf(address(this));
         b.token0 = token0.balanceOf(address(this));
         b.token1 = token1.balanceOf(address(this));
@@ -548,7 +548,7 @@ contract CLSwapper {
         gauge = _gauge;
     }
 
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata) external {
         if (amount0Delta > 0) token0.transfer(address(pool), uint256(amount0Delta));
         if (amount1Delta > 0) token1.transfer(address(pool), uint256(amount1Delta));
     }

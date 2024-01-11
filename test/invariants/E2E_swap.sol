@@ -144,7 +144,7 @@ contract E2E_swap {
     // Invariants
     //
     //
-    function check_liquidityNet_invariant() internal {
+    function check_liquidityNet_invariant() internal view {
         int128 liquidityNet = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
             (, int128 tickLiquidityNet,,,,,,,,) = pool.ticks(usedTicks[i]);
@@ -157,7 +157,7 @@ contract E2E_swap {
         assert(liquidityNet == 0);
     }
 
-    function check_stakedLiquidityNet_invariant() internal {
+    function check_stakedLiquidityNet_invariant() internal view {
         int128 stakedLiquidityNet = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
             (,, int128 stakedTickLiquidityNet,,,,,,,) = pool.ticks(usedTicks[i]);
@@ -172,7 +172,7 @@ contract E2E_swap {
         assert(stakedLiquidityNet == 0);
     }
 
-    function check_liquidity_invariant() internal {
+    function check_liquidity_invariant() internal view {
         (, int24 currentTick,,,,) = pool.slot0();
         int128 liquidity = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
@@ -190,7 +190,7 @@ contract E2E_swap {
         assert(liquidity >= 0);
     }
 
-    function check_tick_feegrowth_invariant() internal {
+    function check_tick_feegrowth_invariant() internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         if (currentTick == poolParams.maxTick || currentTick == poolParams.minTick) return;
@@ -208,7 +208,7 @@ contract E2E_swap {
         assert(tB_feeGrowthOutside1X128 + tA_feeGrowthOutside1X128 <= pool.feeGrowthGlobal1X128());
     }
 
-    function check_tick_rewardgrowth_invariant() internal {
+    function check_tick_rewardgrowth_invariant() internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         if (currentTick == poolParams.maxTick || currentTick == poolParams.minTick) return;
@@ -243,7 +243,7 @@ contract E2E_swap {
         uint256 feegrowth_buy_bfre,
         uint256 feegrowth_buy_aftr,
         GaugeFeesBeforeAndAfter memory gfba
-    ) internal {
+    ) internal pure {
         // prop #17
         if (tick_bfre == tick_aftr) {
             assert(liq_bfre == liq_aftr);
@@ -265,7 +265,7 @@ contract E2E_swap {
         assert(gfba.gaugeFees_buy_bfre == gfba.gaugeFees_buy_aftr);
     }
 
-    function check_pool_staked_liquidity_invariant() internal {
+    function check_pool_staked_liquidity_invariant() internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         uint256 stakedLiquidity;
@@ -281,7 +281,7 @@ contract E2E_swap {
         assert(stakedLiquidity <= pool.liquidity());
     }
 
-    function check_gauge_balance_invariant(uint256 gaugeBalanceBefore, uint256 gaugeBalanceAfter) internal {
+    function check_gauge_balance_invariant(uint256 gaugeBalanceBefore, uint256 gaugeBalanceAfter) internal view {
         assert(gaugeBalanceAfter == gaugeBalanceBefore + EMISSION_REWARD);
     }
 
@@ -290,12 +290,12 @@ contract E2E_swap {
         uint256 rewardGrowthAfter,
         uint256 rewardReserveBefore,
         uint256 rewardReserveAfter
-    ) internal {
+    ) internal pure {
         assert(rewardGrowthBefore <= rewardGrowthAfter);
         assert(rewardReserveBefore >= rewardReserveAfter);
     }
 
-    function check_withdraw_invariant(CLMinter.StakingData memory sd) internal {
+    function check_withdraw_invariant(CLMinter.StakingData memory sd) internal pure {
         assert(sd.collectedToken0 == 0);
         assert(sd.collectedToken1 == 0);
         assert(sd.feeGrowthInside0LastX128Before <= sd.feeGrowthInside0LastX128After);
@@ -305,12 +305,12 @@ contract E2E_swap {
         assert(sd.tokensOwed1 == 0);
     }
 
-    function check_nft_collect_invariant(uint256 amount0, uint256 amount1) internal {
+    function check_nft_collect_invariant(uint256 amount0, uint256 amount1) internal pure {
         assert(amount0 == 0);
         assert(amount1 == 0);
     }
 
-    function check_deposit_invariant(CLMinter.StakingData memory sd) internal {
+    function check_deposit_invariant(CLMinter.StakingData memory sd) internal pure {
         assert(sd.collectedToken0 >= 0);
         assert(sd.collectedToken1 >= 0);
         assert(sd.feeGrowthInside0LastX128Before <= sd.feeGrowthInside0LastX128After);
@@ -320,7 +320,7 @@ contract E2E_swap {
         assert(sd.tokensOwed1 == 0);
     }
 
-    function check_increase_staked_liquidity_invariant(CLMinter.LiquidityManagementData memory lmd) internal {
+    function check_increase_staked_liquidity_invariant(CLMinter.LiquidityManagementData memory lmd) internal pure {
         assert(lmd.collectedReward >= 0);
         assert(lmd.token0Change == lmd.actualToken0Change);
         assert(lmd.token1Change == lmd.actualToken1Change);
@@ -331,7 +331,7 @@ contract E2E_swap {
         assert(lmd.liquidityBefore < lmd.liquidityAfter);
     }
 
-    function check_decrease_staked_liquidity_invariant(CLMinter.LiquidityManagementData memory lmd) internal {
+    function check_decrease_staked_liquidity_invariant(CLMinter.LiquidityManagementData memory lmd) internal pure {
         assert(lmd.collectedReward >= 0);
         assert(lmd.token0Change == lmd.actualToken0Change);
         assert(lmd.token1Change == lmd.actualToken1Change);
@@ -342,7 +342,7 @@ contract E2E_swap {
         assert(lmd.liquidityBefore > lmd.liquidityAfter);
     }
 
-    function check_total_claimed_and_distributed_invariant() internal {
+    function check_total_claimed_and_distributed_invariant() internal view {
         assert(totalClaimed <= totalDistributed);
     }
 
@@ -365,7 +365,7 @@ contract E2E_swap {
     // Setup functions
     //
     //
-    function forgePoolParams(uint128 _seed) internal view returns (PoolParams memory _poolParams) {
+    function forgePoolParams(uint128 _seed) internal pure returns (PoolParams memory _poolParams) {
         //
         // decide on one of the three fees, and corresponding tickSpacing
         //

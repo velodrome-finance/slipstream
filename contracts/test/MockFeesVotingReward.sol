@@ -15,9 +15,9 @@ contract MockFeesVotingReward is IReward {
         emit NotifyReward(msg.sender, token, amount);
     }
 
-    function earned(address token, uint256 tokenId) external view override returns (uint256) {
+    function earned(address, uint256) external pure override returns (uint256) {
         return 0;
     }
 
-    function getReward(uint256 tokenId, address[] memory tokens) external override {}
+    function getReward(uint256, address[] memory) external pure override {}
 }

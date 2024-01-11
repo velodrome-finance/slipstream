@@ -66,13 +66,13 @@ contract E2E_mint_burn {
     //
     function _getRandomPositionIdx(uint128 _seed, uint256 _positionsCount)
         internal
-        view
+        pure
         returns (uint128 positionIdx)
     {
         positionIdx = _seed % uint128(_positionsCount);
     }
 
-    function _getRandomBurnAmount(uint128 _seed, uint128 _positionAmount) internal view returns (uint128 burnAmount) {
+    function _getRandomBurnAmount(uint128 _seed, uint128 _positionAmount) internal pure returns (uint128 burnAmount) {
         burnAmount = _seed % _positionAmount;
         require(burnAmount < _positionAmount);
         require(burnAmount > 0);
@@ -108,7 +108,7 @@ contract E2E_mint_burn {
     // use the _amount as _seed to create a random but valid position
     function forgePosition(uint128 _seed, int24 _poolTickSpacing, uint24 _poolTickCount, int24 _poolMaxTick)
         internal
-        view
+        pure
         returns (int24 tickLower, int24 tickUpper)
     {
         int24 randomTick1 = int24((_seed % uint128(_poolTickCount)) * uint128(_poolTickSpacing));
@@ -146,7 +146,7 @@ contract E2E_mint_burn {
     // Invariants
     //
     //
-    function check_liquidityNet_invariant() internal {
+    function check_liquidityNet_invariant() internal view {
         int128 liquidityNet = 0;
         for (uint256 i = 0; i < usedTicks.length; i++) {
             (, int128 tickLiquidityNet,,,,,,,,) = pool.ticks(usedTicks[i]);
@@ -159,7 +159,7 @@ contract E2E_mint_burn {
         assert(liquidityNet == 0);
     }
 
-    function check_liquidity_invariant() internal {
+    function check_liquidity_invariant() internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         int128 liquidity = 0;
@@ -180,7 +180,7 @@ contract E2E_mint_burn {
         assert(liquidity >= 0);
     }
 
-    function check_tick_feegrowth_invariant() internal {
+    function check_tick_feegrowth_invariant() internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         if (currentTick == poolParams.maxTick || currentTick == poolParams.minTick) return;
@@ -203,7 +203,7 @@ contract E2E_mint_burn {
         int24 _tickUpper,
         CLMinter.MinterStats memory bfre,
         CLMinter.MinterStats memory aftr
-    ) internal {
+    ) internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         // prop #1
@@ -233,7 +233,7 @@ contract E2E_mint_burn {
         uint128 _newPosAmount,
         CLMinter.MinterStats memory bfre,
         CLMinter.MinterStats memory aftr
-    ) internal {
+    ) internal view {
         (, int24 currentTick,,,,) = pool.slot0();
 
         if (_burnAmount > 0) {
@@ -272,13 +272,13 @@ contract E2E_mint_burn {
     // Helper to reconstruct the "random" init setup of the pool
     //
     //
-    function viewInitRandomPoolParams(uint128 _seed) public view returns (PoolParams memory _poolParams) {
+    function viewInitRandomPoolParams(uint128 _seed) public pure returns (PoolParams memory _poolParams) {
         _poolParams = forgePoolParams(_seed);
     }
 
     function viewMintRandomNewPosition(uint128 _seed, int24 _poolTickSpacing, uint24 _poolTickCount, int24 _poolMaxTick)
         public
-        view
+        pure
         returns (int24 tickLower, int24 tickUpper, uint128 amount)
     {
         (tickLower, tickUpper) = forgePosition(_seed, _poolTickSpacing, _poolTickCount, _poolMaxTick);
@@ -287,7 +287,7 @@ contract E2E_mint_burn {
 
     function viewBurnRandomPositionIdx(uint128 _seed, uint128 _positionsCount)
         public
-        view
+        pure
         returns (uint128 positionIdx)
     {
         positionIdx = _getRandomPositionIdx(_seed, _positionsCount);
@@ -295,7 +295,7 @@ contract E2E_mint_burn {
 
     function viewBurnRandomPositionBurnAmount(uint128 _seed, uint128 _positionAmount)
         public
-        view
+        pure
         returns (uint128 burnAmount)
     {
         burnAmount = _getRandomBurnAmount(_seed, _positionAmount);
@@ -306,7 +306,7 @@ contract E2E_mint_burn {
     // Setup functions
     //
     //
-    function forgePoolParams(uint128 _seed) internal view returns (PoolParams memory _poolParams) {
+    function forgePoolParams(uint128 _seed) internal pure returns (PoolParams memory _poolParams) {
         //
         // decide on one of the three fees, and corresponding tickSpacing
         //
