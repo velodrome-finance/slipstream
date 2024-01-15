@@ -202,7 +202,7 @@ contract GetRewardTest is CLGaugeTest {
 
         gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
-        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e5);
+        assertLe(gaugeRewardTokenBalance, 1e5);
     }
 
     function test_GetRewardWithMultipleDepositorsAndEarlyWithdrawal() public {
@@ -249,7 +249,7 @@ contract GetRewardTest is CLGaugeTest {
 
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
-        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e5);
+        assertLe(gaugeRewardTokenBalance, 1e5);
     }
 
     function test_GetRewardWithStaggeredDepositsAndWithdrawals() public {
@@ -432,7 +432,7 @@ contract GetRewardTest is CLGaugeTest {
 
         uint256 gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
-        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
+        assertLe(gaugeRewardTokenBalance, 1e6);
     }
 
     function test_GetRewardWithNonOverlappingRewards() public {
@@ -500,6 +500,6 @@ contract GetRewardTest is CLGaugeTest {
 
         gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
-        assertApproxEqAbs(gaugeRewardTokenBalance, 0, 1e6);
+        assertLe(gaugeRewardTokenBalance, 1e6);
     }
 }

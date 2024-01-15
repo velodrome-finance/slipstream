@@ -195,7 +195,7 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         gauge.getReward(tokenId);
 
         assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward * 3, 1e6);
-        assertApproxEqAbs(rewardToken.balanceOf(address(gauge)), 0, 1e6);
+        assertLe(rewardToken.balanceOf(address(gauge)), 1e6);
     }
 
     function test_NotifyRewardWithoutClaimBeforeNotifyRewardAmountWithRewardRollover() public {
@@ -239,6 +239,6 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         gauge.getReward(tokenId);
 
         assertApproxEqAbs(rewardToken.balanceOf(users.alice), reward * 3, 1e6);
-        assertApproxEqAbs(rewardToken.balanceOf(address(gauge)), 0, 1e6);
+        assertLe(rewardToken.balanceOf(address(gauge)), 1e6);
     }
 }
