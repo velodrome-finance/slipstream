@@ -33,6 +33,13 @@ contract GetRewardTest is CLGaugeTest {
         skipToNextEpoch(0);
     }
 
+    function labelContracts() internal override {
+        super.labelContracts();
+
+        vm.label({account: address(pool), newLabel: "Pool"});
+        vm.label({account: address(gauge), newLabel: "Gauge"});
+    }
+
     function test_RevertIf_CallerIsNotOwner() public {
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
@@ -501,5 +508,76 @@ contract GetRewardTest is CLGaugeTest {
         gaugeRewardTokenBalance = rewardToken.balanceOf(address(gauge));
         // gauge should have 0 rewards left (not counting dust)
         assertLe(gaugeRewardTokenBalance, 1e6);
+    }
+
+    function test_RevertIf_CallerIsNotVoter() public {
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        vm.startPrank(users.charlie);
+        vm.expectRevert(abi.encodePacked("NV"));
+        gauge.getReward(users.alice);
+    }
+
+    function test_GetRewardAsVoterWithSingleDeposit() public {
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(2 days);
+
+        vm.startPrank(users.alice);
+
+        address[] memory gauges = new address[](1);
+        gauges[0] = address(gauge);
+
+        vm.expectEmit(true, true, false, true, address(gauge));
+        emit ClaimRewards(users.alice, 285714285714259199);
+        voter.claimRewards(gauges);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        // alice should have 2 days worth of rewards
+        assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 777600);
+    }
+
+    function test_GetRewardAsVoterWithMultipleDeposits() public {
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+        uint256 tokenId2 = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit(tokenId);
+        nft.approve(address(gauge), tokenId2);
+        gauge.deposit(tokenId2);
+
+        uint256 reward = TOKEN_1;
+        addRewardToGauge(address(voter), address(gauge), reward);
+
+        skip(2 days);
+
+        vm.startPrank(users.alice);
+
+        address[] memory gauges = new address[](1);
+        gauges[0] = address(gauge);
+
+        vm.expectEmit(true, true, false, true, address(gauge));
+        emit ClaimRewards(users.alice, 142857142857129599);
+        emit ClaimRewards(users.alice, 142857142857129599);
+        voter.claimRewards(gauges);
+
+        uint256 aliceRewardBalance = rewardToken.balanceOf(users.alice);
+        // alice should have 2 days worth of rewards
+        assertApproxEqAbs(aliceRewardBalance, reward / 7 * 2, 1e5);
+        assertEq(gauge.rewards(tokenId), 0);
+        assertEq(gauge.lastUpdateTime(tokenId), 777600);
+        assertEq(gauge.rewards(tokenId2), 0);
+        assertEq(gauge.lastUpdateTime(tokenId2), 777600);
     }
 }

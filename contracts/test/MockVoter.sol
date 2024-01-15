@@ -78,4 +78,11 @@ contract MockVoter is IVoter {
     }
 
     function vote(uint256 _tokenId, address[] calldata _poolVote, uint256[] calldata _weights) external override {}
+
+    function claimRewards(address[] memory _gauges) external override {
+        uint256 _length = _gauges.length;
+        for (uint256 i = 0; i < _length; i++) {
+            ICLGauge(_gauges[i]).getReward(msg.sender);
+        }
+    }
 }

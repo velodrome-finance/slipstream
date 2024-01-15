@@ -98,6 +98,11 @@ interface ICLGauge {
     /// @return The amount of claimable reward
     function earned(address account, uint256 tokenId) external view returns (uint256);
 
+    /// @notice Retrieve rewards for all tokens owned by an account
+    /// @dev Throws if not called by the voter
+    /// @param account The account of the user
+    function getReward(address account) external;
+
     /// @notice Retrieve rewards for a tokenId
     /// @dev Throws if not called by the position owner
     /// @param tokenId The tokenId of the position

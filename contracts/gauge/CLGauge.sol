@@ -131,6 +131,22 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     /// @inheritdoc ICLGauge
+    function getReward(address account) external override nonReentrant {
+        require(msg.sender == address(voter), "NV");
+
+        uint256[] memory tokenIds = _stakes[account].values();
+        uint256 length = tokenIds.length;
+        uint256 tokenId;
+        int24 tickLower;
+        int24 tickUpper;
+        for (uint256 i = 0; i < length; i++) {
+            tokenId = tokenIds[i];
+            (,,,,, tickLower, tickUpper,,,,,) = nft.positions(tokenId);
+            _getReward(tickLower, tickUpper, tokenId, account);
+        }
+    }
+
+    /// @inheritdoc ICLGauge
     function getReward(uint256 tokenId) external override nonReentrant {
         require(_stakes[msg.sender].contains(tokenId), "NA");
 
