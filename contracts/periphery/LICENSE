@@ -7,16 +7,16 @@ License text copyright (c) 2017 MariaDB Corporation Ab, All Rights Reserved.
 
 Parameters
 
-Licensor:             Perpetual Cyclist Services LLC
+Licensor:             Uniswap Labs
 
-Licensed Work:        Velodrome Smart Contracts
-                      The Licensed Work is (c) 2023 Perpetual Cyclist Services LLC
+Licensed Work:        Uniswap V3 Core
+                      The Licensed Work is (c) 2021 Uniswap Labs
 
 Additional Use Grant: Any uses listed and defined at
-                      v2-license-grants.velodrome.eth
+                      v3-core-license-grants.uniswap.eth
 
-Change Date:          The earlier of 2026-01-01 or a date specified at
-                      slipstream-license-date.velodrome.eth
+Change Date:          The earlier of 2023-04-01 or a date specified at
+                      v3-core-license-date.uniswap.eth
 
 Change License:       GNU General Public License v2.0 or later
 
