@@ -1,6 +1,6 @@
 # CHANGELOG
 
-A list of high level changes made to the vanilla UniswapV3 Contracts to work with Velodrome Finance. For more details, see `SPECIFICATION.md``
+A list of high level changes made to the vanilla UniswapV3 Contracts to work with the Velodrome ecosystem. For more details, see `SPECIFICATION.md``
 
 The core concentrated liquidity contracts have been taken from v3-core at commit [d8b1c63](https://github.com/Uniswap/v3-core/commit/d8b1c635c275d2a9450bd6a78f3fa2484fef73eb). Core contracts can be found in `contracts/core`.
 The periphery contracts have been taken from v3-periphery at commit [6cce88e](https://github.com/Uniswap/v3-periphery/commit/6cce88e63e176af1ddb6cc56e029110289622317). Periphery contracts can be found in `contracts/periphery`.

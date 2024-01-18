@@ -1,9 +1,11 @@
-# Velodrome Concentrated Liquidity Contracts
+# Slipstream
 
-This repository contains the smart contracts for the Velodrome Concentrated Liquidity contracts. It contains
+This repository contains the smart contracts for the Slipstream Concentrated Liquidity contracts. It contains
 the core concentrated liquidity contracts, adapted from UniswapV3's core contracts. It contains the higher level
 periphery contracts, adapted from UniswapV3's periphery contracts. It also contains gauges designed to operate
 within the Velodrome ecosystem.  
+
+See `SPECIFICATION.md` and `CHANGELOG.md` for more information. 
 
 ## Installation
 

@@ -1,4 +1,4 @@
-# Velodrome Finance Concentrated Liquidity Specification
+# Slipstream Specification
 
 Concentrated liquidity pool and associated contracts adapted from UniswapV3's concentrated
 liquidity implementation to work within the Velodrome ecosystem. 
@@ -64,7 +64,7 @@ The tick spacing / fee combinations are listed as follows:
 
 ### Gauges
 
-The concentrated liquidity pools that are created will be incentivizable like any other pool on Velodrome.
+The concentrated liquidity pools that are created will be incentivizable like any other pool in the Velodrome ecosystem.
 Gauge rewards are distributed over time and only in the active tick. Distributing over time is similar to V2
 and encourages persistent liquidity. Incentivizing only the active tick means we maximize capital efficiency 
 by only rewarding useful liquidity. 
