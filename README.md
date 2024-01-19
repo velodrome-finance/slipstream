@@ -35,3 +35,6 @@ As this repository depends on the UniswapV3 `v3-core` and `v3-periphery` reposit
 licenses (as indicated in their SPDX headers).
 
 Files in the `contracts/gauge` folder are licensed under the Business Source License 1.1 (`BUSL-1.1`).
+
+## Bug Bounty
+Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bounty/velodromefinance/)).
