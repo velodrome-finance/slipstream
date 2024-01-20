@@ -100,6 +100,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
 
         // set nftmanager in the factories
         gaugeFactory.setNonfungiblePositionManager(address(nft));
+        gaugeFactory.setNotifyAdmin(users.owner);
         poolFactory.setNonfungiblePositionManager(address(nft));
         vm.stopPrank();
 

@@ -59,8 +59,8 @@ contract NotifyRewardAmountWithoutClaimForkTest is BaseForkFixture {
 
         skipToNextEpoch(0);
 
-        vm.startPrank(escrow.team());
-        deal(address(rewardToken), escrow.team(), 604_800);
+        vm.startPrank(users.owner);
+        deal(address(rewardToken), users.owner, 604_800);
         rewardToken.approve(address(gauge), 604_800);
         gauge.notifyRewardWithoutClaim(604_800); // requires minimum value of 604800
 

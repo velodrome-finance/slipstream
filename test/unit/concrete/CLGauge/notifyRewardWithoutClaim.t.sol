@@ -27,9 +27,9 @@ contract NotifyRewardWithoutClaimTest is CLGaugeTest {
         skipToNextEpoch(0);
     }
 
-    function test_RevertIf_NotTeam() public {
+    function test_RevertIf_NotNotifyAdmin() public {
         vm.startPrank(users.charlie);
-        vm.expectRevert(abi.encodePacked("NT"));
+        vm.expectRevert(abi.encodePacked("NA"));
         gauge.notifyRewardWithoutClaim(TOKEN_1);
     }
 

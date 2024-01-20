@@ -13,12 +13,23 @@ contract CLGaugeFactory is ICLGaugeFactory {
     address public immutable override implementation;
     /// @inheritdoc ICLGaugeFactory
     address public override nft;
+    /// @inheritdoc ICLGaugeFactory
+    address public override notifyAdmin;
     address private owner;
 
     constructor(address _voter, address _implementation) {
         voter = _voter;
         owner = msg.sender;
+        notifyAdmin = msg.sender;
         implementation = _implementation;
+    }
+
+    /// @inheritdoc ICLGaugeFactory
+    function setNotifyAdmin(address _admin) external override {
+        require(notifyAdmin == msg.sender, "NA");
+        require(_admin != address(0), "ZA");
+        notifyAdmin = _admin;
+        emit SetNotifyAdmin(_admin);
     }
 
     /// @inheritdoc ICLGaugeFactory

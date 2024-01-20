@@ -31,6 +31,7 @@ contract DeployCL is Script {
     address public factoryRegistry;
     address public poolFactoryOwner;
     address public feeManager;
+    address public notifyAdmin;
     address public factoryV2;
 
     // deployed contracts
@@ -57,6 +58,7 @@ contract DeployCL is Script {
         factoryRegistry = abi.decode(vm.parseJson(jsonConstants, ".FactoryRegistry"), (address));
         poolFactoryOwner = abi.decode(vm.parseJson(jsonConstants, ".poolFactoryOwner"), (address));
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
+        notifyAdmin = abi.decode(vm.parseJson(jsonConstants, ".notifyAdmin"), (address));
         factoryV2 = abi.decode(vm.parseJson(jsonConstants, ".factoryV2"), (address));
 
         require(address(voter) != address(0)); // sanity check for constants file fillled out correctly
@@ -87,6 +89,7 @@ contract DeployCL is Script {
 
         // set nft manager in the factories
         gaugeFactory.setNonfungiblePositionManager(address(nft));
+        gaugeFactory.setNotifyAdmin(notifyAdmin);
         poolFactory.setNonfungiblePositionManager(address(nft));
 
         // deploy fee modules

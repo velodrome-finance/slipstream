@@ -31,6 +31,7 @@ contract DeployCLTest is Test {
     address public factoryRegistry;
     address public poolFactoryOwner;
     address public feeManager;
+    address public notifyAdmin;
 
     // deployed contracts
     CLPool public poolImplementation;
@@ -56,6 +57,7 @@ contract DeployCLTest is Test {
         factoryRegistry = abi.decode(vm.parseJson(jsonConstants, ".FactoryRegistry"), (address));
         poolFactoryOwner = abi.decode(vm.parseJson(jsonConstants, ".poolFactoryOwner"), (address));
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
+        notifyAdmin = abi.decode(vm.parseJson(jsonConstants, ".notifyAdmin"), (address));
 
         deal(address(deployerAddress), 10 ether);
     }
@@ -105,6 +107,7 @@ contract DeployCLTest is Test {
         assertEq(gaugeFactory.voter(), voter);
         assertEq(gaugeFactory.implementation(), address(gaugeImplementation));
         assertEq(gaugeFactory.nft(), address(nft));
+        assertEq(gaugeFactory.notifyAdmin(), notifyAdmin);
 
         assertTrue(address(swapFeeModule) != address(0));
         assertEq(swapFeeModule.MAX_FEE(), 30_000); // 3%, using pip denomination

@@ -51,6 +51,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
         assertEq(address(gauge.pool()), pool);
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
+        assertEq(address(gauge.gaugeFactory()), address(gaugeFactory));
         assertEq(gauge.isPool(), true);
     }
 }
