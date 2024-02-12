@@ -7,17 +7,15 @@ import "contracts/core/libraries/SafeCast.sol";
 import "contracts/core/libraries/TickMath.sol";
 import "contracts/core/libraries/TickBitmap.sol";
 import "contracts/core/interfaces/ICLPool.sol";
+import "contracts/core/interfaces/ICLFactory.sol";
 import "contracts/core/interfaces/callback/ICLSwapCallback.sol";
 import "contracts/core/interfaces/IPool.sol";
 import "contracts/core/interfaces/IPoolFactory.sol";
 import "contracts/periphery/libraries/Path.sol";
-import "contracts/periphery/libraries/PoolAddress.sol";
 import "contracts/periphery/libraries/CallbackValidation.sol";
 
 import "../interfaces/IMixedRouteQuoterV1.sol";
 import "../libraries/PoolTicksCounter.sol";
-
-import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /// @title Provides on chain quotes for V3, V2, and MixedRoute exact input swaps
 /// @notice Allows getting the expected amount out for a given swap without executing the swap
@@ -45,7 +43,7 @@ contract MixedRouteQuoterV1 is IMixedRouteQuoterV1, ICLSwapCallback, PeripheryIm
     }
 
     function getPool(address tokenA, address tokenB, int24 tickSpacing) private view returns (ICLPool) {
-        return ICLPool(PoolAddress.computeAddress(factory, PoolAddress.getPoolKey(tokenA, tokenB, tickSpacing)));
+        return ICLPool(ICLFactory(factory).getPool(tokenA, tokenB, tickSpacing));
     }
 
     /// @dev Given an amountIn, get the amountOut for the corresponding pool
@@ -55,11 +53,8 @@ contract MixedRouteQuoterV1 is IMixedRouteQuoterV1, ICLSwapCallback, PeripheryIm
         returns (uint256)
     {
         (address token0, address token1) = tokenIn < tokenOut ? (tokenIn, tokenOut) : (tokenOut, tokenIn);
-        address pool = Clones.predictDeterministicAddress({
-            master: IPoolFactory(factoryV2).implementation(),
-            salt: keccak256(abi.encodePacked(token0, token1, stable)),
-            deployer: factoryV2
-        });
+        address pool = IPoolFactory(factoryV2).getPool(token0, token1, stable);
+        if (pool == address(0)) return 0;
         return IPool(pool).getAmountOut(amountIn, tokenIn);
     }
 
@@ -133,6 +128,7 @@ contract MixedRouteQuoterV1 is IMixedRouteQuoterV1, ICLSwapCallback, PeripheryIm
     {
         bool zeroForOne = params.tokenIn < params.tokenOut;
         ICLPool pool = getPool(params.tokenIn, params.tokenOut, params.tickSpacing);
+        if (address(pool) == address(0)) return (0, 0, 0, 0);
 
         uint256 gasBefore = gasleft();
         try pool.swap(
@@ -159,8 +155,10 @@ contract MixedRouteQuoterV1 is IMixedRouteQuoterV1, ICLSwapCallback, PeripheryIm
         amountOut = getPairAmountOut(params.amountIn, params.tokenIn, params.tokenOut, params.stable);
     }
 
+    /// @notice To encode a volatile V2 pair within the path, use 0x400000 (hex value of 4194304) for the fee between the two token addresses
+    /// @notice To encode a stable V2 pair within the path, use 0x200000 (hex value of 2097152) for the fee between the two token addresses
     /// @dev Get the quote for an exactIn swap between an array of V2 and/or V3 pools
-    /// @notice To encode a V2 pair within the path, use 0x800000 (hex value of 8388608) for the fee between the two token addresses
+    /// @dev If the pool does not exist, will quietly return 0 values
     function quoteExactInput(bytes memory path, uint256 amountIn)
         public
         override
