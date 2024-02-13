@@ -40,6 +40,7 @@ describe('PairFlash test', () => {
       amount0Min: 0,
       amount1Min: 0,
       deadline: 1,
+      sqrtPriceX96: 0,
     }
 
     return nft.mint(liquidityParams)

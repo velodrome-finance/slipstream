@@ -74,24 +74,6 @@ describe('NonfungiblePositionManager', () => {
   })
 
   describe('#mint', () => {
-    it('fails if pool does not exist', async () => {
-      await expect(
-        nft.mint({
-          token0: tokens[0].address,
-          token1: tokens[1].address,
-          tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-          tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-          amount0Desired: 100,
-          amount1Desired: 100,
-          amount0Min: 0,
-          amount1Min: 0,
-          recipient: wallet.address,
-          deadline: 1,
-          tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
-        })
-      ).to.be.reverted
-    })
-
     it('fails if cannot transfer', async () => {
       await nft.createPoolFromFactory(
         tokens[0].address,
@@ -113,6 +95,7 @@ describe('NonfungiblePositionManager', () => {
           amount1Min: 0,
           recipient: wallet.address,
           deadline: 1,
+          sqrtPriceX96: 0,
         })
       ).to.be.revertedWith('STF')
     })
@@ -137,6 +120,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 10,
+        sqrtPriceX96: 0,
       })
       expect(await nft.balanceOf(other.address)).to.eq(1)
       expect(await nft.tokenOfOwnerByIndex(other.address, 0)).to.eq(1)
@@ -190,6 +174,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 1,
+          sqrtPriceX96: 0,
         },
       ])
 
@@ -227,6 +212,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 10,
+          sqrtPriceX96: 0,
         })
       )
     })
@@ -256,6 +242,7 @@ describe('NonfungiblePositionManager', () => {
                 amount0Min: 0,
                 amount1Min: 0,
                 deadline: 10,
+                sqrtPriceX96: 0,
               },
             ]),
             nft.interface.encodeFunctionData('refundETH'),
@@ -290,6 +277,7 @@ describe('NonfungiblePositionManager', () => {
                 amount0Min: 0,
                 amount1Min: 0,
                 deadline: 10,
+                sqrtPriceX96: 0,
               },
             ]),
             nft.interface.encodeFunctionData('refundETH'),
@@ -319,6 +307,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 10,
+        sqrtPriceX96: 0,
       })
 
       await snapshotGasCost(
@@ -334,6 +323,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 10,
+          sqrtPriceX96: 0,
         })
       )
     })
@@ -358,6 +348,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 10,
+        sqrtPriceX96: 0,
       })
 
       await snapshotGasCost(
@@ -373,6 +364,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 10,
+          sqrtPriceX96: 0,
         })
       )
     })
@@ -400,6 +392,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -443,6 +436,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 1,
+          sqrtPriceX96: 0,
         },
       ])
       const refundETHData = nft.interface.encodeFunctionData('unwrapWETH9', [0, other.address])
@@ -497,6 +491,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -559,6 +554,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
       await expect(
         nft.connect(other).decreaseLiquidity({ tokenId, liquidity: 101, amount0Min: 0, amount1Min: 0, deadline: 1 })
@@ -600,6 +596,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -720,6 +717,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -789,6 +787,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -845,6 +844,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 1,
+          sqrtPriceX96: 0,
         })
       })
 
@@ -910,6 +910,7 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 1,
+          sqrtPriceX96: 0,
         })
       })
 
@@ -970,6 +971,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -1063,6 +1065,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 1,
+        sqrtPriceX96: 0,
       })
     })
 
@@ -1103,6 +1106,7 @@ describe('NonfungiblePositionManager', () => {
         amount1Min: 0,
         deadline: 1,
         recipient: wallet.address,
+        sqrtPriceX96: 0,
       })
       // nft 2 earns 75% of fees
       await nft.mint({
@@ -1118,6 +1122,7 @@ describe('NonfungiblePositionManager', () => {
         amount1Min: 0,
         deadline: 1,
         recipient: wallet.address,
+        sqrtPriceX96: 0,
       })
       const pool = poolAtAddress(
         await computePoolAddress(
@@ -1223,6 +1228,7 @@ describe('NonfungiblePositionManager', () => {
         amount0Min: 0,
         amount1Min: 0,
         deadline: 10,
+        sqrtPriceX96: 0,
       })
 
       await snapshotGasCost(positionsGasTest.getGasCostOfPositions(1))

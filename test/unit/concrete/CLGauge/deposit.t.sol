@@ -40,7 +40,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
 
@@ -61,7 +62,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
 
@@ -102,7 +104,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
 
@@ -131,7 +134,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = nft.mint(params);
 
@@ -152,7 +156,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
@@ -197,7 +202,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
@@ -242,7 +248,8 @@ contract DepositTest is CLGaugeTest {
             amount1Desired: TOKEN_1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: 10
+            deadline: 10,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 

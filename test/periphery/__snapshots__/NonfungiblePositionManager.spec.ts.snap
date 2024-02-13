@@ -14,24 +14,24 @@ exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] 
 
 exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `195103`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `614649`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `614920`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `627053`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `627425`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `619828`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `620200`;
 
-exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `464150`;
+exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `464421`;
 
-exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `354701`;
+exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `354972`;
 
-exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64557`;
+exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64535`;
 
-exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] = `68444`;
+exports[`NonfungiblePositionManager #permit owned by verifying contract gas 1`] = `68422`;
 
-exports[`NonfungiblePositionManager #positions gas 1`] = `19999`;
+exports[`NonfungiblePositionManager #positions gas 1`] = `19977`;
 
 exports[`NonfungiblePositionManager #transferFrom gas 1`] = `109796`;
 
 exports[`NonfungiblePositionManager #transferFrom gas comes from approved 1`] = `108402`;
 
-exports[`NonfungiblePositionManager multicall exit gas 1`] = `251280`;
+exports[`NonfungiblePositionManager multicall exit gas 1`] = `251368`;

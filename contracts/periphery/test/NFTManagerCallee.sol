@@ -40,7 +40,8 @@ contract NFTManagerCallee {
             amount1Desired: amount1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp
+            deadline: block.timestamp,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = INonfungiblePositionManager(nft).mint(params);
         return tokenId;
@@ -76,7 +77,8 @@ contract NFTManagerCallee {
             amount1Desired: amount1,
             amount0Min: 0,
             amount1Min: 0,
-            deadline: block.timestamp
+            deadline: block.timestamp,
+            sqrtPriceX96: 0
         });
         (uint256 tokenId,,,) = INonfungiblePositionManager(nft).mint(params);
         return tokenId;

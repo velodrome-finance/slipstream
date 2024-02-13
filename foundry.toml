@@ -4,7 +4,6 @@ test = "test"
 out = "out"
 libs = ["lib"]
 solc_version = "0.7.6"
-evm_version = "istanbul"
 
 fs_permissions = [{ access = "read-write", path = "./"}]
 

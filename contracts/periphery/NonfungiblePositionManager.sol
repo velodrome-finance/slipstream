@@ -157,6 +157,14 @@ contract NonfungiblePositionManager is
         checkDeadline(params.deadline)
         returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1)
     {
+        if (params.sqrtPriceX96 != 0) {
+            ICLFactory(factory).createPool({
+                tokenA: params.token0,
+                tokenB: params.token1,
+                tickSpacing: params.tickSpacing,
+                sqrtPriceX96: params.sqrtPriceX96
+            });
+        }
         PoolAddress.PoolKey memory poolKey =
             PoolAddress.PoolKey({token0: params.token0, token1: params.token1, tickSpacing: params.tickSpacing});
 
