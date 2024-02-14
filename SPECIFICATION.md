@@ -135,7 +135,7 @@ The UniswapV3Factory supports an unstaked liquidity fee module, with pools fetch
 LPers dynamically from this module. The factory will ship with a custom fee module similar to that used for the 
 pool fee module described above. 
 
-The custom unstaked liquidity fee module will have a default fee of 10% and a maximum fee of 20%. Fees are set 
+The custom unstaked liquidity fee module will have a default fee of 10% and a maximum fee of 50%. Fees are set 
 using pips instead of bips. This is consistent with UniswapV3 but not consistent with Velodrome's existing fee mechanisms.
 The default fee will be settable.
 

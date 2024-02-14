@@ -26,7 +26,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         });
 
         vm.expectRevert();
-        customUnstakedFeeModule.setCustomFee({pool: pool, fee: 200_001});
+        customUnstakedFeeModule.setCustomFee({pool: pool, fee: 500_001});
     }
 
     function test_RevertIf_NotPool() public {

@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import "../../../../BaseFixture.sol";
 
-contract CustomUnstakedFeeModuleTest is BaseFixture {
+abstract contract CustomUnstakedFeeModuleTest is BaseFixture {
     function setUp() public virtual override {
         super.setUp();
         customUnstakedFeeModule = new CustomUnstakedFeeModule({_factory: address(poolFactory)});
@@ -15,7 +15,7 @@ contract CustomUnstakedFeeModuleTest is BaseFixture {
     }
 
     function test_InitialState() public {
-        assertEq(customUnstakedFeeModule.MAX_FEE(), 200_000);
+        assertEq(customUnstakedFeeModule.MAX_FEE(), 500_000);
         assertEq(address(customUnstakedFeeModule.factory()), address(poolFactory));
     }
 }

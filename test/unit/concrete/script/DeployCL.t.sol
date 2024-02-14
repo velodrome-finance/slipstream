@@ -114,7 +114,7 @@ contract DeployCLTest is Test {
         assertEq(address(swapFeeModule.factory()), address(poolFactory));
 
         assertTrue(address(unstakedFeeModule) != address(0));
-        assertEq(unstakedFeeModule.MAX_FEE(), 200_000); // 20%, using pip denomination
+        assertEq(unstakedFeeModule.MAX_FEE(), 500_000); // 50%, using pip denomination
         assertEq(address(unstakedFeeModule.factory()), address(poolFactory));
     }
 
