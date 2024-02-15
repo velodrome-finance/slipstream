@@ -18,7 +18,7 @@ contract EarnedTest is CLGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.gauges(address(pool)));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.bob);
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 10});

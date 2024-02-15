@@ -25,7 +25,7 @@ contract WithdrawTest is CLGaugeTest {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        gauge = CLGauge(voter.gauges(address(pool)));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.alice);
     }

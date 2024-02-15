@@ -123,11 +123,6 @@ contract SetupCL {
         gaugeImplementation = new CLGauge();
         gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
 
-        poolFactory.setGaugeFactory({
-            _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation)
-        });
-
         // deploy nft manager
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
@@ -137,7 +132,6 @@ contract SetupCL {
 
         // set nft manager in the factories
         gaugeFactory.setNonfungiblePositionManager(address(nft));
-        poolFactory.setNonfungiblePositionManager(address(nft));
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),

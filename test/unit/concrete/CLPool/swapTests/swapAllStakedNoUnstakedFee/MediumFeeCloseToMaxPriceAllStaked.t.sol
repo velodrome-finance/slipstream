@@ -30,7 +30,7 @@ contract MediumFeeCloseToMaxPriceAllStakedTest is CLPoolSwapAllStakedNoUnstakeFe
             Position({tickLower: getMinTick(tickSpacing), tickUpper: getMaxTick(tickSpacing), liquidity: liquidity})
         );
 
-        gauge = CLGauge(voter.gauges(pool));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.stopPrank();
 

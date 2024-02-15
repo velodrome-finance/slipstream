@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "./IVoter.sol";
+import {IVoter} from "contracts/core/interfaces/IVoter.sol";
+import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
 
 /// @title The interface for the CL Factory
 /// @notice The CL Factory facilitates creation of CL pools and control over the protocol fees
@@ -51,6 +52,10 @@ interface ICLFactory {
     /// @return The address of the pool implementation contract
     function poolImplementation() external view returns (address);
 
+    /// @notice Factory registry for valid pool / gauge / rewards factories
+    /// @return The address of the factory registry
+    function factoryRegistry() external view returns (IFactoryRegistry);
+
     /// @notice Returns the current owner of the factory
     /// @dev Can be changed by the current owner via setOwner
     /// @return The address of the factory owner
@@ -75,21 +80,6 @@ interface ICLFactory {
     /// @dev Can be changed by the current unstaked fee manager via setUnstakedFeeModule
     /// @return The address of the factory unstakedFeeModule
     function unstakedFeeModule() external view returns (address);
-
-    /// @notice Returns the nonfungible position manager that will manage positions for the pools
-    /// @dev Set once on deployment only
-    /// @return The address of the nonfungible position manager
-    function nft() external view returns (address);
-
-    /// @notice Returns the gauge factory creating gauges for pools created by this factory
-    /// @dev Set once on deployment only
-    /// @return The address of the gauge factory
-    function gaugeFactory() external view returns (address);
-
-    /// @notice The address of the gauge implementation contract used to deploy proxies / clones
-    /// @dev Set once on deployment only
-    /// @return The address of the gauge implementation contract
-    function gaugeImplementation() external view returns (address);
 
     /// @notice Returns a default fee for a tick spacing.
     /// @dev Use getFee for the most up to date fee for a given pool.
@@ -170,15 +160,4 @@ interface ICLFactory {
     /// @param tickSpacing The spacing between ticks to be enforced in the pool
     /// @param fee The default fee associated with a given tick spacing
     function enableTickSpacing(int24 tickSpacing, uint24 fee) external;
-
-    /// @notice Set gauge factory
-    /// @dev Callable once only on initialize
-    /// @param _gaugeFactory The gauge factory that creates gauges for the pools created by this factory
-    /// @param _gaugeImplementation The gauge implementation from which gauges will be created
-    function setGaugeFactory(address _gaugeFactory, address _gaugeImplementation) external;
-
-    /// @notice Set Nonfungible Position Manager
-    /// @dev Callable once only on initialize
-    /// @param _nft The nonfungible position manager that will manage positions for this Factory
-    function setNonfungiblePositionManager(address _nft) external;
 }

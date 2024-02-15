@@ -29,7 +29,7 @@ contract MediumFeeToken1LiquidityOnlyPartiallyStakedWithUnstakedFeeTest is
         stakedPositions.push(Position({tickLower: -2_000 * tickSpacing, tickUpper: 0, liquidity: liquidity / 2}));
         unstakedPositions.push(Position({tickLower: -2_000 * tickSpacing, tickUpper: 0, liquidity: liquidity / 2}));
 
-        gauge = CLGauge(voter.gauges(pool));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.stopPrank();
 

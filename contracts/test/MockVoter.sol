@@ -27,7 +27,7 @@ contract MockVoter is IVoter {
     mapping(address => address) public override gaugeToBribes;
 
     IERC20 internal immutable rewardToken;
-    IFactoryRegistry public immutable factoryRegistry;
+    IFactoryRegistry public immutable override factoryRegistry;
     IVotingEscrow public immutable override ve;
     address public immutable override emergencyCouncil;
 

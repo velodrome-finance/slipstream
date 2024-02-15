@@ -49,6 +49,9 @@ abstract contract PoolUtils is Test, Constants, Events {
         assertEq(pool.token0(), TEST_TOKEN_0);
         assertEq(pool.token1(), TEST_TOKEN_1);
         assertEq(pool.tickSpacing(), tickSpacing);
+        assertEq(pool.factoryRegistry(), address(factory.factoryRegistry()));
+        assertEq(pool.gauge(), address(0));
+        assertEq(pool.nft(), address(0));
         assertEq(uint256(_sqrtPriceX96), uint256(sqrtPriceX96));
 
         return address(pool);

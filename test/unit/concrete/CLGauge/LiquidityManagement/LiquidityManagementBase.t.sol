@@ -22,7 +22,7 @@ contract LiquidityManagementBase is CLGaugeTest {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        gauge = CLGauge(voter.gauges(address(pool)));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 100});
         deal({token: address(token1), to: users.bob, give: TOKEN_1 * 100});

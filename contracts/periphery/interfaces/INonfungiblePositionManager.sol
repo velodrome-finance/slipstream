@@ -90,12 +90,6 @@ interface INonfungiblePositionManager is
     /// @notice Returns the address of the Owner, that is allowed to set a new TokenDescriptor
     function owner() external view returns (address);
 
-    /// @notice Returns the address of the Gauge Factory, that handles the creation of Gauges
-    function gaugeFactory() external view returns (address);
-
-    /// @notice Returns the address of the Gauge Implementation, that is used by gauges
-    function gaugeImplementation() external view returns (address);
-
     struct MintParams {
         address token0;
         address token1;

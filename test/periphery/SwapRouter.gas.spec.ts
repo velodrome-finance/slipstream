@@ -239,16 +239,16 @@ describe('SwapRouter gas tests', function () {
     const slots = await Promise.all(
       pools.map((pool) =>
         Promise.all([
-          pool['gaugeFees()']().then((f) => f.token0.toString()),
-          pool['gaugeFees()']().then((f) => f.token1.toString()),
+          pool.feeGrowthGlobal0X128().then((f) => f.toString()),
+          pool.feeGrowthGlobal1X128().then((f) => f.toString()),
         ])
       )
     )
 
     expect(slots).to.deep.eq([
-      ['1', '1'],
-      ['1', '1'],
-      ['1', '1'],
+      ['340290874192793283295456993856614', '340290874192793283295456993856614'],
+      ['340290874192793283295456993856614', '340290874192793283295456993856614'],
+      ['340290874192793283295456993856614', '340290874192793283295456993856614'],
     ])
   })
 

@@ -12,18 +12,22 @@ interface ICLPoolActions {
     /// @param _token0 The first token of the pool by address sort order
     /// @param _token1 The second token of the pool by address sort order
     /// @param _tickSpacing The pool tick spacing
-    /// @param _gauge The address of the gauge corresponding to this pool
-    /// @param _nft The address of the nonfungible position manager corresponding to this pool
+    /// @param _factoryRegistry The address of the factory registry managing the pool factory
     /// @param _sqrtPriceX96 The initial sqrt price of the pool, as a Q64.96
     function initialize(
         address _factory,
         address _token0,
         address _token1,
         int24 _tickSpacing,
-        address _gauge,
-        address _nft,
+        address _factoryRegistry,
         uint160 _sqrtPriceX96
     ) external;
+
+    /// @notice Initialize gauge and nft manager
+    /// @dev Callable only once, by the gauge factory
+    /// @param _gauge The gauge corresponding to this pool
+    /// @param _nft The position manager used for position management
+    function setGaugeAndPositionManager(address _gauge, address _nft) external;
 
     /// @notice Adds liquidity for the given recipient/tickLower/tickUpper position
     /// @dev The caller of this method receives a callback in the form of ICLMintCallback#uniswapV3MintCallback

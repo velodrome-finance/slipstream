@@ -12,7 +12,6 @@ contract InitTest is CLPoolTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-        address gauge = voter.gauges(pool);
 
         vm.expectRevert();
         ICLPool(pool).initialize({
@@ -20,8 +19,7 @@ contract InitTest is CLPoolTest {
             _token0: TEST_TOKEN_0,
             _token1: TEST_TOKEN_1,
             _tickSpacing: TICK_SPACING_MEDIUM,
-            _gauge: gauge,
-            _nft: address(nft),
+            _factoryRegistry: address(factoryRegistry),
             _sqrtPriceX96: encodePriceSqrt(1, 1)
         });
     }

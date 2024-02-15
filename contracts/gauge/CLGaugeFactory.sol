@@ -53,10 +53,7 @@ contract CLGaugeFactory is ICLGaugeFactory {
         address token0 = ICLPool(_pool).token0();
         address token1 = ICLPool(_pool).token1();
         int24 tickSpacing = ICLPool(_pool).tickSpacing();
-        _gauge = Clones.cloneDeterministic({
-            master: implementation,
-            salt: keccak256(abi.encode(token0, token1, tickSpacing))
-        });
+        _gauge = Clones.clone({master: implementation});
         ICLGauge(_gauge).initialize({
             _pool: _pool,
             _feesVotingReward: _feesVotingReward,
@@ -68,5 +65,6 @@ contract CLGaugeFactory is ICLGaugeFactory {
             _tickSpacing: tickSpacing,
             _isPool: _isPool
         });
+        ICLPool(_pool).setGaugeAndPositionManager({_gauge: _gauge, _nft: nft});
     }
 }

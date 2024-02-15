@@ -31,6 +31,7 @@ import { TestCLCallee } from '../../typechain/TestCLCallee'
 import { TestCLReentrantCallee } from '../../typechain/TestCLReentrantCallee'
 import { TickMathTest } from '../../typechain/TickMathTest'
 import { SwapMathTest } from '../../typechain/SwapMathTest'
+import { MockFactoryRegistry } from '../../typechain'
 
 const createFixtureLoader = waffle.createFixtureLoader
 
@@ -44,7 +45,7 @@ describe('CLPool', () => {
   let token2: CoreTestERC20
 
   let nft: string
-  let gauge: string
+  let mockFactoryRegistry: MockFactoryRegistry
   let factory: CLFactory
   let pool: MockTimeCLPool
 
@@ -75,7 +76,15 @@ describe('CLPool', () => {
   })
 
   beforeEach('deploy fixture', async () => {
-    ;({ token0, token1, token2, factory, createPool, swapTargetCallee: swapTarget } = await loadFixture(poolFixture))
+    ;({
+      token0,
+      token1,
+      token2,
+      factory,
+      mockFactoryRegistry,
+      createPool,
+      swapTargetCallee: swapTarget,
+    } = await loadFixture(poolFixture))
 
     const oldCreatePool = createPool
     createPool = async (_feeAmount, _tickSpacing) => {
@@ -104,7 +113,6 @@ describe('CLPool', () => {
 
     // default to the 30 bips pool
     pool = await createPool(FeeAmount.MEDIUM, TICK_SPACINGS[FeeAmount.MEDIUM])
-    gauge = await pool.gauge()
     nft = await pool.nft()
   })
 
@@ -123,8 +131,7 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        gauge,
-        nft,
+        mockFactoryRegistry.address,
         encodePriceSqrt(1, 1)
       )
       await expect(
@@ -133,15 +140,21 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           encodePriceSqrt(1, 1)
         )
       ).to.be.reverted
     })
     it('fails if starting price is too low', async () => {
       await expect(
-        pool.initialize(factory.address, token0.address, token1.address, TICK_SPACINGS[FeeAmount.MEDIUM], gauge, nft, 1)
+        pool.initialize(
+          factory.address,
+          token0.address,
+          token1.address,
+          TICK_SPACINGS[FeeAmount.MEDIUM],
+          mockFactoryRegistry.address,
+          1
+        )
       ).to.be.revertedWith('R')
       await expect(
         pool.initialize(
@@ -149,8 +162,7 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           MIN_SQRT_RATIO.sub(1)
         )
       ).to.be.revertedWith('R')
@@ -162,8 +174,7 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           MAX_SQRT_RATIO
         )
       ).to.be.revertedWith('R')
@@ -173,8 +184,7 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           BigNumber.from(2).pow(160).sub(1)
         )
       ).to.be.revertedWith('R')
@@ -185,8 +195,7 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        gauge,
-        nft,
+        mockFactoryRegistry.address,
         MIN_SQRT_RATIO
       )
       expect((await pool.slot0()).tick).to.eq(getMinTick(1))
@@ -197,8 +206,7 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        gauge,
-        nft,
+        mockFactoryRegistry.address,
         MAX_SQRT_RATIO.sub(1)
       )
       expect((await pool.slot0()).tick).to.eq(getMaxTick(1) - 1)
@@ -210,8 +218,7 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        gauge,
-        nft,
+        mockFactoryRegistry.address,
         price
       )
 
@@ -226,8 +233,7 @@ describe('CLPool', () => {
         token0.address,
         token1.address,
         TICK_SPACINGS[FeeAmount.MEDIUM],
-        gauge,
-        nft,
+        mockFactoryRegistry.address,
         encodePriceSqrt(1, 1)
       )
 
@@ -247,8 +253,7 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           sqrtPriceX96
         )
       )
@@ -289,8 +294,7 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           encodePriceSqrt(1, 10)
         )
         await mint(wallet.address, minTick, maxTick, 3161)
@@ -1150,7 +1154,7 @@ describe('CLPool', () => {
     const p0 = (await sqrtTickMath.getSqrtRatioAtTick(-24081)).add(1)
     // initialize at a price of ~0.3 token1/token0
     // meaning if you swap in 2 token0, you should end up getting 0 token1
-    await pool.initialize(factory.address, token0.address, token1.address, 1, gauge, nft, p0)
+    await pool.initialize(factory.address, token0.address, token1.address, 1, mockFactoryRegistry.address, p0)
     expect(await pool.liquidity(), 'current pool liquidity is 1').to.eq(0)
     expect((await pool.slot0()).tick, 'pool tick is -24081').to.eq(-24081)
 
@@ -1312,8 +1316,7 @@ describe('CLPool', () => {
           token0.address,
           token1.address,
           TICK_SPACINGS[FeeAmount.MEDIUM],
-          gauge,
-          nft,
+          mockFactoryRegistry.address,
           encodePriceSqrt(1, 1)
         )
       })

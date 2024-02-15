@@ -82,10 +82,6 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         // deploy gauges and associated contracts
         gaugeImplementation = new CLGauge();
         gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
-        poolFactory.setGaugeFactory({
-            _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation)
-        });
 
         // deploy nft manager and descriptor
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
@@ -101,7 +97,6 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         // set nftmanager in the factories
         gaugeFactory.setNonfungiblePositionManager(address(nft));
         gaugeFactory.setNotifyAdmin(users.owner);
-        poolFactory.setNonfungiblePositionManager(address(nft));
         vm.stopPrank();
 
         // approve gauge in factory registry

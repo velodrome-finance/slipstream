@@ -4,6 +4,7 @@ pragma solidity =0.7.6;
 import "./interfaces/ICLFactory.sol";
 import "./interfaces/fees/IFeeModule.sol";
 import "./interfaces/IVoter.sol";
+import "./interfaces/IFactoryRegistry.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@nomad-xyz/src/ExcessivelySafeCall.sol";
 import "./CLPool.sol";
@@ -18,6 +19,8 @@ contract CLFactory is ICLFactory {
     /// @inheritdoc ICLFactory
     address public immutable override poolImplementation;
     /// @inheritdoc ICLFactory
+    IFactoryRegistry public immutable override factoryRegistry;
+    /// @inheritdoc ICLFactory
     address public override owner;
     /// @inheritdoc ICLFactory
     address public override swapFeeManager;
@@ -27,12 +30,6 @@ contract CLFactory is ICLFactory {
     address public override unstakedFeeManager;
     /// @inheritdoc ICLFactory
     address public override unstakedFeeModule;
-    /// @inheritdoc ICLFactory
-    address public override nft;
-    /// @inheritdoc ICLFactory
-    address public override gaugeFactory;
-    /// @inheritdoc ICLFactory
-    address public override gaugeImplementation;
     /// @inheritdoc ICLFactory
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc ICLFactory
@@ -47,6 +44,7 @@ contract CLFactory is ICLFactory {
         swapFeeManager = msg.sender;
         unstakedFeeManager = msg.sender;
         voter = IVoter(_voter);
+        factoryRegistry = IVoter(_voter).factoryRegistry();
         poolImplementation = _poolImplementation;
         emit OwnerChanged(address(0), msg.sender);
         emit SwapFeeManagerChanged(address(0), msg.sender);
@@ -70,24 +68,22 @@ contract CLFactory is ICLFactory {
         require(token0 != address(0));
         require(tickSpacingToFee[tickSpacing] != 0);
         require(getPool[token0][token1][tickSpacing] == address(0));
-        bytes32 _salt = keccak256(abi.encode(token0, token1, tickSpacing));
-        pool = Clones.cloneDeterministic({master: poolImplementation, salt: _salt});
-        address gauge =
-            Clones.predictDeterministicAddress({master: gaugeImplementation, salt: _salt, deployer: gaugeFactory});
+        pool = Clones.cloneDeterministic({
+            master: poolImplementation,
+            salt: keccak256(abi.encode(token0, token1, tickSpacing))
+        });
         CLPool(pool).initialize({
             _factory: address(this),
             _token0: token0,
             _token1: token1,
             _tickSpacing: tickSpacing,
-            _gauge: gauge,
-            _nft: nft,
+            _factoryRegistry: address(factoryRegistry),
             _sqrtPriceX96: sqrtPriceX96
         });
         _isPool[pool] = true;
         getPool[token0][token1][tickSpacing] = pool;
         // populate mapping in the reverse direction, deliberate choice to avoid the cost of comparing addresses
         getPool[token1][token0][tickSpacing] = pool;
-        voter.createGauge(address(this), pool);
         emit PoolCreated(token0, token1, tickSpacing, pool);
     }
 
@@ -154,7 +150,8 @@ contract CLFactory is ICLFactory {
 
     /// @inheritdoc ICLFactory
     function getUnstakedFee(address pool) external view override returns (uint24) {
-        if (!IVoter(voter).isAlive(ICLPool(pool).gauge())) {
+        address gauge = voter.gauges(pool);
+        if (!voter.isAlive(gauge) || gauge == address(0)) {
             return 0;
         }
         if (unstakedFeeModule != address(0)) {
@@ -195,22 +192,5 @@ contract CLFactory is ICLFactory {
     /// @inheritdoc ICLFactory
     function isPair(address pool) external view override returns (bool) {
         return _isPool[pool];
-    }
-
-    /// @inheritdoc ICLFactory
-    function setGaugeFactory(address _gaugeFactory, address _gaugeImplementation) external override {
-        require(gaugeFactory == address(0), "AI");
-        require(owner == msg.sender, "NA");
-        require(_gaugeFactory != address(0) && _gaugeImplementation != address(0));
-        gaugeFactory = _gaugeFactory;
-        gaugeImplementation = _gaugeImplementation;
-    }
-
-    /// @inheritdoc ICLFactory
-    function setNonfungiblePositionManager(address _nft) external override {
-        require(nft == address(0), "AI");
-        require(owner == msg.sender, "NA");
-        require(_nft != address(0));
-        nft = _nft;
     }
 }

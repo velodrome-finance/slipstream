@@ -72,12 +72,6 @@ contract DeployCL is Script {
         gaugeImplementation = new CLGauge();
         gaugeFactory = new CLGaugeFactory({_voter: voter, _implementation: address(gaugeImplementation)});
 
-        // set parameters on pool factory
-        poolFactory.setGaugeFactory({
-            _gaugeFactory: address(gaugeFactory),
-            _gaugeImplementation: address(gaugeImplementation)
-        });
-
         // deploy nft contracts
         nftDescriptor =
             new NonfungibleTokenPositionDescriptor({_WETH9: address(weth), _nativeCurrencyLabelBytes: bytes32("ETH")});
@@ -90,7 +84,6 @@ contract DeployCL is Script {
         // set nft manager in the factories
         gaugeFactory.setNonfungiblePositionManager(address(nft));
         gaugeFactory.setNotifyAdmin(notifyAdmin);
-        poolFactory.setNonfungiblePositionManager(address(nft));
 
         // deploy fee modules
         swapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});

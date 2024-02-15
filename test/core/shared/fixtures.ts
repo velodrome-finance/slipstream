@@ -6,7 +6,7 @@ import { CLFactory } from '../../../typechain/CLFactory'
 import { TestCLCallee } from '../../../typechain/TestCLCallee'
 import { TestCLRouter } from '../../../typechain/TestCLRouter'
 import { MockVoter } from '../../../typechain/MockVoter'
-import { CustomUnstakedFeeModule, MockVotingRewardsFactory } from '../../../typechain'
+import { CustomUnstakedFeeModule, MockFactoryRegistry, MockVotingRewardsFactory } from '../../../typechain'
 import { CLGaugeFactory } from '../../../typechain/CLGaugeFactory'
 import { CLGauge } from '../../../typechain/CLGauge'
 import { encodePriceSqrt } from './utilities'
@@ -15,6 +15,7 @@ import { Fixture } from 'ethereum-waffle'
 
 interface FactoryFixture {
   factory: CLFactory
+  mockFactoryRegistry: MockFactoryRegistry
 }
 interface TokensFixture {
   token0: CoreTestERC20
@@ -91,8 +92,6 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     mockTimePoolDeployer.address
   )) as CustomUnstakedFeeModule
   await mockTimePoolDeployer.setUnstakedFeeModule(customUnstakedFeeModule.address)
-  await mockTimePoolDeployer.setGaugeFactory(gaugeFactory.address, gaugeImplementation.address)
-  await mockTimePoolDeployer.setNonfungiblePositionManager('0x0000000000000000000000000000000000000001')
   // approve pool factory <=> gauge factory combination
   const mockVotingRewardsFactory = (await MockVotingRewardsFactoryFactory.deploy()) as MockVotingRewardsFactory
   await mockFactoryRegistry.approve(
@@ -113,6 +112,7 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
     factory: mockTimePoolDeployer,
     swapTargetCallee,
     swapTargetRouter,
+    mockFactoryRegistry,
     createPool: async (
       fee,
       tickSpacing,

@@ -3,6 +3,7 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import {IVotingEscrow} from "contracts/core/interfaces/IVotingEscrow.sol";
+import {IFactoryRegistry} from "contracts/core/interfaces/IFactoryRegistry.sol";
 
 interface IVoter {
     function ve() external view returns (IVotingEscrow);
@@ -18,6 +19,8 @@ interface IVoter {
     function createGauge(address _poolFactory, address _pool) external returns (address);
 
     function distribute(address gauge) external;
+
+    function factoryRegistry() external view returns (IFactoryRegistry);
 
     /// @dev Utility to distribute to gauges of pools in array.
     /// @param _gauges Array of gauges to distribute to.

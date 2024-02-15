@@ -25,7 +25,7 @@ contract FlashTest is CLPoolTest {
             })
         );
 
-        gauge = CLGauge(voter.gauges(address(pool)));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);

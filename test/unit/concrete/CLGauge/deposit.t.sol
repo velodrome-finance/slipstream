@@ -21,7 +21,7 @@ contract DepositTest is CLGaugeTest {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(voter.gauges(address(pool)));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
@@ -82,12 +82,13 @@ contract DepositTest is CLGaugeTest {
         deal({token: address(testToken0), to: users.charlie, give: TOKEN_1});
         deal({token: address(testToken1), to: users.charlie, give: TOKEN_1});
 
-        poolFactory.createPool({
+        address pool2 = poolFactory.createPool({
             tokenA: address(testToken0),
             tokenB: address(testToken1),
             tickSpacing: TICK_SPACING_60,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+        voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
 
         vm.startPrank(users.charlie);
         testToken0.approve(address(nft), type(uint256).max);
@@ -115,12 +116,13 @@ contract DepositTest is CLGaugeTest {
     }
 
     function test_RevertIf_DepositIsNotFromCorrespondingPoolWithSameTokensDifferentTickSize() public {
-        poolFactory.createPool({
+        address pool2 = poolFactory.createPool({
             tokenA: address(token0),
             tokenB: address(token1),
             tickSpacing: TICK_SPACING_10,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
+        voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool2)});
 
         vm.startPrank(users.charlie);
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({

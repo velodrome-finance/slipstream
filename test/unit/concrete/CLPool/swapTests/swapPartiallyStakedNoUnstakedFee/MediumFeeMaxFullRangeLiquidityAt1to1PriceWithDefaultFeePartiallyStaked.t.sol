@@ -35,7 +35,7 @@ contract MediumFeeMaxFullRangeLiquidityAt1to1PriceWithDefaultFeePartiallyStakedT
             Position({tickLower: getMinTick(tickSpacing), tickUpper: getMaxTick(tickSpacing), liquidity: liquidity / 2})
         );
 
-        gauge = CLGauge(voter.gauges(pool));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.stopPrank();
 

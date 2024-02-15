@@ -14,7 +14,7 @@ import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 
-contract DeployCLTest is Test {
+contract DeployCLForkTest is Test {
     using stdJson for string;
 
     DeployCL public deployCL;
@@ -44,6 +44,7 @@ contract DeployCLTest is Test {
     CustomUnstakedFeeModule public unstakedFeeModule;
 
     function setUp() public {
+        vm.createSelectFork({urlOrAlias: "optimism", blockNumber: 109241151});
         deployCL = new DeployCL();
 
         string memory root = vm.projectRoot();
@@ -79,14 +80,12 @@ contract DeployCLTest is Test {
         assertTrue(address(poolFactory) != address(0));
         assertEq(address(poolFactory.voter()), voter);
         assertEq(address(poolFactory.poolImplementation()), address(poolImplementation));
+        assertEq(address(poolFactory.factoryRegistry()), address(factoryRegistry));
         assertEq(address(poolFactory.owner()), poolFactoryOwner);
         assertEq(address(poolFactory.swapFeeModule()), address(swapFeeModule));
         assertEq(address(poolFactory.swapFeeManager()), feeManager);
         assertEq(address(poolFactory.unstakedFeeModule()), address(unstakedFeeModule));
         assertEq(address(poolFactory.unstakedFeeManager()), feeManager);
-        assertEq(address(poolFactory.nft()), address(nft));
-        assertEq(address(poolFactory.gaugeFactory()), address(gaugeFactory));
-        assertEq(address(poolFactory.gaugeImplementation()), address(gaugeImplementation));
         assertEqUint(poolFactory.tickSpacingToFee(1), 100);
         assertEqUint(poolFactory.tickSpacingToFee(50), 500);
         assertEqUint(poolFactory.tickSpacingToFee(100), 500);
