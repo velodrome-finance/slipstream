@@ -86,6 +86,7 @@ contract DeployCLForkTest is Test {
         assertEq(address(poolFactory.swapFeeManager()), feeManager);
         assertEq(address(poolFactory.unstakedFeeModule()), address(unstakedFeeModule));
         assertEq(address(poolFactory.unstakedFeeManager()), feeManager);
+        assertEqUint(poolFactory.defaultUnstakedFee(), 100_000);
         assertEqUint(poolFactory.tickSpacingToFee(1), 100);
         assertEqUint(poolFactory.tickSpacingToFee(50), 500);
         assertEqUint(poolFactory.tickSpacingToFee(100), 500);

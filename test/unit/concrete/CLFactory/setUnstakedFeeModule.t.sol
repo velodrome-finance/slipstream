@@ -21,7 +21,7 @@ contract SetUnstakedFeeModule is CLFactoryTest {
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(0)});
     }
 
-    function test_SetSwapFeeModule() public {
+    function test_SetUnstakedFeeModule() public {
         vm.expectEmit(true, true, false, false, address(poolFactory));
         emit UnstakedFeeModuleChanged({oldFeeModule: address(customUnstakedFeeModule), newFeeModule: users.alice});
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: users.alice});

@@ -31,6 +31,8 @@ contract CLFactory is ICLFactory {
     /// @inheritdoc ICLFactory
     address public override unstakedFeeModule;
     /// @inheritdoc ICLFactory
+    uint24 public override defaultUnstakedFee;
+    /// @inheritdoc ICLFactory
     mapping(int24 => uint24) public override tickSpacingToFee;
     /// @inheritdoc ICLFactory
     mapping(address => mapping(address => mapping(int24 => address))) public override getPool;
@@ -46,9 +48,11 @@ contract CLFactory is ICLFactory {
         voter = IVoter(_voter);
         factoryRegistry = IVoter(_voter).factoryRegistry();
         poolImplementation = _poolImplementation;
+        defaultUnstakedFee = 100_000;
         emit OwnerChanged(address(0), msg.sender);
         emit SwapFeeManagerChanged(address(0), msg.sender);
         emit UnstakedFeeManagerChanged(address(0), msg.sender);
+        emit DefaultUnstakedFeeChanged(0, 100_000);
 
         enableTickSpacing(1, 100);
         enableTickSpacing(50, 500);
@@ -133,6 +137,15 @@ contract CLFactory is ICLFactory {
     }
 
     /// @inheritdoc ICLFactory
+    function setDefaultUnstakedFee(uint24 _defaultUnstakedFee) external override {
+        require(msg.sender == unstakedFeeManager);
+        require(_defaultUnstakedFee <= 500_000);
+        uint24 oldUnstakedFee = defaultUnstakedFee;
+        defaultUnstakedFee = _defaultUnstakedFee;
+        emit DefaultUnstakedFeeChanged(oldUnstakedFee, _defaultUnstakedFee);
+    }
+
+    /// @inheritdoc ICLFactory
     function getSwapFee(address pool) external view override returns (uint24) {
         if (swapFeeModule != address(0)) {
             (bool success, bytes memory data) = swapFeeModule.excessivelySafeStaticCall(
@@ -165,8 +178,7 @@ contract CLFactory is ICLFactory {
                 }
             }
         }
-        // Default unstaked fee is 10%
-        return 100_000;
+        return defaultUnstakedFee;
     }
 
     /// @inheritdoc ICLFactory

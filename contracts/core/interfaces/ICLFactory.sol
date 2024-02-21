@@ -32,6 +32,11 @@ interface ICLFactory {
     /// @param newFeeModule The unstakedFeeModule after the unstakedFeeModule was changed
     event UnstakedFeeModuleChanged(address indexed oldFeeModule, address indexed newFeeModule);
 
+    /// @notice Emitted when the defaultUnstakedFee of the factory is changed
+    /// @param oldUnstakedFee The defaultUnstakedFee before the defaultUnstakedFee was changed
+    /// @param newUnstakedFee The defaultUnstakedFee after the unstakedFeeModule was changed
+    event DefaultUnstakedFeeChanged(uint24 indexed oldUnstakedFee, uint24 indexed newUnstakedFee);
+
     /// @notice Emitted when a pool is created
     /// @param token0 The first token of the pool by address sort order
     /// @param token1 The second token of the pool by address sort order
@@ -80,6 +85,11 @@ interface ICLFactory {
     /// @dev Can be changed by the current unstaked fee manager via setUnstakedFeeModule
     /// @return The address of the factory unstakedFeeModule
     function unstakedFeeModule() external view returns (address);
+
+    /// @notice Returns the current defaultUnstakedFee of the factory
+    /// @dev Can be changed by the current unstaked fee manager via setDefaultUnstakedFee
+    /// @return The default Unstaked Fee of the factory
+    function defaultUnstakedFee() external view returns (uint24);
 
     /// @notice Returns a default fee for a tick spacing.
     /// @dev Use getFee for the most up to date fee for a given pool.
@@ -154,6 +164,11 @@ interface ICLFactory {
     /// @dev Must be called by the current unstaked fee manager
     /// @param _unstakedFeeModule The new unstakedFeeModule of the factory
     function setUnstakedFeeModule(address _unstakedFeeModule) external;
+
+    /// @notice Updates the defaultUnstakedFee of the factory
+    /// @dev Must be called by the current unstaked fee manager
+    /// @param _defaultUnstakedFee The new defaultUnstakedFee of the factory
+    function setDefaultUnstakedFee(uint24 _defaultUnstakedFee) external;
 
     /// @notice Enables a certain tickSpacing
     /// @dev Tick spacings may never be removed once enabled
