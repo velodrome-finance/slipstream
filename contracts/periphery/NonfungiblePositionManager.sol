@@ -195,6 +195,8 @@ contract NonfungiblePositionManager is
             tokensOwed1: 0
         });
 
+        refundETH();
+
         emit IncreaseLiquidity(tokenId, liquidity, amount0, amount1);
     }
 
@@ -265,6 +267,8 @@ contract NonfungiblePositionManager is
         position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
         position.liquidity += liquidity;
+
+        refundETH();
 
         emit IncreaseLiquidity(params.tokenId, liquidity, amount0, amount1);
     }

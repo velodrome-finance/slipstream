@@ -12,17 +12,17 @@ exports[`NonfungiblePositionManager #decreaseLiquidity gas complete decrease 1`]
 
 exports[`NonfungiblePositionManager #decreaseLiquidity gas partial decrease 1`] = `169588`;
 
-exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `195613`;
+exports[`NonfungiblePositionManager #increaseLiquidity gas 1`] = `197997`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `614927`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool 1`] = `617311`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `627410`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with non-zero refund 1`] = `622749`;
 
-exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `620185`;
+exports[`NonfungiblePositionManager #mint gas first mint for pool using eth with zero refund 1`] = `615530`;
 
-exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `464428`;
+exports[`NonfungiblePositionManager #mint gas mint for same pool, different ticks 1`] = `466812`;
 
-exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `354979`;
+exports[`NonfungiblePositionManager #mint gas mint on same ticks 1`] = `357363`;
 
 exports[`NonfungiblePositionManager #permit owned by eoa gas 1`] = `64511`;
 

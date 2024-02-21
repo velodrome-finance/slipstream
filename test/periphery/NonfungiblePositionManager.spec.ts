@@ -148,20 +148,14 @@ describe('NonfungiblePositionManager', () => {
       expect(feeGrowthInside1LastX128).to.eq(0)
     })
 
-    it('can use eth via multicall', async () => {
+    it('can use eth', async () => {
       const [token0, token1] = sortedTokens(weth9, tokens[0])
 
       // remove any approval
       await weth9.approve(nft.address, 0)
 
-      const createAndInitializeData = nft.interface.encodeFunctionData('createPoolFromFactory', [
-        token0.address,
-        token1.address,
-        TICK_SPACINGS[FeeAmount.MEDIUM],
-        encodePriceSqrt(1, 1),
-      ])
-
-      const mintData = nft.interface.encodeFunctionData('mint', [
+      const balanceBefore = await wallet.getBalance()
+      const tx = await nft.mint(
         {
           token0: token0.address,
           token1: token1.address,
@@ -174,16 +168,12 @@ describe('NonfungiblePositionManager', () => {
           amount0Min: 0,
           amount1Min: 0,
           deadline: 1,
-          sqrtPriceX96: 0,
+          sqrtPriceX96: encodePriceSqrt(1, 1),
         },
-      ])
-
-      const refundETHData = nft.interface.encodeFunctionData('refundETH')
-
-      const balanceBefore = await wallet.getBalance()
-      const tx = await nft.multicall([createAndInitializeData, mintData, refundETHData], {
-        value: expandTo18Decimals(1),
-      })
+        {
+          value: expandTo18Decimals(1),
+        }
+      )
       const receipt = await tx.wait()
       const balanceAfter = await wallet.getBalance()
       expect(balanceBefore).to.eq(balanceAfter.add(receipt.gasUsed.mul(tx.gasPrice)).add(100))
@@ -227,26 +217,21 @@ describe('NonfungiblePositionManager', () => {
       )
 
       await snapshotGasCost(
-        nft.multicall(
-          [
-            nft.interface.encodeFunctionData('mint', [
-              {
-                token0: token0.address,
-                token1: token1.address,
-                tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-                tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-                tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
-                recipient: wallet.address,
-                amount0Desired: 100,
-                amount1Desired: 100,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: 10,
-                sqrtPriceX96: 0,
-              },
-            ]),
-            nft.interface.encodeFunctionData('refundETH'),
-          ],
+        nft.mint(
+          {
+            token0: token0.address,
+            token1: token1.address,
+            tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
+            tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
+            tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
+            recipient: wallet.address,
+            amount0Desired: 100,
+            amount1Desired: 100,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: 10,
+            sqrtPriceX96: 0,
+          },
           { value: 100 }
         )
       )
@@ -262,26 +247,21 @@ describe('NonfungiblePositionManager', () => {
       )
 
       await snapshotGasCost(
-        nft.multicall(
-          [
-            nft.interface.encodeFunctionData('mint', [
-              {
-                token0: token0.address,
-                token1: token1.address,
-                tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-                tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
-                tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
-                recipient: wallet.address,
-                amount0Desired: 100,
-                amount1Desired: 100,
-                amount0Min: 0,
-                amount1Min: 0,
-                deadline: 10,
-                sqrtPriceX96: 0,
-              },
-            ]),
-            nft.interface.encodeFunctionData('refundETH'),
-          ],
+        nft.mint(
+          {
+            token0: token0.address,
+            token1: token1.address,
+            tickLower: getMinTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
+            tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.MEDIUM]),
+            tickSpacing: TICK_SPACINGS[FeeAmount.MEDIUM],
+            recipient: wallet.address,
+            amount0Desired: 100,
+            amount1Desired: 100,
+            amount0Min: 0,
+            amount1Min: 0,
+            deadline: 10,
+            sqrtPriceX96: 0,
+          },
           { value: 1000 }
         )
       )
