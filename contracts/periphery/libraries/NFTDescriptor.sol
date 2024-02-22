@@ -403,50 +403,9 @@ library NFTDescriptor {
             tickLower: params.tickLower,
             tickUpper: params.tickUpper,
             tickSpacing: params.tickSpacing,
-            overRange: overRange(params.tickLower, params.tickUpper, params.tickCurrent),
-            tokenId: params.tokenId,
-            color0: tokenToColorHex(uint256(params.quoteTokenAddress), 136),
-            color1: tokenToColorHex(uint256(params.baseTokenAddress), 136),
-            color2: tokenToColorHex(uint256(params.quoteTokenAddress), 0),
-            color3: tokenToColorHex(uint256(params.baseTokenAddress), 0),
-            x1: scale(getCircleCoord(uint256(params.quoteTokenAddress), 16, params.tokenId), 0, 255, 16, 274),
-            y1: scale(getCircleCoord(uint256(params.baseTokenAddress), 16, params.tokenId), 0, 255, 100, 484),
-            x2: scale(getCircleCoord(uint256(params.quoteTokenAddress), 32, params.tokenId), 0, 255, 16, 274),
-            y2: scale(getCircleCoord(uint256(params.baseTokenAddress), 32, params.tokenId), 0, 255, 100, 484),
-            x3: scale(getCircleCoord(uint256(params.quoteTokenAddress), 48, params.tokenId), 0, 255, 16, 274),
-            y3: scale(getCircleCoord(uint256(params.baseTokenAddress), 48, params.tokenId), 0, 255, 100, 484)
+            tokenId: params.tokenId
         });
 
         return NFTSVG.generateSVG(svgParams);
-    }
-
-    function overRange(int24 tickLower, int24 tickUpper, int24 tickCurrent) private pure returns (int8) {
-        if (tickCurrent < tickLower) {
-            return -1;
-        } else if (tickCurrent > tickUpper) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    function scale(uint256 n, uint256 inMn, uint256 inMx, uint256 outMn, uint256 outMx)
-        private
-        pure
-        returns (string memory)
-    {
-        return (n.sub(inMn).mul(outMx.sub(outMn)).div(inMx.sub(inMn)).add(outMn)).toString();
-    }
-
-    function tokenToColorHex(uint256 token, uint256 offset) internal pure returns (string memory str) {
-        return string((token >> offset).toHexStringNoPrefix(3));
-    }
-
-    function getCircleCoord(uint256 tokenAddress, uint256 offset, uint256 tokenId) internal pure returns (uint256) {
-        return (sliceTokenHex(tokenAddress, offset) * tokenId) % 255;
-    }
-
-    function sliceTokenHex(uint256 token, uint256 offset) internal pure returns (uint256) {
-        return uint256(uint8(token >> offset));
     }
 }
