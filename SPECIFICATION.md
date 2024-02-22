@@ -53,7 +53,8 @@ The pools are standard UniswapV3Pools that have been modified to support gauges.
 ship with the following tick spacings, with support for additional tick spacings available. 
 Note that fees are not particularly important as they can be modified with the custom swap fee modules.
 
-Pools are created alongside gauges, and come initialized with a price. Pools cannot exist in an uninitialized state.
+Pools are created independently of gauges, and come initialized with a price. Pools without a gauge
+will not have their `gauge` or `nft` parameters set.
 
 The tick spacing / fee combinations are listed as follows:
 - ts: 1 | fee: 1 bps
@@ -108,6 +109,7 @@ Decrease staked liquidity (`decreaseStakedLiquidity`):
 - It is possible to collect the entire position in this way.
 
 It is possible for a permissioned user to add rewards to a gauge (`notifyRewardAmountWithoutClaim`):
+- The permissioned user is an admin on the gauge factory corresponding to the gauge.
 - This adds rewards only (i.e. fees are not collected). 
 - The amount notified is added to existing rewards that are being distributed.
 
@@ -115,10 +117,6 @@ As concentrated liquidity is limited to certain tick ranges, it is possible for 
 - Rewards roll based on the amount of seconds that the pool spent in a tick range with no active liquidity. 
 - Rewards roll on the next call to a notify function. If neither notify function is called within a given epoch, then the rewards remain stuck until the next time it is called.
 - This does not address rewards stuck in the gauge from rounding errors.
-
-Other:
-- Gauges are created atomically with a pool (i.e. on `factory.createPool` as opposed to `voter.createGauge`).
-- Gauges are created using deterministic clones in a manner similar to pools.
 
 ### Swap Fee Module
 
@@ -137,7 +135,7 @@ pool fee module described above.
 
 The custom unstaked liquidity fee module will have a default fee of 10% and a maximum fee of 50%. Fees are set 
 using pips instead of bips. This is consistent with UniswapV3 but not consistent with Velodrome's existing fee mechanisms.
-The default fee will be settable.
+The default unstaked liquidity fee is mutable.
 
 ### Oracle
 
@@ -148,4 +146,3 @@ written regardless of the time that has passed (i.e. may be written before 15 se
 ### UniversalRouter
 
 UniswapV3's universal router will be modified to support the current V3 implementation as well as the VelodromeV2 router. 
-Only volatile pools will be supported on VelodromeV2 pools.
