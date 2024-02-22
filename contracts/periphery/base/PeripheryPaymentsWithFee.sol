@@ -22,7 +22,7 @@ abstract contract PeripheryPaymentsWithFee is PeripheryPayments, IPeripheryPayme
         require(feeBips > 0 && feeBips <= 100);
 
         uint256 balanceWETH9 = IWETH9(WETH9).balanceOf(address(this));
-        require(balanceWETH9 >= amountMinimum, "Insufficient WETH9");
+        require(balanceWETH9 >= amountMinimum, "IWF"); // insufficient weth
 
         if (balanceWETH9 > 0) {
             IWETH9(WETH9).withdraw(balanceWETH9);
@@ -43,7 +43,7 @@ abstract contract PeripheryPaymentsWithFee is PeripheryPayments, IPeripheryPayme
         require(feeBips > 0 && feeBips <= 100);
 
         uint256 balanceToken = IERC20(token).balanceOf(address(this));
-        require(balanceToken >= amountMinimum, "Insufficient token");
+        require(balanceToken >= amountMinimum, "ITF"); // insufficient token
 
         if (balanceToken > 0) {
             uint256 feeAmount = balanceToken.mul(feeBips) / 10_000;

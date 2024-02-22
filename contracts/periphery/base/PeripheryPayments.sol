@@ -20,7 +20,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     /// @inheritdoc IPeripheryPayments
     function unwrapWETH9(uint256 amountMinimum, address recipient) public payable override nonReentrant {
         uint256 balanceWETH9 = IWETH9(WETH9).balanceOf(address(this));
-        require(balanceWETH9 >= amountMinimum, "Insufficient WETH9");
+        require(balanceWETH9 >= amountMinimum, "IW"); // insufficient weth
 
         if (balanceWETH9 > 0) {
             IWETH9(WETH9).withdraw(balanceWETH9);
@@ -31,7 +31,7 @@ abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableSta
     /// @inheritdoc IPeripheryPayments
     function sweepToken(address token, uint256 amountMinimum, address recipient) public payable override nonReentrant {
         uint256 balanceToken = IERC20(token).balanceOf(address(this));
-        require(balanceToken >= amountMinimum, "Insufficient token");
+        require(balanceToken >= amountMinimum, "IT"); // insufficient token
 
         if (balanceToken > 0) {
             TransferHelper.safeTransfer(token, recipient, balanceToken);

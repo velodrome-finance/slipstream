@@ -68,6 +68,6 @@ abstract contract LiquidityManagement is ICLMintCallback, PeripheryImmutableStat
             abi.encode(MintCallbackData({poolKey: params.poolKey, payer: msg.sender}))
         );
 
-        require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "Price slippage check");
+        require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "PSC"); // price slippage check
     }
 }

@@ -14,7 +14,7 @@ library HexStrings {
             buffer[i] = ALPHABET[value & 0xf];
             value >>= 4;
         }
-        require(value == 0, "Strings: hex length insufficient");
+        require(value == 0, "HLI"); // hex length insufficient
         return string(buffer);
     }
 
