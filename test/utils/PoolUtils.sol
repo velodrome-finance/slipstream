@@ -42,6 +42,8 @@ abstract contract PoolUtils is Test, Constants, Events {
         CLPool pool = CLPool(factory.createPool(token0, token1, tickSpacing, sqrtPriceX96));
         (uint160 _sqrtPriceX96,,,,,) = pool.slot0();
 
+        assertGt(factory.allPoolsLength(), 0);
+        assertEq(factory.allPools(factory.allPoolsLength() - 1), create2Addr);
         assertEq(factory.getPool(token0, token1, tickSpacing), create2Addr);
         assertEq(factory.getPool(token1, token0, tickSpacing), create2Addr);
         assertEq(factory.isPair(create2Addr), true);
