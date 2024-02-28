@@ -5,6 +5,8 @@ import "./LiquidityManagementBase.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 
 contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
+    event MetadataUpdate(uint256 _tokenId);
+
     function test_RevertIf_CallerIsNotOwner() public {
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
@@ -34,6 +36,8 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
         nft.approve(address(gauge), tokenId);
+        vm.expectEmit(false, false, false, true, address(nft));
+        emit MetadataUpdate(tokenId);
         gauge.deposit(tokenId);
 
         (,,,,,,, uint128 positionLiquidity,,,,) = nft.positions(tokenId);

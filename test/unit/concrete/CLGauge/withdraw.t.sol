@@ -10,6 +10,8 @@ contract WithdrawTest is CLGaugeTest {
     CLPool public pool;
     CLGauge public gauge;
 
+    event MetadataUpdate(uint256 _tokenId);
+
     function setUp() public override {
         super.setUp();
 
@@ -235,6 +237,8 @@ contract WithdrawTest is CLGaugeTest {
 
         skip(2 days);
 
+        vm.expectEmit(false, false, false, true, address(nft));
+        emit MetadataUpdate(tokenId);
         vm.expectEmit(true, true, true, false, address(gauge));
         emit Withdraw({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.withdraw({tokenId: tokenId});

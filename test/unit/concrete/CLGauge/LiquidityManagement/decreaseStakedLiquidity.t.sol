@@ -4,6 +4,8 @@ pragma abicoder v2;
 import "./LiquidityManagementBase.t.sol";
 
 contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
+    event MetadataUpdate(uint256 _tokenId);
+
     function test_RevertIf_CallerIsNotOwner() public {
         uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
 
@@ -22,6 +24,8 @@ contract DecreaseStakedLiquidityTest is LiquidityManagementBase {
         (,,,,,,, uint128 positionLiquidity,,,,) = nft.positions(tokenId);
 
         nft.approve(address(gauge), tokenId);
+        vm.expectEmit(false, false, false, true, address(nft));
+        emit MetadataUpdate(tokenId);
         gauge.deposit(tokenId);
 
         assertEq(pool.stakedLiquidity(), TOKEN_1 * 2);

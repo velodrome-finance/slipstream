@@ -25,7 +25,7 @@ import snapshotGasCost from './shared/snapshotGasCost'
 import { getMaxTick, getMinTick } from './shared/ticks'
 import { sortedTokens } from './shared/tokenSort'
 
-describe('NonfungiblePositionManager', () => {
+describe.only('NonfungiblePositionManager', () => {
   let wallets: Wallet[]
   let wallet: Wallet, other: Wallet
 

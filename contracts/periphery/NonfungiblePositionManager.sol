@@ -270,6 +270,7 @@ contract NonfungiblePositionManager is
 
         refundETH();
 
+        emit MetadataUpdate(params.tokenId);
         emit IncreaseLiquidity(params.tokenId, liquidity, amount0, amount1);
     }
 
@@ -330,6 +331,7 @@ contract NonfungiblePositionManager is
         // subtraction is safe because we checked positionLiquidity is gte params.liquidity
         position.liquidity = positionLiquidity - params.liquidity;
 
+        emit MetadataUpdate(params.tokenId);
         emit DecreaseLiquidity(params.tokenId, params.liquidity, amount0, amount1);
     }
 
@@ -410,6 +412,7 @@ contract NonfungiblePositionManager is
         // instead of the actual amount so we can burn the token
         (position.tokensOwed0, position.tokensOwed1) = (tokensOwed0 - amount0Collect, tokensOwed1 - amount1Collect);
 
+        emit MetadataUpdate(params.tokenId);
         emit Collect(params.tokenId, recipient, amount0Collect, amount1Collect);
     }
 
