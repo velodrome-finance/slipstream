@@ -33,14 +33,14 @@ contract SetDescriptorTest is NonfungiblePositionManagerTest {
 
     function test_RevertIf_SetTokenDescriptorCallerIsNotOwner() public {
         vm.startPrank(users.alice);
-        vm.expectRevert(bytes("NO"));
+        vm.expectRevert();
         nft.setOwner(users.bob);
         vm.stopPrank();
     }
 
     function test_RevertIf_SetTokenDescriptorToZeroAddress() public {
         vm.startPrank(users.owner);
-        vm.expectRevert(bytes("ZA"));
+        vm.expectRevert();
         nft.setOwner(address(0));
         vm.stopPrank();
     }

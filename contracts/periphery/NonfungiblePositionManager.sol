@@ -79,7 +79,7 @@ contract NonfungiblePositionManager is
 
     /// @dev Prevents calling a function from anyone except owner
     modifier onlyOwner() {
-        require(msg.sender == owner, "NO");
+        require(msg.sender == owner);
         _;
     }
 
@@ -201,7 +201,7 @@ contract NonfungiblePositionManager is
     }
 
     modifier isAuthorizedForToken(uint256 tokenId) {
-        require(_isApprovedOrOwner(msg.sender, tokenId), "NA");
+        require(_isApprovedOrOwner(msg.sender, tokenId));
         _;
     }
 
@@ -443,7 +443,7 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc INonfungiblePositionManager
     function setTokenDescriptor(address _tokenDescriptor) external override onlyOwner {
-        require(_tokenDescriptor != address(0), "ZA");
+        require(_tokenDescriptor != address(0));
         tokenDescriptor = _tokenDescriptor;
         emit BatchMetadataUpdate(0, type(uint256).max);
         emit TokenDescriptorChanged(_tokenDescriptor);
@@ -451,7 +451,7 @@ contract NonfungiblePositionManager is
 
     /// @inheritdoc INonfungiblePositionManager
     function setOwner(address _owner) external override onlyOwner {
-        require(_owner != address(0), "ZA");
+        require(_owner != address(0));
         owner = _owner;
         emit TransferOwnership(_owner);
     }

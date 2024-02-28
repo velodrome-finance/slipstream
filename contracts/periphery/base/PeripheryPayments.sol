@@ -14,7 +14,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 
 abstract contract PeripheryPayments is IPeripheryPayments, PeripheryImmutableState, ReentrancyGuard {
     receive() external payable {
-        require(msg.sender == WETH9, "Not WETH9");
+        require(msg.sender == WETH9, "NW9");
     }
 
     /// @inheritdoc IPeripheryPayments

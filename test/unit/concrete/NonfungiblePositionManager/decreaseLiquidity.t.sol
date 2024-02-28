@@ -11,7 +11,7 @@ contract DecreaseLiquidityTest is NonfungiblePositionManagerTest {
         nft.approve(address(gauge), tokenId);
         gauge.deposit({tokenId: tokenId});
 
-        vm.expectRevert(bytes("NA"));
+        vm.expectRevert();
         nft.decreaseLiquidity(
             INonfungiblePositionManager.DecreaseLiquidityParams({
                 tokenId: tokenId,

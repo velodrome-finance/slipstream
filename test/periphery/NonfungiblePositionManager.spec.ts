@@ -25,7 +25,7 @@ import snapshotGasCost from './shared/snapshotGasCost'
 import { getMaxTick, getMinTick } from './shared/ticks'
 import { sortedTokens } from './shared/tokenSort'
 
-describe.only('NonfungiblePositionManager', () => {
+describe('NonfungiblePositionManager', () => {
   let wallets: Wallet[]
   let wallet: Wallet, other: Wallet
 
@@ -487,7 +487,7 @@ describe.only('NonfungiblePositionManager', () => {
     it('cannot be called by other addresses', async () => {
       await expect(
         nft.decreaseLiquidity({ tokenId, liquidity: 50, amount0Min: 0, amount1Min: 0, deadline: 1 })
-      ).to.be.revertedWith('NA')
+      ).to.be.revertedWith('')
     })
 
     it('decreases position liquidity', async () => {
@@ -590,7 +590,7 @@ describe.only('NonfungiblePositionManager', () => {
           amount0Max: MaxUint128,
           amount1Max: MaxUint128,
         })
-      ).to.be.revertedWith('NA')
+      ).to.be.revertedWith('')
     })
 
     it('cannot be called with 0 for both amounts', async () => {
@@ -704,7 +704,7 @@ describe.only('NonfungiblePositionManager', () => {
     it('emits an event')
 
     it('cannot be called by other addresses', async () => {
-      await expect(nft.burn(tokenId)).to.be.revertedWith('NA')
+      await expect(nft.burn(tokenId)).to.be.revertedWith('')
     })
 
     it('cannot be called while there is still liquidity', async () => {
