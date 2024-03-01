@@ -3,7 +3,10 @@ pragma solidity =0.7.6;
 
 import {LiquidityAmounts} from "./libraries/LiquidityAmounts.sol";
 import {PositionValue} from "./libraries/PositionValue.sol";
+import {FullMath} from "../core/libraries/FullMath.sol";
 import {TickMath} from "../core/libraries/TickMath.sol";
+import {FixedPoint128} from "../core/libraries/FixedPoint128.sol";
+import {ICLPool} from "../core/interfaces/ICLPool.sol";
 import {INonfungiblePositionManager} from "./interfaces/INonfungiblePositionManager.sol";
 import {ISugarHelper} from "./interfaces/ISugarHelper.sol";
 
@@ -133,5 +136,39 @@ contract SugarHelper is ISugarHelper {
 
     function getTickAtSqrtRatio(uint160 sqrtPriceX96) external pure override returns (int24 tick) {
         return TickMath.getTickAtSqrtRatio(sqrtPriceX96);
+    }
+
+    ///
+    /// PoolFees Helper
+    ///
+
+    function poolFees(address pool, uint128 liquidity, int24 tickCurrent, int24 tickLower, int24 tickUpper)
+        external
+        view
+        returns (uint256 amount0, uint256 amount1)
+    {
+        (,,, uint256 lowerFeeGrowthOutside0X128, uint256 lowerFeeGrowthOutside1X128,,,,,) =
+            ICLPool(pool).ticks(tickLower);
+        (,,, uint256 upperFeeGrowthOutside0X128, uint256 upperFeeGrowthOutside1X128,,,,,) =
+            ICLPool(pool).ticks(tickUpper);
+
+        uint256 feeGrowthInside0X128;
+        uint256 feeGrowthInside1X128;
+        if (tickCurrent < tickLower) {
+            feeGrowthInside0X128 = lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
+            feeGrowthInside1X128 = lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
+        } else if (tickCurrent < tickUpper) {
+            uint256 feeGrowthGlobal0X128 = ICLPool(pool).feeGrowthGlobal0X128();
+            uint256 feeGrowthGlobal1X128 = ICLPool(pool).feeGrowthGlobal1X128();
+            feeGrowthInside0X128 = feeGrowthGlobal0X128 - lowerFeeGrowthOutside0X128 - upperFeeGrowthOutside0X128;
+            feeGrowthInside1X128 = feeGrowthGlobal1X128 - lowerFeeGrowthOutside1X128 - upperFeeGrowthOutside1X128;
+        } else {
+            feeGrowthInside0X128 = upperFeeGrowthOutside0X128 - lowerFeeGrowthOutside0X128;
+            feeGrowthInside1X128 = upperFeeGrowthOutside1X128 - lowerFeeGrowthOutside1X128;
+        }
+
+        amount0 = FullMath.mulDiv(feeGrowthInside0X128, liquidity, FixedPoint128.Q128);
+
+        amount1 = FullMath.mulDiv(feeGrowthInside1X128, liquidity, FixedPoint128.Q128);
     }
 }
