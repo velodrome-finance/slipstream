@@ -4,11 +4,8 @@ pragma abicoder v2;
 
 import "../libraries/NFTDescriptor.sol";
 import "../libraries/NFTSVG.sol";
-import "../libraries/HexStrings.sol";
 
 contract NFTDescriptorTest {
-    using HexStrings for uint256;
-
     function constructTokenURI(NFTDescriptor.ConstructTokenURIParams calldata params)
         public
         pure
@@ -49,27 +46,22 @@ contract NFTDescriptorTest {
         return NFTDescriptor.addressToString(_address);
     }
 
-    function generateSVGImage(NFTDescriptor.ConstructTokenURIParams memory params)
-        public
-        pure
-        returns (string memory)
-    {
-        return NFTDescriptor.generateSVGImage(params);
-    }
-
-    function tokenToColorHex(address token, uint256 offset) public pure returns (string memory) {
-        return NFTDescriptor.tokenToColorHex(uint256(token), offset);
-    }
-
-    function sliceTokenHex(address token, uint256 offset) public pure returns (uint256) {
-        return NFTDescriptor.sliceTokenHex(uint256(token), offset);
-    }
-
-    function rangeLocation(int24 tickLower, int24 tickUpper) public pure returns (string memory, string memory) {
-        return NFTSVG.rangeLocation(tickLower, tickUpper);
-    }
-
-    function isRare(uint256 tokenId, address poolAddress) public pure returns (bool) {
-        return NFTSVG.isRare(tokenId, poolAddress);
+    function generateSVGImage(
+        NFTDescriptor.ConstructTokenURIParams memory params,
+        uint256 quoteTokensOwed,
+        uint256 baseTokensOwed
+    ) public pure returns (string memory) {
+        return NFTSVG.generateSVG({
+            quoteTokenSymbol: params.quoteTokenSymbol,
+            baseTokenSymbol: params.baseTokenSymbol,
+            quoteTokensOwed: quoteTokensOwed,
+            baseTokensOwed: baseTokensOwed,
+            tokenId: params.tokenId,
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper,
+            tickSpacing: params.tickSpacing,
+            quoteTokenDecimals: params.quoteTokenDecimals,
+            baseTokenDecimals: params.baseTokenDecimals
+        });
     }
 }

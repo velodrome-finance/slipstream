@@ -9,9 +9,7 @@ import "contracts/core/libraries/FullMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/math/SignedSafeMath.sol";
-import "base64-sol/base64.sol";
 import "./HexStrings.sol";
-import "./NFTSVG.sol";
 
 library NFTDescriptor {
     using TickMath for int24;
@@ -35,7 +33,6 @@ library NFTDescriptor {
         bool flipRatio;
         int24 tickLower;
         int24 tickUpper;
-        int24 tickCurrent;
         int24 tickSpacing;
         address poolAddress;
     }
@@ -54,27 +51,9 @@ library NFTDescriptor {
             addressToString(params.baseTokenAddress),
             (uint256(params.tickSpacing)).toString()
         );
-        string memory image = Base64.encode(bytes(generateSVGImage(params)));
 
         return string(
-            abi.encodePacked(
-                "data:application/json;base64,",
-                Base64.encode(
-                    bytes(
-                        abi.encodePacked(
-                            '{"name":"',
-                            name,
-                            '", "description":"',
-                            descriptionPartOne,
-                            descriptionPartTwo,
-                            '", "image": "',
-                            "data:image/svg+xml;base64,",
-                            image,
-                            '"}'
-                        )
-                    )
-                )
-            )
+            abi.encodePacked('"name":"', name, '", "description":"', descriptionPartOne, descriptionPartTwo, '"')
         );
     }
 
@@ -391,62 +370,5 @@ library NFTDescriptor {
 
     function addressToString(address addr) internal pure returns (string memory) {
         return (uint256(addr)).toHexString(20);
-    }
-
-    function generateSVGImage(ConstructTokenURIParams memory params) internal pure returns (string memory svg) {
-        NFTSVG.SVGParams memory svgParams = NFTSVG.SVGParams({
-            quoteToken: addressToString(params.quoteTokenAddress),
-            baseToken: addressToString(params.baseTokenAddress),
-            poolAddress: params.poolAddress,
-            quoteTokenSymbol: params.quoteTokenSymbol,
-            baseTokenSymbol: params.baseTokenSymbol,
-            tickLower: params.tickLower,
-            tickUpper: params.tickUpper,
-            tickSpacing: params.tickSpacing,
-            overRange: overRange(params.tickLower, params.tickUpper, params.tickCurrent),
-            tokenId: params.tokenId,
-            color0: tokenToColorHex(uint256(params.quoteTokenAddress), 136),
-            color1: tokenToColorHex(uint256(params.baseTokenAddress), 136),
-            color2: tokenToColorHex(uint256(params.quoteTokenAddress), 0),
-            color3: tokenToColorHex(uint256(params.baseTokenAddress), 0),
-            x1: scale(getCircleCoord(uint256(params.quoteTokenAddress), 16, params.tokenId), 0, 255, 16, 274),
-            y1: scale(getCircleCoord(uint256(params.baseTokenAddress), 16, params.tokenId), 0, 255, 100, 484),
-            x2: scale(getCircleCoord(uint256(params.quoteTokenAddress), 32, params.tokenId), 0, 255, 16, 274),
-            y2: scale(getCircleCoord(uint256(params.baseTokenAddress), 32, params.tokenId), 0, 255, 100, 484),
-            x3: scale(getCircleCoord(uint256(params.quoteTokenAddress), 48, params.tokenId), 0, 255, 16, 274),
-            y3: scale(getCircleCoord(uint256(params.baseTokenAddress), 48, params.tokenId), 0, 255, 100, 484)
-        });
-
-        return NFTSVG.generateSVG(svgParams);
-    }
-
-    function overRange(int24 tickLower, int24 tickUpper, int24 tickCurrent) private pure returns (int8) {
-        if (tickCurrent < tickLower) {
-            return -1;
-        } else if (tickCurrent > tickUpper) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    function scale(uint256 n, uint256 inMn, uint256 inMx, uint256 outMn, uint256 outMx)
-        private
-        pure
-        returns (string memory)
-    {
-        return (n.sub(inMn).mul(outMx.sub(outMn)).div(inMx.sub(inMn)).add(outMn)).toString();
-    }
-
-    function tokenToColorHex(uint256 token, uint256 offset) internal pure returns (string memory str) {
-        return string((token >> offset).toHexStringNoPrefix(3));
-    }
-
-    function getCircleCoord(uint256 tokenAddress, uint256 offset, uint256 tokenId) internal pure returns (uint256) {
-        return (sliceTokenHex(tokenAddress, offset) * tokenId) % 255;
-    }
-
-    function sliceTokenHex(uint256 token, uint256 offset) internal pure returns (uint256) {
-        return uint256(uint8(token >> offset));
     }
 }

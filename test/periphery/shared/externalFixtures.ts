@@ -83,9 +83,12 @@ const v3CoreFactoryFixture: Fixture<{
 
   const nftDescriptorLibraryFactory = await ethers.getContractFactory('NFTDescriptor')
   const nftDescriptorLibrary = await nftDescriptorLibraryFactory.deploy()
+  const nftSVGLibraryFactory = await ethers.getContractFactory('NFTSVG')
+  const nftSVGLibrary = await nftSVGLibraryFactory.deploy()
   const positionDescriptorFactory = await ethers.getContractFactory('NonfungibleTokenPositionDescriptor', {
     libraries: {
       NFTDescriptor: nftDescriptorLibrary.address,
+      NFTSVG: nftSVGLibrary.address,
     },
   })
   const nftDescriptor = (await positionDescriptorFactory.deploy(

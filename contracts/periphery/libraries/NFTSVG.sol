@@ -1,342 +1,179 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.7.6;
 
+import "contracts/core/libraries/TickMath.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "contracts/core/libraries/BitMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import "base64-sol/base64.sol";
 
 /// @title NFTSVG
 /// @notice Provides a function for generating an SVG associated with a CL NFT
 library NFTSVG {
     using Strings for uint256;
+    using SafeMath for uint256;
 
-    string constant curve1 = "M1 1C41 41 105 105 145 145";
-    string constant curve2 = "M1 1C33 49 97 113 145 145";
-    string constant curve3 = "M1 1C33 57 89 113 145 145";
-    string constant curve4 = "M1 1C25 65 81 121 145 145";
-    string constant curve5 = "M1 1C17 73 73 129 145 145";
-    string constant curve6 = "M1 1C9 81 65 137 145 145";
-    string constant curve7 = "M1 1C1 89 57.5 145 145 145";
-    string constant curve8 = "M1 1C1 97 49 145 145 145";
-
-    struct SVGParams {
-        string quoteToken;
-        string baseToken;
-        address poolAddress;
-        string quoteTokenSymbol;
-        string baseTokenSymbol;
-        int24 tickLower;
-        int24 tickUpper;
-        int24 tickSpacing;
-        int8 overRange;
-        uint256 tokenId;
-        string color0;
-        string color1;
-        string color2;
-        string color3;
-        string x1;
-        string y1;
-        string x2;
-        string y2;
-        string x3;
-        string y3;
-    }
-
-    function generateSVG(SVGParams memory params) internal pure returns (string memory svg) {
-        /*
-        address: "0xe8ab59d3bcde16a29912de83a90eb39628cfc163",
-        msg: "Forged in SVG for Uniswap in 2021 by 0xe8ab59d3bcde16a29912de83a90eb39628cfc163",
-        sig: "0x2df0e99d9cbfec33a705d83f75666d98b22dea7c1af412c584f7d626d83f02875993df740dc87563b9c73378f8462426da572d7989de88079a382ad96c57b68d1b",
-        version: "2"
-        */
+    function generateSVG(
+        string memory quoteTokenSymbol,
+        string memory baseTokenSymbol,
+        uint256 quoteTokensOwed,
+        uint256 baseTokensOwed,
+        uint256 tokenId,
+        int24 tickLower,
+        int24 tickUpper,
+        int24 tickSpacing,
+        uint8 quoteTokenDecimals,
+        uint8 baseTokenDecimals
+    ) public pure returns (string memory svg) {
         return string(
             abi.encodePacked(
-                generateSVGDefs(params),
-                generateSVGBorderText(
-                    params.quoteToken, params.baseToken, params.quoteTokenSymbol, params.baseTokenSymbol
-                ),
-                generateSVGCardMantle(
-                    params.quoteTokenSymbol, params.baseTokenSymbol, (uint256(params.tickSpacing)).toString()
-                ),
-                generageSvgCurve(params.tickLower, params.tickUpper, params.tickSpacing, params.overRange),
-                generateSVGPositionDataAndLocationCurve(params.tokenId.toString(), params.tickLower, params.tickUpper),
-                generateSVGRareSparkle(params.tokenId, params.poolAddress),
+                '<svg width="800" height="800" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">',
+                '<g id="NFT Velo" clip-path="url(#clip0_1098_756)">',
+                '<rect width="800" height="800" fill="#171F2D"/>',
+                '<rect id="Rectangle 176" width="800" height="800" fill="#252525"/>',
+                '<g id="shadow">',
+                '<g id="Group 465">',
+                '<path id="Rectangle 173" d="M394 234L394 566L-8.68543e-05 566L-9.15527e-05 234L394 234Z" fill="url(#paint0_linear_1098_756)"/>',
+                "</g>",
+                "</g>",
+                generateTopText({
+                    quoteTokenSymbol: quoteTokenSymbol,
+                    baseTokenSymbol: baseTokenSymbol,
+                    tokenId: tokenId,
+                    tickSpacing: tickSpacing
+                }),
+                generateArt(),
+                generateBottomText({
+                    quoteTokenSymbol: quoteTokenSymbol,
+                    baseTokenSymbol: baseTokenSymbol,
+                    quoteTokensOwed: quoteTokensOwed,
+                    baseTokensOwed: baseTokensOwed,
+                    tickLower: tickLower,
+                    tickUpper: tickUpper,
+                    quoteTokenDecimals: quoteTokenDecimals,
+                    baseTokenDecimals: baseTokenDecimals
+                }),
+                generateSVGDefs(),
                 "</svg>"
             )
         );
     }
 
-    function generateSVGDefs(SVGParams memory params) private pure returns (string memory svg) {
-        svg = string(
-            abi.encodePacked(
-                '<svg width="290" height="500" viewBox="0 0 290 500" xmlns="http://www.w3.org/2000/svg"',
-                " xmlns:xlink='http://www.w3.org/1999/xlink'>",
-                "<defs>",
-                '<filter id="f1"><feImage result="p0" xlink:href="data:image/svg+xml;base64,',
-                Base64.encode(
-                    bytes(
-                        abi.encodePacked(
-                            "<svg width='290' height='500' viewBox='0 0 290 500' xmlns='http://www.w3.org/2000/svg'><rect width='290px' height='500px' fill='#",
-                            params.color0,
-                            "'/></svg>"
-                        )
-                    )
-                ),
-                '"/><feImage result="p1" xlink:href="data:image/svg+xml;base64,',
-                Base64.encode(
-                    bytes(
-                        abi.encodePacked(
-                            "<svg width='290' height='500' viewBox='0 0 290 500' xmlns='http://www.w3.org/2000/svg'><circle cx='",
-                            params.x1,
-                            "' cy='",
-                            params.y1,
-                            "' r='120px' fill='#",
-                            params.color1,
-                            "'/></svg>"
-                        )
-                    )
-                ),
-                '"/><feImage result="p2" xlink:href="data:image/svg+xml;base64,',
-                Base64.encode(
-                    bytes(
-                        abi.encodePacked(
-                            "<svg width='290' height='500' viewBox='0 0 290 500' xmlns='http://www.w3.org/2000/svg'><circle cx='",
-                            params.x2,
-                            "' cy='",
-                            params.y2,
-                            "' r='120px' fill='#",
-                            params.color2,
-                            "'/></svg>"
-                        )
-                    )
-                ),
-                '" />',
-                '<feImage result="p3" xlink:href="data:image/svg+xml;base64,',
-                Base64.encode(
-                    bytes(
-                        abi.encodePacked(
-                            "<svg width='290' height='500' viewBox='0 0 290 500' xmlns='http://www.w3.org/2000/svg'><circle cx='",
-                            params.x3,
-                            "' cy='",
-                            params.y3,
-                            "' r='100px' fill='#",
-                            params.color3,
-                            "'/></svg>"
-                        )
-                    )
-                ),
-                '" /><feBlend mode="overlay" in="p0" in2="p1" /><feBlend mode="exclusion" in2="p2" /><feBlend mode="overlay" in2="p3" result="blendOut" /><feGaussianBlur ',
-                'in="blendOut" stdDeviation="42" /></filter> <clipPath id="corners"><rect width="290" height="500" rx="42" ry="42" /></clipPath>',
-                '<path id="text-path-a" d="M40 12 H250 A28 28 0 0 1 278 40 V460 A28 28 0 0 1 250 488 H40 A28 28 0 0 1 12 460 V40 A28 28 0 0 1 40 12 z" />',
-                '<path id="minimap" d="M234 444C234 457.949 242.21 463 253 463" />',
-                '<filter id="top-region-blur"><feGaussianBlur in="SourceGraphic" stdDeviation="24" /></filter>',
-                '<linearGradient id="grad-up" x1="1" x2="0" y1="1" y2="0"><stop offset="0.0" stop-color="white" stop-opacity="1" />',
-                '<stop offset=".9" stop-color="white" stop-opacity="0" /></linearGradient>',
-                '<linearGradient id="grad-down" x1="0" x2="1" y1="0" y2="1"><stop offset="0.0" stop-color="white" stop-opacity="1" /><stop offset="0.9" stop-color="white" stop-opacity="0" /></linearGradient>',
-                '<mask id="fade-up" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#grad-up)" /></mask>',
-                '<mask id="fade-down" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#grad-down)" /></mask>',
-                '<mask id="none" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="white" /></mask>',
-                '<linearGradient id="grad-symbol"><stop offset="0.7" stop-color="white" stop-opacity="1" /><stop offset=".95" stop-color="white" stop-opacity="0" /></linearGradient>',
-                '<mask id="fade-symbol" maskContentUnits="userSpaceOnUse"><rect width="290px" height="200px" fill="url(#grad-symbol)" /></mask></defs>',
-                '<g clip-path="url(#corners)">',
-                '<rect fill="',
-                params.color0,
-                '" x="0px" y="0px" width="290px" height="500px" />',
-                '<rect style="filter: url(#f1)" x="0px" y="0px" width="290px" height="500px" />',
-                ' <g style="filter:url(#top-region-blur); transform:scale(1.5); transform-origin:center top;">',
-                '<rect fill="none" x="0px" y="0px" width="290px" height="500px" />',
-                '<ellipse cx="50%" cy="0px" rx="180px" ry="120px" fill="#000" opacity="0.85" /></g>',
-                '<rect x="0" y="0" width="290" height="500" rx="42" ry="42" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.2)" /></g>'
-            )
-        );
-    }
-
-    function generateSVGBorderText(
-        string memory quoteToken,
-        string memory baseToken,
-        string memory quoteTokenSymbol,
-        string memory baseTokenSymbol
-    ) private pure returns (string memory svg) {
-        svg = string(
-            abi.encodePacked(
-                '<text text-rendering="optimizeSpeed">',
-                '<textPath startOffset="-100%" fill="white" font-family="\'Courier New\', monospace" font-size="10px" xlink:href="#text-path-a">',
-                baseToken,
-                unicode" • ",
-                baseTokenSymbol,
-                ' <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" />',
-                '</textPath> <textPath startOffset="0%" fill="white" font-family="\'Courier New\', monospace" font-size="10px" xlink:href="#text-path-a">',
-                baseToken,
-                unicode" • ",
-                baseTokenSymbol,
-                ' <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" /> </textPath>',
-                '<textPath startOffset="50%" fill="white" font-family="\'Courier New\', monospace" font-size="10px" xlink:href="#text-path-a">',
-                quoteToken,
-                unicode" • ",
-                quoteTokenSymbol,
-                ' <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s"',
-                ' repeatCount="indefinite" /></textPath><textPath startOffset="-50%" fill="white" font-family="\'Courier New\', monospace" font-size="10px" xlink:href="#text-path-a">',
-                quoteToken,
-                unicode" • ",
-                quoteTokenSymbol,
-                ' <animate additive="sum" attributeName="startOffset" from="0%" to="100%" begin="0s" dur="30s" repeatCount="indefinite" /></textPath></text>'
-            )
-        );
-    }
-
-    function generateSVGCardMantle(
+    function generateTopText(
         string memory quoteTokenSymbol,
         string memory baseTokenSymbol,
-        string memory tickSpacing
+        uint256 tokenId,
+        int24 tickSpacing
     ) private pure returns (string memory svg) {
+        string memory poolId =
+            string(abi.encodePacked("CL", tickToString(tickSpacing), "-", quoteTokenSymbol, "/", baseTokenSymbol));
+        string memory tokenIdStr = string(abi.encodePacked("(#", tokenId.toString(), ")"));
+        string memory id = string(abi.encodePacked(poolId, tokenIdStr));
         svg = string(
             abi.encodePacked(
-                '<g mask="url(#fade-symbol)"><rect fill="none" x="0px" y="0px" width="290px" height="200px" /> <text y="70px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
-                quoteTokenSymbol,
-                "/",
-                baseTokenSymbol,
-                '</text><text y="115px" x="32px" fill="white" font-family="\'Courier New\', monospace" font-weight="200" font-size="36px">',
-                tickSpacing,
-                "</text></g>",
-                '<rect x="16" y="16" width="258" height="468" rx="26" ry="26" fill="rgba(0,0,0,0)" stroke="rgba(255,255,255,0.2)" />'
+                '<g id="',
+                id,
+                '"><text fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="32" letter-spacing="0em"><tspan x="370.906" y="85.5938">',
+                tokenIdStr,
+                '</tspan></text><text fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="32" font-weight="bold" letter-spacing="0em"><tspan x="56" y="85.5938">',
+                poolId,
+                "</tspan></text></g>"
             )
         );
     }
 
-    function generageSvgCurve(int24 tickLower, int24 tickUpper, int24 tickSpacing, int8 overRange)
-        private
-        pure
-        returns (string memory svg)
-    {
-        string memory fade = overRange == 1 ? "#fade-up" : overRange == -1 ? "#fade-down" : "#none";
-        string memory curve = getCurve(tickLower, tickUpper, tickSpacing);
+    function generateArt() private pure returns (string memory svg) {
         svg = string(
             abi.encodePacked(
-                '<g mask="url(',
-                fade,
-                ')"',
-                ' style="transform:translate(72px,189px)">'
-                '<rect x="-16px" y="-16px" width="180px" height="180px" fill="none" />' '<path d="',
-                curve,
-                '" stroke="rgba(0,0,0,0.3)" stroke-width="32px" fill="none" stroke-linecap="round" />',
-                '</g><g mask="url(',
-                fade,
-                ')"',
-                ' style="transform:translate(72px,189px)">',
-                '<rect x="-16px" y="-16px" width="180px" height="180px" fill="none" />',
-                '<path d="',
-                curve,
-                '" stroke="rgba(255,255,255,1)" fill="none" stroke-linecap="round" /></g>',
-                generateSVGCurveCircle(overRange)
+                '<circle id="circle" cx="400" cy="399.837" r="165.837" fill="#FF1100" />',
+                '<g id="velo"><g id="Group">',
+                '<path id="Vector" d="M293.965 393.384L300.734 410.678L307.462 393.384H311.625L302.524 416.3H298.685L289.534 393.384H293.965V393.384Z" fill="#F3F4F6" />',
+                '<path id="Vector_2" d="M320.36 411.869C321.642 412.693 323.199 413.193 324.84 413.193C329.461 413.193 333.075 409.488 333.075 404.824H337.006C337.006 411.502 331.61 416.764 324.749 416.764C317.979 416.764 312.717 411.552 312.717 404.965C312.717 398.238 318.113 392.933 324.974 392.933C328.362 392.933 332.202 394.215 334.716 397.554L320.36 411.869ZM317.887 409.304L329.32 397.822C327.996 396.956 326.482 396.498 324.84 396.498C320.268 396.498 316.655 400.203 316.655 404.824C316.655 406.473 317.113 408.022 317.887 409.304Z" fill="#F3F4F6" />'
+                '<path id="Vector_3" d="M341.402 382.909H345.699V416.306H341.402V382.909V382.909Z" fill="#F3F4F6" />',
+                '<path id="Vector_4" d="M350.552 404.824C350.552 398.055 355.765 392.933 362.676 392.933C369.628 392.933 374.841 398.055 374.841 404.824C374.841 411.643 369.628 416.764 362.676 416.764C355.765 416.764 350.552 411.636 350.552 404.824ZM362.676 412.918C367.247 412.918 370.678 409.438 370.678 404.824C370.678 400.252 367.247 396.73 362.676 396.73C358.146 396.73 354.715 400.252 354.715 404.824C354.715 409.445 358.146 412.918 362.676 412.918Z" fill="#F3F4F6" />',
+                '<path id="Vector_5" d="M390.578 416.307C383.168 416.307 378.229 411.735 378.229 404.824C378.229 397.963 383.168 393.391 390.578 393.391H394.417V382.916H398.715V416.314H390.578V416.307ZM390.578 412.46H394.417V397.181H390.578C385.732 397.181 382.527 400.245 382.527 404.817C382.527 409.445 385.725 412.46 390.578 412.46Z" fill="#F3F4F6" />',
+                '<path id="Vector_6" d="M405.033 393.384H409.33V400.02L416.424 392.926L419.122 395.624L409.33 405.366V416.299H405.033V393.384Z" fill="#F3F4F6" />',
+                '<path id="Vector_7" d="M419.397 404.824C419.397 398.055 424.61 392.933 431.52 392.933C438.473 392.933 443.686 398.055 443.686 404.824C443.686 411.643 438.473 416.764 431.52 416.764C424.61 416.764 419.397 411.636 419.397 404.824ZM431.52 412.918C436.092 412.918 439.523 409.438 439.523 404.824C439.523 400.252 436.092 396.73 431.52 396.73C426.991 396.73 423.56 400.252 423.56 404.824C423.56 409.445 426.991 412.918 431.52 412.918Z" fill="#F3F4F6" />',
+                '<path id="Vector_8" d="M448.532 393.384H452.738V396.131C456.443 393.342 458.042 392.926 460.148 392.926C462.896 392.926 465.27 394.342 466.418 396.631C470.623 393.384 472.321 392.926 474.512 392.926C478.443 392.926 481.556 395.765 481.556 400.062V416.299H477.259V400.52C477.259 398.414 475.752 396.857 473.829 396.857C472.363 396.857 471.264 397.174 467.193 400.562V416.299H462.896V400.52C462.896 398.414 461.388 396.857 459.465 396.857C458 396.857 456.901 397.174 452.829 400.562V416.299H448.532V393.384V393.384Z" fill="#F3F4F6" />',
+                '<path id="Vector_9" d="M493.821 411.869C495.103 412.693 496.659 413.193 498.301 413.193C502.922 413.193 506.536 409.488 506.536 404.824H510.466C510.466 411.502 505.07 416.764 498.209 416.764C491.44 416.764 486.177 411.552 486.177 404.965C486.177 398.238 491.573 392.933 498.435 392.933C501.823 392.933 505.662 394.215 508.177 397.554L493.821 411.869ZM491.355 409.304L502.788 397.822C501.464 396.956 499.949 396.498 498.308 396.498C493.736 396.498 490.122 400.203 490.122 404.824C490.115 406.473 490.573 408.022 491.355 409.304Z" fill="#F3F4F6" />'
+                "</g>",
+                "</g>"
             )
         );
     }
 
-    function getCurve(int24 tickLower, int24 tickUpper, int24 tickSpacing)
-        internal
-        pure
-        returns (string memory curve)
-    {
-        int24 tickRange = (tickUpper - tickLower) / tickSpacing;
-        if (tickRange <= 4) {
-            curve = curve1;
-        } else if (tickRange <= 8) {
-            curve = curve2;
-        } else if (tickRange <= 16) {
-            curve = curve3;
-        } else if (tickRange <= 32) {
-            curve = curve4;
-        } else if (tickRange <= 64) {
-            curve = curve5;
-        } else if (tickRange <= 128) {
-            curve = curve6;
-        } else if (tickRange <= 256) {
-            curve = curve7;
-        } else {
-            curve = curve8;
+    function generateSVGDefs() private pure returns (string memory svg) {
+        svg = string(
+            abi.encodePacked(
+                "<defs>",
+                '<linearGradient id="paint0_linear_1098_756" x1="491" y1="566" x2="26.2102" y2="566" gradientUnits="userSpaceOnUse">'
+                '<stop offset="0.142" stop-color="white" stop-opacity="0.2"/>',
+                '<stop offset="1" stop-opacity="0"/>',
+                "</linearGradient>",
+                '<clipPath id="clip0_1098_756">',
+                '<rect width="800" height="800" fill="white"/>',
+                "</clipPath>",
+                "</defs>"
+            )
+        );
+    }
+
+    function generateBottomText(
+        string memory quoteTokenSymbol,
+        string memory baseTokenSymbol,
+        uint256 quoteTokensOwed,
+        uint256 baseTokensOwed,
+        int24 tickLower,
+        int24 tickUpper,
+        uint8 quoteTokenDecimals,
+        uint8 baseTokenDecimals
+    ) internal pure returns (string memory svg) {
+        string memory balance0 = balanceToDecimals(quoteTokensOwed, quoteTokenDecimals);
+        string memory balance1 = balanceToDecimals(baseTokensOwed, baseTokenDecimals);
+        string memory balances =
+            string(abi.encodePacked(balance0, " ", quoteTokenSymbol, " ~ ", balance1, " ", baseTokenSymbol));
+        string memory tickLow = string(abi.encodePacked(tickToString(tickLower), " Low "));
+        string memory tickHigh = string(abi.encodePacked(tickToString(tickUpper), " High "));
+        svg = string(
+            abi.encodePacked(
+                '<text id="',
+                balances,
+                '" fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="32" font-weight="bold" letter-spacing="0em"><tspan x="56" y="676.594">',
+                balances,
+                "</tspan></text>",
+                '<rect id="line" opacity="0.05" x="56" y="700" width="693" height="2" fill="#D9D9D9"/>',
+                '<text id="',
+                tickLow,
+                "&#226;&#128;&#148; ",
+                tickHigh,
+                '" fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="20" letter-spacing="0em"><tspan x="56" y="736.434">',
+                tickLow,
+                "&#x2014; ",
+                tickHigh,
+                "</tspan></text>",
+                "</g>"
+            )
+        );
+    }
+
+    function balanceToDecimals(uint256 balance, uint8 decimals) private pure returns (string memory) {
+        uint256 divisor = 10 ** decimals;
+        uint256 integerPart = balance / divisor;
+        uint256 fractionalPart = balance % divisor;
+
+        // trim to 5 dp
+        if (decimals > 5) {
+            uint256 adjustedDivisor = 10 ** (decimals - 5);
+            fractionalPart = adjustedDivisor > 0 ? fractionalPart / adjustedDivisor : fractionalPart;
         }
-    }
 
-    function generateSVGCurveCircle(int8 overRange) internal pure returns (string memory svg) {
-        string memory curvex1 = "73";
-        string memory curvey1 = "190";
-        string memory curvex2 = "217";
-        string memory curvey2 = "334";
-        if (overRange == 1 || overRange == -1) {
-            svg = string(
-                abi.encodePacked(
-                    '<circle cx="',
-                    overRange == -1 ? curvex1 : curvex2,
-                    'px" cy="',
-                    overRange == -1 ? curvey1 : curvey2,
-                    'px" r="4px" fill="white" /><circle cx="',
-                    overRange == -1 ? curvex1 : curvex2,
-                    'px" cy="',
-                    overRange == -1 ? curvey1 : curvey2,
-                    'px" r="24px" fill="none" stroke="white" />'
-                )
-            );
-        } else {
-            svg = string(
-                abi.encodePacked(
-                    '<circle cx="',
-                    curvex1,
-                    'px" cy="',
-                    curvey1,
-                    'px" r="4px" fill="white" />',
-                    '<circle cx="',
-                    curvex2,
-                    'px" cy="',
-                    curvey2,
-                    'px" r="4px" fill="white" />'
-                )
-            );
+        // add leading zeroes
+        string memory leadingZeros = "";
+        uint256 fractionalPartLength = bytes(fractionalPart.toString()).length;
+        uint256 zerosToAdd = 5 > fractionalPartLength ? 5 - fractionalPartLength : 0;
+        for (uint256 i = 0; i < zerosToAdd; i++) {
+            leadingZeros = string(abi.encodePacked("0", leadingZeros));
         }
-    }
-
-    function generateSVGPositionDataAndLocationCurve(string memory tokenId, int24 tickLower, int24 tickUpper)
-        private
-        pure
-        returns (string memory svg)
-    {
-        string memory tickLowerStr = tickToString(tickLower);
-        string memory tickUpperStr = tickToString(tickUpper);
-        uint256 str1length = bytes(tokenId).length + 4;
-        uint256 str2length = bytes(tickLowerStr).length + 10;
-        uint256 str3length = bytes(tickUpperStr).length + 10;
-        (string memory xCoord, string memory yCoord) = rangeLocation(tickLower, tickUpper);
-        svg = string(
-            abi.encodePacked(
-                ' <g style="transform:translate(29px, 384px)">',
-                '<rect width="',
-                uint256(7 * (str1length + 4)).toString(),
-                'px" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.6)" />',
-                '<text x="12px" y="17px" font-family="\'Courier New\', monospace" font-size="12px" fill="white"><tspan fill="rgba(255,255,255,0.6)">ID: </tspan>',
-                tokenId,
-                "</text></g>",
-                ' <g style="transform:translate(29px, 414px)">',
-                '<rect width="',
-                uint256(7 * (str2length + 4)).toString(),
-                'px" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.6)" />',
-                '<text x="12px" y="17px" font-family="\'Courier New\', monospace" font-size="12px" fill="white"><tspan fill="rgba(255,255,255,0.6)">Min Tick: </tspan>',
-                tickLowerStr,
-                "</text></g>",
-                ' <g style="transform:translate(29px, 444px)">',
-                '<rect width="',
-                uint256(7 * (str3length + 4)).toString(),
-                'px" height="26px" rx="8px" ry="8px" fill="rgba(0,0,0,0.6)" />',
-                '<text x="12px" y="17px" font-family="\'Courier New\', monospace" font-size="12px" fill="white"><tspan fill="rgba(255,255,255,0.6)">Max Tick: </tspan>',
-                tickUpperStr,
-                "</text></g>" '<g style="transform:translate(226px, 433px)">',
-                '<rect width="36px" height="36px" rx="8px" ry="8px" fill="none" stroke="rgba(255,255,255,0.2)" />',
-                '<path stroke-linecap="round" d="M8 9C8.00004 22.9494 16.2099 28 27 28" fill="none" stroke="white" />',
-                '<circle style="transform:translate3d(',
-                xCoord,
-                "px, ",
-                yCoord,
-                'px, 0px)" cx="0px" cy="0px" r="4px" fill="white"/></g>'
-            )
-        );
+        return string(abi.encodePacked(integerPart.toString(), ".", leadingZeros, fractionalPart.toString()));
     }
 
     function tickToString(int24 tick) private pure returns (string memory) {
@@ -346,51 +183,5 @@ library NFTSVG {
             sign = "-";
         }
         return string(abi.encodePacked(sign, uint256(tick).toString()));
-    }
-
-    function rangeLocation(int24 tickLower, int24 tickUpper) internal pure returns (string memory, string memory) {
-        int24 midPoint = (tickLower + tickUpper) / 2;
-        if (midPoint < -125_000) {
-            return ("8", "7");
-        } else if (midPoint < -75_000) {
-            return ("8", "10.5");
-        } else if (midPoint < -25_000) {
-            return ("8", "14.25");
-        } else if (midPoint < -5_000) {
-            return ("10", "18");
-        } else if (midPoint < 0) {
-            return ("11", "21");
-        } else if (midPoint < 5_000) {
-            return ("13", "23");
-        } else if (midPoint < 25_000) {
-            return ("15", "25");
-        } else if (midPoint < 75_000) {
-            return ("18", "26");
-        } else if (midPoint < 125_000) {
-            return ("21", "27");
-        } else {
-            return ("24", "27");
-        }
-    }
-
-    function generateSVGRareSparkle(uint256 tokenId, address poolAddress) private pure returns (string memory svg) {
-        if (isRare(tokenId, poolAddress)) {
-            svg = string(
-                abi.encodePacked(
-                    '<g style="transform:translate(226px, 392px)"><rect width="36px" height="36px" rx="8px" ry="8px" fill="none" stroke="rgba(255,255,255,0.2)" />',
-                    '<g><path style="transform:translate(6px,6px)" d="M12 0L12.6522 9.56587L18 1.6077L13.7819 10.2181L22.3923 6L14.4341 ',
-                    "11.3478L24 12L14.4341 12.6522L22.3923 18L13.7819 13.7819L18 22.3923L12.6522 14.4341L12 24L11.3478 14.4341L6 22.39",
-                    '23L10.2181 13.7819L1.6077 18L9.56587 12.6522L0 12L9.56587 11.3478L1.6077 6L10.2181 10.2181L6 1.6077L11.3478 9.56587L12 0Z" fill="white" />',
-                    '<animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="10s" repeatCount="indefinite"/></g></g>'
-                )
-            );
-        } else {
-            svg = "";
-        }
-    }
-
-    function isRare(uint256 tokenId, address poolAddress) internal pure returns (bool) {
-        bytes32 h = keccak256(abi.encodePacked(tokenId, poolAddress));
-        return uint256(h) < type(uint256).max / (1 + BitMath.mostSignificantBit(tokenId) * 2);
     }
 }

@@ -4,6 +4,7 @@ pragma abicoder v2;
 
 import "contracts/core/interfaces/ICLPool.sol";
 import "@uniswap/contracts/libraries/SafeERC20Namer.sol";
+import "base64-sol/base64.sol";
 
 import "./libraries/ChainId.sol";
 import "./interfaces/INonfungiblePositionManager.sol";
@@ -12,6 +13,7 @@ import "./interfaces/IERC20Metadata.sol";
 import "./libraries/PoolAddress.sol";
 import "./libraries/NFTDescriptor.sol";
 import "./libraries/TokenRatioSortOrder.sol";
+import "./libraries/NFTSVG.sol";
 
 /// @title Describes NFT token positions
 /// @notice Produces a string containing the data URI for a JSON metadata string
@@ -64,29 +66,71 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
         bool _flipRatio = flipRatio(token0, token1, ChainId.get());
         address quoteTokenAddress = !_flipRatio ? token1 : token0;
         address baseTokenAddress = !_flipRatio ? token0 : token1;
-        (, int24 tick,,,,) = pool.slot0();
+        NFTDescriptor.ConstructTokenURIParams memory params = NFTDescriptor.ConstructTokenURIParams({
+            tokenId: tokenId,
+            quoteTokenAddress: quoteTokenAddress,
+            baseTokenAddress: baseTokenAddress,
+            quoteTokenSymbol: quoteTokenAddress == WETH9
+                ? nativeCurrencyLabel()
+                : SafeERC20Namer.tokenSymbol(quoteTokenAddress),
+            baseTokenSymbol: baseTokenAddress == WETH9
+                ? nativeCurrencyLabel()
+                : SafeERC20Namer.tokenSymbol(baseTokenAddress),
+            quoteTokenDecimals: IERC20Metadata(quoteTokenAddress).decimals(),
+            baseTokenDecimals: IERC20Metadata(baseTokenAddress).decimals(),
+            flipRatio: _flipRatio,
+            tickLower: tickLower,
+            tickUpper: tickUpper,
+            tickSpacing: tickSpacing,
+            poolAddress: address(pool)
+        });
 
-        return NFTDescriptor.constructTokenURI(
-            NFTDescriptor.ConstructTokenURIParams({
-                tokenId: tokenId,
-                quoteTokenAddress: quoteTokenAddress,
-                baseTokenAddress: baseTokenAddress,
-                quoteTokenSymbol: quoteTokenAddress == WETH9
-                    ? nativeCurrencyLabel()
-                    : SafeERC20Namer.tokenSymbol(quoteTokenAddress),
-                baseTokenSymbol: baseTokenAddress == WETH9
-                    ? nativeCurrencyLabel()
-                    : SafeERC20Namer.tokenSymbol(baseTokenAddress),
-                quoteTokenDecimals: IERC20Metadata(quoteTokenAddress).decimals(),
-                baseTokenDecimals: IERC20Metadata(baseTokenAddress).decimals(),
-                flipRatio: _flipRatio,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                tickCurrent: tick,
-                tickSpacing: tickSpacing,
-                poolAddress: address(pool)
-            })
+        string memory image = Base64.encode(bytes(generateSVG(positionManager, params)));
+
+        string memory nameAndDescription = NFTDescriptor.constructTokenURI(params);
+
+        return string(
+            abi.encodePacked(
+                "data:application/json;base64,",
+                Base64.encode(
+                    bytes(
+                        abi.encodePacked(
+                            "{", nameAndDescription, ', "image": "', "data:image/svg+xml;base64,", image, '"}'
+                        )
+                    )
+                )
+            )
         );
+    }
+
+    function generateSVG(
+        INonfungiblePositionManager positionManager,
+        NFTDescriptor.ConstructTokenURIParams memory params
+    ) internal view returns (string memory) {
+        (uint256 quoteTokensOwed, uint256 baseTokensOwed) =
+            tokensOwed({positionManager: positionManager, tokenId: params.tokenId, flipRatio: params.flipRatio});
+        return NFTSVG.generateSVG({
+            quoteTokenSymbol: params.quoteTokenSymbol,
+            baseTokenSymbol: params.baseTokenSymbol,
+            quoteTokensOwed: quoteTokensOwed,
+            baseTokensOwed: baseTokensOwed,
+            tokenId: params.tokenId,
+            tickLower: params.tickLower,
+            tickUpper: params.tickUpper,
+            tickSpacing: params.tickSpacing,
+            quoteTokenDecimals: params.quoteTokenDecimals,
+            baseTokenDecimals: params.baseTokenDecimals
+        });
+    }
+
+    function tokensOwed(INonfungiblePositionManager positionManager, uint256 tokenId, bool flipRatio)
+        internal
+        view
+        returns (uint256 quoteTokensOwed, uint256 baseTokensOwed)
+    {
+        (,,,,,,,,,, uint256 tokensOwed0, uint256 tokensOwed1) = positionManager.positions(tokenId);
+        quoteTokensOwed = flipRatio ? tokensOwed1 : tokensOwed0;
+        baseTokensOwed = flipRatio ? tokensOwed0 : tokensOwed1;
     }
 
     function flipRatio(address token0, address token1, uint256 chainId) public view returns (bool) {
