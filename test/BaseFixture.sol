@@ -57,6 +57,9 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     CustomSwapFeeModule public customSwapFeeModule;
     CustomUnstakedFeeModule public customUnstakedFeeModule;
 
+    string public nftName = "Slipstream Position NFT v1";
+    string public nftSymbol = "CL-POS";
+
     function setUp() public virtual {
         users = Users({
             owner: createUser("Owner"),
@@ -91,7 +94,9 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
-            _tokenDescriptor: address(nftDescriptor)
+            _tokenDescriptor: address(nftDescriptor),
+            name: nftName,
+            symbol: nftSymbol
         });
 
         // set nftmanager in the factories

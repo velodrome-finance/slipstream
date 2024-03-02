@@ -33,6 +33,8 @@ contract DeployCL is Script {
     address public feeManager;
     address public notifyAdmin;
     address public factoryV2;
+    string public nftName;
+    string public nftSymbol;
 
     // deployed contracts
     CLPool public poolImplementation;
@@ -60,6 +62,8 @@ contract DeployCL is Script {
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
         notifyAdmin = abi.decode(vm.parseJson(jsonConstants, ".notifyAdmin"), (address));
         factoryV2 = abi.decode(vm.parseJson(jsonConstants, ".factoryV2"), (address));
+        nftName = abi.decode(vm.parseJson(jsonConstants, ".nftName"), (string));
+        nftSymbol = abi.decode(vm.parseJson(jsonConstants, ".nftSymbol"), (string));
 
         require(address(voter) != address(0)); // sanity check for constants file fillled out correctly
 
@@ -78,7 +82,9 @@ contract DeployCL is Script {
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
-            _tokenDescriptor: address(nftDescriptor)
+            _tokenDescriptor: address(nftDescriptor),
+            name: nftName,
+            symbol: nftSymbol
         });
 
         // set nft manager in the factories

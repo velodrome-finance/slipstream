@@ -127,7 +127,9 @@ contract SetupCL {
         nft = new NonfungiblePositionManager({
             _factory: address(poolFactory),
             _WETH9: address(weth),
-            _tokenDescriptor: address(100)
+            _tokenDescriptor: address(100),
+            name: "Slipstream Position NFT v1",
+            symbol: "CL-POS"
         });
 
         // set nft manager in the factories

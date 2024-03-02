@@ -28,5 +28,7 @@ contract NonfungiblePositionManagerTest is BaseFixture {
     function test_InitialState() public {
         assertEq(nft.factory(), address(poolFactory));
         assertEq(nft.WETH9(), address(weth));
+        assertEq(nft.name(), "Slipstream Position NFT v1");
+        assertEq(nft.symbol(), "CL-POS");
     }
 }

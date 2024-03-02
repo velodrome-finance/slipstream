@@ -9,7 +9,7 @@ contract MockTimeNonfungiblePositionManager is NonfungiblePositionManager {
     uint256 time;
 
     constructor(address _factory, address _WETH9, address _tokenDescriptor)
-        NonfungiblePositionManager(_factory, _WETH9, _tokenDescriptor)
+        NonfungiblePositionManager(_factory, _WETH9, _tokenDescriptor, "Slipstream Position NFT v1", "CL-POS")
     {}
 
     function createPoolFromFactory(address tokenA, address tokenB, int24 tickSpacing, uint160 sqrtPriceX96)

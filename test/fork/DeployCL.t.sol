@@ -32,6 +32,8 @@ contract DeployCLForkTest is Test {
     address public poolFactoryOwner;
     address public feeManager;
     address public notifyAdmin;
+    string public nftName;
+    string public nftSymbol;
 
     // deployed contracts
     CLPool public poolImplementation;
@@ -59,6 +61,8 @@ contract DeployCLForkTest is Test {
         poolFactoryOwner = abi.decode(vm.parseJson(jsonConstants, ".poolFactoryOwner"), (address));
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
         notifyAdmin = abi.decode(vm.parseJson(jsonConstants, ".notifyAdmin"), (address));
+        nftName = abi.decode(vm.parseJson(jsonConstants, ".nftName"), (string));
+        nftSymbol = abi.decode(vm.parseJson(jsonConstants, ".nftSymbol"), (string));
 
         deal(address(deployerAddress), 10 ether);
     }
@@ -101,6 +105,8 @@ contract DeployCLForkTest is Test {
         assertEq(nft.factory(), address(poolFactory));
         assertEq(nft.WETH9(), weth);
         assertEq(nft.owner(), team);
+        assertEq(nft.name(), nftName);
+        assertEq(nft.symbol(), nftSymbol);
 
         assertTrue(address(gaugeImplementation) != address(0));
         assertTrue(address(gaugeFactory) != address(0));
