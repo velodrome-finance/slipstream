@@ -97,7 +97,7 @@ contract DeployCL is Script {
         poolFactory.setSwapFeeModule({_swapFeeModule: address(swapFeeModule)});
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
 
-        // transfer permissionsx
+        // transfer permissions
         nft.setOwner(team);
         poolFactory.setOwner(poolFactoryOwner);
         poolFactory.setSwapFeeManager(feeManager);
