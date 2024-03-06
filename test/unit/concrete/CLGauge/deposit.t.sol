@@ -173,6 +173,9 @@ contract DepositTest is CLGaugeTest {
         assertEq(nft.ownerOf(tokenId), address(gauge));
         assertEq(gauge.stakedLength(users.alice), 1);
         assertEq(gauge.stakedContains(users.alice, 1), true);
+        assertEq(gauge.stakedByIndex(users.alice, 0), tokenId);
+        uint256[] memory staked = gauge.stakedValues(users.alice);
+        assertEq(staked[0], tokenId);
         assertEq(gauge.rewardGrowthInside(tokenId), 0);
         assertEqUint(pool.liquidity(), liquidity);
         assertEqUint(pool.stakedLiquidity(), liquidity);
@@ -219,6 +222,9 @@ contract DepositTest is CLGaugeTest {
         assertEq(nft.ownerOf(tokenId), address(gauge));
         assertEq(gauge.stakedLength(users.alice), 1);
         assertEq(gauge.stakedContains(users.alice, 1), true);
+        assertEq(gauge.stakedByIndex(users.alice, 0), tokenId);
+        uint256[] memory staked = gauge.stakedValues(users.alice);
+        assertEq(staked[0], tokenId);
         assertEq(gauge.rewardGrowthInside(tokenId), 0);
         assertEqUint(pool.liquidity(), 0);
         assertEqUint(pool.stakedLiquidity(), 0);
@@ -265,6 +271,9 @@ contract DepositTest is CLGaugeTest {
         assertEq(nft.ownerOf(tokenId), address(gauge));
         assertEq(gauge.stakedLength(users.alice), 1);
         assertEq(gauge.stakedContains(users.alice, 1), true);
+        assertEq(gauge.stakedByIndex(users.alice, 0), tokenId);
+        uint256[] memory staked = gauge.stakedValues(users.alice);
+        assertEq(staked[0], tokenId);
         assertEq(gauge.rewardGrowthInside(tokenId), 0);
         assertEqUint(pool.liquidity(), 0);
         assertEqUint(pool.stakedLiquidity(), 0);

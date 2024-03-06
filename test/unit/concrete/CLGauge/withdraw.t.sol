@@ -89,6 +89,8 @@ contract WithdrawTest is CLGaugeTest {
         assertEq(nft.ownerOf(tokenId), address(users.alice));
         assertEq(gauge.stakedLength(users.alice), 0);
         assertEq(gauge.stakedContains(users.alice, 1), false);
+        uint256[] memory staked = gauge.stakedValues(users.alice);
+        assertEq(staked.length, 0);
         assertEq(gauge.rewardGrowthInside(tokenId), 0);
         assertEqUint(pool.liquidity(), liquidity);
         assertEqUint(pool.stakedLiquidity(), 0);
@@ -140,6 +142,8 @@ contract WithdrawTest is CLGaugeTest {
         assertEq(nft.ownerOf(tokenId), address(users.alice));
         assertEq(gauge.stakedLength(users.alice), 0);
         assertEq(gauge.stakedContains(users.alice, 1), false);
+        uint256[] memory staked = gauge.stakedValues(users.alice);
+        assertEq(staked.length, 0);
         assertEq(gauge.rewardGrowthInside(tokenId), 0);
         assertEqUint(pool.liquidity(), 0);
         assertEqUint(pool.stakedLiquidity(), 0);
@@ -191,6 +195,8 @@ contract WithdrawTest is CLGaugeTest {
         assertEq(nft.ownerOf(tokenId), address(users.alice));
         assertEq(gauge.stakedLength(users.alice), 0);
         assertEq(gauge.stakedContains(users.alice, 1), false);
+        uint256[] memory staked = gauge.stakedValues(users.alice);
+        assertEq(staked.length, 0);
         assertEq(gauge.rewardGrowthInside(tokenId), 0);
         assertEqUint(pool.liquidity(), 0);
         assertEqUint(pool.stakedLiquidity(), 0);

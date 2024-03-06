@@ -311,6 +311,20 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     }
 
     /// @inheritdoc ICLGauge
+    function stakedValues(address depositor) external view override returns (uint256[] memory staked) {
+        uint256 length = _stakes[depositor].length();
+        staked = new uint256[](length);
+        for (uint256 i = 0; i < length; i++) {
+            staked[i] = _stakes[depositor].at(i);
+        }
+    }
+
+    /// @inheritdoc ICLGauge
+    function stakedByIndex(address depositor, uint256 index) external view override returns (uint256) {
+        return _stakes[depositor].at(index);
+    }
+
+    /// @inheritdoc ICLGauge
     function stakedContains(address depositor, uint256 tokenId) external view override returns (bool) {
         return _stakes[depositor].contains(tokenId);
     }
