@@ -108,7 +108,7 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
         NFTDescriptor.ConstructTokenURIParams memory params
     ) internal view returns (string memory) {
         (uint256 quoteTokensOwed, uint256 baseTokensOwed) =
-            tokensOwed({positionManager: positionManager, tokenId: params.tokenId, flipRatio: params.flipRatio});
+            tokensOwed({positionManager: positionManager, tokenId: params.tokenId, _flipRatio: params.flipRatio});
         return NFTSVG.generateSVG({
             quoteTokenSymbol: params.quoteTokenSymbol,
             baseTokenSymbol: params.baseTokenSymbol,
@@ -123,14 +123,14 @@ contract NonfungibleTokenPositionDescriptor is INonfungibleTokenPositionDescript
         });
     }
 
-    function tokensOwed(INonfungiblePositionManager positionManager, uint256 tokenId, bool flipRatio)
+    function tokensOwed(INonfungiblePositionManager positionManager, uint256 tokenId, bool _flipRatio)
         internal
         view
         returns (uint256 quoteTokensOwed, uint256 baseTokensOwed)
     {
         (,,,,,,,,,, uint256 tokensOwed0, uint256 tokensOwed1) = positionManager.positions(tokenId);
-        quoteTokensOwed = flipRatio ? tokensOwed1 : tokensOwed0;
-        baseTokensOwed = flipRatio ? tokensOwed0 : tokensOwed1;
+        quoteTokensOwed = _flipRatio ? tokensOwed1 : tokensOwed0;
+        baseTokensOwed = _flipRatio ? tokensOwed0 : tokensOwed1;
     }
 
     function flipRatio(address token0, address token1, uint256 chainId) public view returns (bool) {

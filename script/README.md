@@ -26,4 +26,6 @@ forge script script/DeployCL.s.sol:DeployCL --broadcast --slow --rpc-url optimis
 forge script script/DeployPools.s.sol:DeployPools --broadcast --slow --rpc-url optimism -vvvv
 
 forge script script/DeploySugarHelper.s.sol:DeploySugarHelper --broadcast --slow --rpc-url optimism --verify -vvvv
+
+forge script script/DeployPositionDescriptor.s.sol:DeployPositionDescriptor --broadcast --slow --rpc-url optimism -vvvv
 ```

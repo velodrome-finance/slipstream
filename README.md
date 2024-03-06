@@ -47,7 +47,7 @@ Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bount
 | GaugeImplementation               | [0xC9b828518a8b96fDE860F014C1B400F868AF648e](https://optimistic.etherscan.io/address/0xC9b828518a8b96fDE860F014C1B400F868AF648e#code) |
 | MixedQuoter               | [0xFAA0A0C8bA31f79dc621f0d6b10F95589a4301f2](https://optimistic.etherscan.io/address/0xFAA0A0C8bA31f79dc621f0d6b10F95589a4301f2#code) |
 | NonfungiblePositionManager               | [0x1D5951dFCD9D7F830a9aed6d127bBeB9F69df276](https://optimistic.etherscan.io/address/0x1D5951dFCD9D7F830a9aed6d127bBeB9F69df276#code) |
-| NonfungibleTokenPositionDescriptor               | [0x0452DfdF6E6fa85E53d476434dF634b4Fd02e3C7](https://optimistic.etherscan.io/address/0x0452DfdF6E6fa85E53d476434dF634b4Fd02e3C7#code) |
+| NonfungibleTokenPositionDescriptor               | [0x388C594690Db0462826043a27422ACccdA832f15](https://optimistic.etherscan.io/address/0x388C594690Db0462826043a27422ACccdA832f15#code) |
 | PoolFactory               | [0x61F42C56555391903dA28D35aFf8eE1362f1cdDE](https://optimistic.etherscan.io/address/0x61F42C56555391903dA28D35aFf8eE1362f1cdDE#code) |
 | PoolImplementation               | [0x301E46346D39AAa66d372CB40f870510C8943a1b](https://optimistic.etherscan.io/address/0x301E46346D39AAa66d372CB40f870510C8943a1b#code) |
 | QuoterV2               | [0x53cA9c0BA922390Ac64935e9E14F880D4e2611E3](https://optimistic.etherscan.io/address/0x53cA9c0BA922390Ac64935e9E14F880D4e2611E3#code) |

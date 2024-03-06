@@ -66,17 +66,22 @@ library NFTSVG {
     ) private pure returns (string memory svg) {
         string memory poolId =
             string(abi.encodePacked("CL", tickToString(tickSpacing), "-", quoteTokenSymbol, "/", baseTokenSymbol));
-        string memory tokenIdStr = string(abi.encodePacked("(#", tokenId.toString(), ")"));
+        string memory tokenIdStr = string(abi.encodePacked("ID #", tokenId.toString()));
         string memory id = string(abi.encodePacked(poolId, tokenIdStr));
         svg = string(
             abi.encodePacked(
                 '<g id="',
                 id,
-                '"><text fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="32" letter-spacing="0em"><tspan x="370.906" y="85.5938">',
-                tokenIdStr,
-                '</tspan></text><text fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="32" font-weight="bold" letter-spacing="0em"><tspan x="56" y="85.5938">',
+                '">',
+                '<text fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="32" font-weight="bold" letter-spacing="0em"><tspan x="56" y="85.5938">',
                 poolId,
-                "</tspan></text></g>"
+                "</tspan></text>",
+                "</g>",
+                '<text id="ID #1223" fill="#F3F4F6" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="20" letter-spacing="0em">',
+                '<tspan x="56" y="128.913">',
+                tokenIdStr,
+                "</tspan>",
+                "</text>"
             )
         );
     }
