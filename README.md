@@ -43,14 +43,14 @@ Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bount
 
 | Name               | Address                                                                                                                               |
 | :----------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
-| GaugeFactory               | [0x5A41a5b04e9e7cca874BDB7BA51Cff4815C289DE](https://optimistic.etherscan.io/address/0x5A41a5b04e9e7cca874BDB7BA51Cff4815C289DE#code) |
-| GaugeImplementation               | [0xC9b828518a8b96fDE860F014C1B400F868AF648e](https://optimistic.etherscan.io/address/0xC9b828518a8b96fDE860F014C1B400F868AF648e#code) |
-| MixedQuoter               | [0xFAA0A0C8bA31f79dc621f0d6b10F95589a4301f2](https://optimistic.etherscan.io/address/0xFAA0A0C8bA31f79dc621f0d6b10F95589a4301f2#code) |
-| NonfungiblePositionManager               | [0x1D5951dFCD9D7F830a9aed6d127bBeB9F69df276](https://optimistic.etherscan.io/address/0x1D5951dFCD9D7F830a9aed6d127bBeB9F69df276#code) |
-| NonfungibleTokenPositionDescriptor               | [0x388C594690Db0462826043a27422ACccdA832f15](https://optimistic.etherscan.io/address/0x388C594690Db0462826043a27422ACccdA832f15#code) |
-| PoolFactory               | [0x61F42C56555391903dA28D35aFf8eE1362f1cdDE](https://optimistic.etherscan.io/address/0x61F42C56555391903dA28D35aFf8eE1362f1cdDE#code) |
-| PoolImplementation               | [0x301E46346D39AAa66d372CB40f870510C8943a1b](https://optimistic.etherscan.io/address/0x301E46346D39AAa66d372CB40f870510C8943a1b#code) |
-| QuoterV2               | [0x53cA9c0BA922390Ac64935e9E14F880D4e2611E3](https://optimistic.etherscan.io/address/0x53cA9c0BA922390Ac64935e9E14F880D4e2611E3#code) |
-| CustomSwapFeeModule               | [0xa90991c28550aF1ae8d4F03cB9856CAffa3AEA73](https://optimistic.etherscan.io/address/0xa90991c28550aF1ae8d4F03cB9856CAffa3AEA73#code) |
-| CustomUnstakedFeeModule               | [0xe07eaAcb21f26efE4C64314ceb6258D517eCeD54](https://optimistic.etherscan.io/address/0xe07eaAcb21f26efE4C64314ceb6258D517eCeD54#code) |
-| SugarHelper               | [0x4d57877265e2565F525591BEa9D260cAF074DC40](https://optimistic.etherscan.io/address/0x4d57877265e2565F525591BEa9D260cAF074DC40#code) |
+| GaugeFactory               | [0x282AC0eA96493650F1A5E5e5d20490C782F1592a](https://optimistic.etherscan.io/address/0x282AC0eA96493650F1A5E5e5d20490C782F1592a#code) |
+| GaugeImplementation               | [0x6D600CC5F14B81665606Ca1985605464BA332Bad](https://optimistic.etherscan.io/address/0x6D600CC5F14B81665606Ca1985605464BA332Bad#code) |
+| MixedQuoter               | [0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62](https://optimistic.etherscan.io/address/0xa4ac92a0F54f1a447c55a4082c90742F5E76Df62#code) |
+| NonfungiblePositionManager               | [0xbB5DFE1380333CEE4c2EeBd7202c80dE2256AdF4](https://optimistic.etherscan.io/address/0xbB5DFE1380333CEE4c2EeBd7202c80dE2256AdF4#code) |
+| NonfungibleTokenPositionDescriptor               | [0x2c998811b2Af32416C8ff4c0ea85f0e7Ed834ff8](https://optimistic.etherscan.io/address/0x2c998811b2Af32416C8ff4c0ea85f0e7Ed834ff8#code) |
+| PoolFactory               | [0x548118C7E0B865C2CfA94D15EC86B666468ac758](https://optimistic.etherscan.io/address/0x548118C7E0B865C2CfA94D15EC86B666468ac758#code) |
+| PoolImplementation               | [0xE0A596c403E854FFb9C828aB4f07eEae04A05D37](https://optimistic.etherscan.io/address/0xE0A596c403E854FFb9C828aB4f07eEae04A05D37#code) |
+| QuoterV2               | [0xA2DEcF05c16537C702779083Fe067e308463CE45](https://optimistic.etherscan.io/address/0xA2DEcF05c16537C702779083Fe067e308463CE45#code) |
+| CustomSwapFeeModule               | [0xA9c319945f706dd1809819321a2e31C9A169e9c1](https://optimistic.etherscan.io/address/0xA9c319945f706dd1809819321a2e31C9A169e9c1#code) |
+| CustomUnstakedFeeModule               | [0x5A993209065ea74b50E23a378ddB7068189345D0](https://optimistic.etherscan.io/address/0x5A993209065ea74b50E23a378ddB7068189345D0#code) |
+| SugarHelper               | [0x6e97Ce3E33684A52C90559B2EEdEBEE4c89fFe3a](https://optimistic.etherscan.io/address/0x6e97Ce3E33684A52C90559B2EEdEBEE4c89fFe3a#code) |
