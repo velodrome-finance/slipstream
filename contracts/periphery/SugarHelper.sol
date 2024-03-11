@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity =0.7.6;
+pragma abicoder v2;
 
+import {Math} from "@openzeppelin/contracts/math/Math.sol";
 import {LiquidityAmounts} from "./libraries/LiquidityAmounts.sol";
 import {PositionValue} from "./libraries/PositionValue.sol";
 import {FullMath} from "../core/libraries/FullMath.sol";
@@ -12,6 +14,9 @@ import {ISugarHelper} from "./interfaces/ISugarHelper.sol";
 
 /// @notice Expose on-chain helpers for liquidity math
 contract SugarHelper is ISugarHelper {
+    /// @dev Maximum number of Bitmaps that can be processed per call
+    uint256 constant MAX_BITMAPS = 5;
+
     ///
     /// Wrappers for LiquidityAmounts
     ///
@@ -72,7 +77,7 @@ contract SugarHelper is ISugarHelper {
         uint160 sqrtRatioX96,
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96
-    ) external pure returns (uint256 amount0) {
+    ) external pure override returns (uint256 amount0) {
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
@@ -91,7 +96,7 @@ contract SugarHelper is ISugarHelper {
         uint160 sqrtRatioX96,
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96
-    ) external pure returns (uint256 amount1) {
+    ) external pure override returns (uint256 amount1) {
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
@@ -170,5 +175,69 @@ contract SugarHelper is ISugarHelper {
         amount0 = FullMath.mulDiv(feeGrowthInside0X128, liquidity, FixedPoint128.Q128);
 
         amount1 = FullMath.mulDiv(feeGrowthInside1X128, liquidity, FixedPoint128.Q128);
+    }
+
+    ///
+    /// TickLens Helper
+    ///
+
+    /// @notice Fetches Tick Data for all populated Ticks in given bitmaps
+    /// @param pool Address of the pool from which to fetch data
+    /// @param startTick Tick from which the first bitmap will be fetched
+    /// @dev   The number of bitmaps fetched by this function should always be `MAX_BITMAPS`,
+    ///        unless there are less than `MAX_BITMAPS` left to iterate through
+    /// @return populatedTicks Array of all Populated Ticks in the provided bitmaps
+    function getPopulatedTicks(address pool, int24 startTick)
+        external
+        view
+        override
+        returns (PopulatedTick[] memory populatedTicks)
+    {
+        // fetch all bitmaps, starting at bitmap where the given `startTick` is located
+        int24 tickSpacing = ICLPool(pool).tickSpacing();
+        int16 bitmapIndex = int16((startTick / tickSpacing) >> 8);
+        uint256 maxBitmaps = Math.min(MAX_BITMAPS, uint256(type(int16).max - bitmapIndex) + 1);
+
+        // get all `maxBitmaps` starting from the given tick's bitmap index
+        uint256 bitmap;
+        uint256 numberOfPopulatedTicks;
+        uint256[] memory bitmaps = new uint256[](maxBitmaps);
+        for (uint256 j = 0; j < maxBitmaps; j++) {
+            // calculate the number of populated ticks
+            bitmap = ICLPool(pool).tickBitmap(bitmapIndex++);
+            numberOfPopulatedTicks += countSetBits(bitmap);
+            bitmaps[j] = bitmap;
+        }
+
+        // fetch populated tick data
+        populatedTicks = new PopulatedTick[](numberOfPopulatedTicks);
+
+        int24 populatedTick;
+        int24 tickBitmapIndex;
+        for (uint256 j = 0; j < maxBitmaps; j++) {
+            bitmap = bitmaps[j];
+            tickBitmapIndex = bitmapIndex + int16(j);
+            for (uint256 i = 0; i < 256; i++) {
+                if (bitmap & (1 << i) > 0) {
+                    populatedTick = ((tickBitmapIndex << 8) + int24(i)) * tickSpacing;
+
+                    (uint128 liquidityGross, int128 liquidityNet,,,,,,,,) = ICLPool(pool).ticks(populatedTick);
+
+                    populatedTicks[--numberOfPopulatedTicks] = PopulatedTick({
+                        tick: populatedTick,
+                        sqrtRatioX96: TickMath.getSqrtRatioAtTick(populatedTick),
+                        liquidityNet: liquidityNet,
+                        liquidityGross: liquidityGross
+                    });
+                }
+            }
+        }
+    }
+
+    function countSetBits(uint256 bitmap) private pure returns (uint256 count) {
+        while (bitmap != 0) {
+            bitmap &= (bitmap - 1);
+            count++;
+        }
     }
 }
