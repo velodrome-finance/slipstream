@@ -1,5 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`TickLens #getPopulatedTicksInWord fully populated ticks 1`] = `4041807`;
+exports[`TickLens #getPopulatedTicksInWord fully populated ticks 1`] = `4295252`;
 
-exports[`TickLens #getPopulatedTicksInWord gas for single populated tick 1`] = `65457`;
+exports[`TickLens #getPopulatedTicksInWord gas costs by tick 2 fully populated words 1`] = `8664649`;
+
+exports[`TickLens #getPopulatedTicksInWord gas costs by tick 3 fully populated words 1`] = `13133390`;
+
+exports[`TickLens #getPopulatedTicksInWord gas costs by tick 4 fully populated words 1`] = `17697717`;
+
+exports[`TickLens #getPopulatedTicksInWord gas costs by tick 5 fully populated words 1`] = `22352394`;
+
+exports[`TickLens #getPopulatedTicksInWord gas costs by tick 6 fully populated words 1`] = `27101229`;
+
+exports[`TickLens #getPopulatedTicksInWord gas for single populated tick 1`] = `66498`;

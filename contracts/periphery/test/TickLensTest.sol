@@ -12,4 +12,14 @@ contract TickLensTest is TickLens {
         getPopulatedTicksInWord(pool, tickBitmapIndex);
         return gasBefore - gasleft();
     }
+
+    function getGasCostOfGetPopulatedTicks(address pool, int24 tick, uint256 maxCount)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 gasBefore = gasleft();
+        getPopulatedTicks(pool, tick, maxCount);
+        return gasBefore - gasleft();
+    }
 }
