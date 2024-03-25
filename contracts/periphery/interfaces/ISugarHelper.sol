@@ -23,31 +23,15 @@ interface ISugarHelper {
         uint128 liquidity
     ) external pure returns (uint256 amount0, uint256 amount1);
 
-    function getAmount0ForLiquidity(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity)
+    function estimateAmount0(uint256 amount1, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
         external
         pure
         returns (uint256 amount0);
 
-    function getAmount1ForLiquidity(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity)
+    function estimateAmount1(uint256 amount0, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
         external
         pure
         returns (uint256 amount1);
-
-    function estimateAmount0(
-        uint256 amount1,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        uint160 sqrtRatioAX96,
-        uint160 sqrtRatioBX96
-    ) external pure returns (uint256 amount0);
-
-    function estimateAmount1(
-        uint256 amount0,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        uint160 sqrtRatioAX96,
-        uint160 sqrtRatioBX96
-    ) external pure returns (uint256 amount1);
 
     ///
     /// Wrappers for PositionValue

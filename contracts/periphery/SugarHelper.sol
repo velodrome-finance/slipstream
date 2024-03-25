@@ -3,6 +3,7 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import {Math} from "@openzeppelin/contracts/math/Math.sol";
+import {SqrtPriceMath} from "../core/libraries/SqrtPriceMath.sol";
 import {LiquidityAmounts} from "./libraries/LiquidityAmounts.sol";
 import {PositionValue} from "./libraries/PositionValue.sol";
 import {FullMath} from "../core/libraries/FullMath.sol";
@@ -35,32 +36,6 @@ contract SugarHelper is ISugarHelper {
         });
     }
 
-    function getAmount0ForLiquidity(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity)
-        external
-        pure
-        override
-        returns (uint256 amount0)
-    {
-        return LiquidityAmounts.getAmount0ForLiquidity({
-            sqrtRatioAX96: sqrtRatioAX96,
-            sqrtRatioBX96: sqrtRatioBX96,
-            liquidity: liquidity
-        });
-    }
-
-    function getAmount1ForLiquidity(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity)
-        external
-        pure
-        override
-        returns (uint256 amount1)
-    {
-        return LiquidityAmounts.getAmount1ForLiquidity({
-            sqrtRatioAX96: sqrtRatioAX96,
-            sqrtRatioBX96: sqrtRatioBX96,
-            liquidity: liquidity
-        });
-    }
-
     function getLiquidityForAmounts(
         uint256 amount0,
         uint256 amount1,
@@ -71,13 +46,15 @@ contract SugarHelper is ISugarHelper {
         return LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1);
     }
 
-    function estimateAmount0(
-        uint256 amount1,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        uint160 sqrtRatioAX96,
-        uint160 sqrtRatioBX96
-    ) external pure override returns (uint256 amount0) {
+    function estimateAmount0(uint256 amount1, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+        external
+        pure
+        override
+        returns (uint256 amount0)
+    {
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLow);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickHigh);
+
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
@@ -87,16 +64,18 @@ contract SugarHelper is ISugarHelper {
         if (liquidity == 0) {
             liquidity = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
         }
-        amount0 = LiquidityAmounts.getAmount0ForLiquidity(sqrtRatioX96, sqrtRatioBX96, liquidity);
+        amount0 = SqrtPriceMath.getAmount0Delta(sqrtRatioX96, sqrtRatioBX96, liquidity, false);
     }
 
-    function estimateAmount1(
-        uint256 amount0,
-        uint128 liquidity,
-        uint160 sqrtRatioX96,
-        uint160 sqrtRatioAX96,
-        uint160 sqrtRatioBX96
-    ) external pure override returns (uint256 amount1) {
+    function estimateAmount1(uint256 amount0, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+        external
+        pure
+        override
+        returns (uint256 amount1)
+    {
+        uint160 sqrtRatioAX96 = TickMath.getSqrtRatioAtTick(tickLow);
+        uint160 sqrtRatioBX96 = TickMath.getSqrtRatioAtTick(tickHigh);
+
         if (sqrtRatioAX96 > sqrtRatioBX96) (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96 && sqrtRatioX96 >= sqrtRatioBX96) {
@@ -106,7 +85,43 @@ contract SugarHelper is ISugarHelper {
         if (liquidity == 0) {
             liquidity = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
         }
-        amount1 = LiquidityAmounts.getAmount1ForLiquidity(sqrtRatioAX96, sqrtRatioX96, liquidity);
+        amount1 = SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioX96, liquidity, false);
+    }
+
+    ///
+    /// Wrappers for SqrtPriceMath
+    ///
+
+    function getAmount0Delta(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity, bool roundUp)
+        external
+        pure
+        returns (uint256)
+    {
+        return SqrtPriceMath.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
+    }
+
+    function getAmount1Delta(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity, bool roundUp)
+        external
+        pure
+        returns (uint256)
+    {
+        return SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
+    }
+
+    function getAmount0Delta(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, int128 liquidity)
+        external
+        pure
+        returns (int256)
+    {
+        return SqrtPriceMath.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+    }
+
+    function getAmount1Delta(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, int128 liquidity)
+        external
+        pure
+        returns (int256)
+    {
+        return SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
     ///
