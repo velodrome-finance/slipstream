@@ -16,7 +16,7 @@ contract InitializeTest is CLGaugeTest {
         address feesVotingReward = voter.gaugeToFees(gauge);
 
         vm.expectRevert(abi.encodePacked("AI"));
-        CLGauge(gauge).initialize({
+        CLGauge(payable(gauge)).initialize({
             _pool: pool,
             _feesVotingReward: feesVotingReward,
             _rewardToken: address(rewardToken),

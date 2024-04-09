@@ -26,7 +26,7 @@ contract MediumFeeToken1LiquidityOnlyAllStakedTest is CLPoolSwapAllStakedNoUnsta
 
         stakedPositions.push(Position({tickLower: -2_000 * tickSpacing, tickUpper: 0, liquidity: liquidity}));
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
 
         vm.stopPrank();
 

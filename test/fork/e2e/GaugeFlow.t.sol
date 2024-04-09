@@ -33,7 +33,7 @@ contract GaugeFlowTest is BaseForkFixture {
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 10_000);
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
 
         feesVotingReward = gauge.feesVotingReward();
 

@@ -4,11 +4,11 @@ pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {ICLGaugeFactory} from "contracts/gauge/interfaces/ICLGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
+import {TransferHelper} from "contracts/periphery/libraries/TransferHelper.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
@@ -20,7 +20,6 @@ import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
-    using SafeERC20 for IERC20;
     using SafeCast for uint128;
 
     /// @inheritdoc ICLGauge
@@ -58,6 +57,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLGauge
     uint256 public override fees1;
     /// @inheritdoc ICLGauge
+    address public override WETH9;
+    /// @inheritdoc ICLGauge
     address public override token0;
     /// @inheritdoc ICLGauge
     address public override token1;
@@ -66,6 +67,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
     /// @inheritdoc ICLGauge
     bool public override isPool;
+    /// @inheritdoc ICLGauge
+    bool public override supportsPayable;
 
     /// @inheritdoc ICLGauge
     function initialize(
@@ -86,10 +89,17 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         rewardToken = _rewardToken;
         voter = IVoter(_voter);
         nft = INonfungiblePositionManager(_nft);
+        address _weth = nft.WETH9();
+        WETH9 = _weth;
         token0 = _token0;
         token1 = _token1;
         tickSpacing = _tickSpacing;
         isPool = _isPool;
+        supportsPayable = _token0 == _weth || _token1 == _weth;
+    }
+
+    receive() external payable {
+        require(msg.sender == address(nft), "NNFT");
     }
 
     // updates the claimable rewards and lastUpdateTime for tokenId
@@ -164,7 +174,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
         if (reward > 0) {
             delete rewards[tokenId];
-            IERC20(rewardToken).safeTransfer(owner, reward);
+            TransferHelper.safeTransfer(rewardToken, owner, reward);
             emit ClaimRewards(owner, reward);
         }
     }
@@ -237,21 +247,22 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 amount0Min,
         uint256 amount1Min,
         uint256 deadline
-    ) external override nonReentrant returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
+    ) external payable override nonReentrant returns (uint128 liquidity, uint256 amount0, uint256 amount1) {
         require(_stakes[msg.sender].contains(tokenId), "NA");
         require(voter.isAlive(address(this)), "GK");
+        require(msg.value == 0 || supportsPayable, "NP");
 
-        // NFT manager will send these tokens to the pool
-        IERC20(token0).safeIncreaseAllowance(address(nft), amount0Desired);
-        IERC20(token1).safeIncreaseAllowance(address(nft), amount1Desired);
-
-        IERC20(token0).safeTransferFrom(msg.sender, address(this), amount0Desired);
-        IERC20(token1).safeTransferFrom(msg.sender, address(this), amount1Desired);
+        _transferTokensFromSender({
+            _token0: token0,
+            _token1: token1,
+            amount0Desired: amount0Desired,
+            amount1Desired: amount1Desired
+        });
 
         (,,,,, int24 tickLower, int24 tickUpper,,,,,) = nft.positions(tokenId);
         _updateRewards(tokenId, tickLower, tickUpper);
 
-        (liquidity, amount0, amount1) = nft.increaseLiquidity(
+        (liquidity, amount0, amount1) = nft.increaseLiquidity{value: msg.value}(
             INonfungiblePositionManager.IncreaseLiquidityParams({
                 tokenId: tokenId,
                 amount0Desired: amount0Desired,
@@ -263,16 +274,49 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         );
 
         pool.stake(liquidity.toInt128(), tickLower, tickUpper, false);
+        _refundSurplusTokens({_token0: token0, _token1: token1});
+    }
 
-        uint256 amount0Surplus = amount0Desired - amount0;
-        uint256 amount1Surplus = amount1Desired - amount1;
+    /// @notice Transfers tokens from the caller to the Gauge prior to increasing Position size
+    /// @dev    Checks if one of the tokens to be deposited is WETH and if its deposit
+    ///         should be performed with Native Tokens.
+    /// @param _token0 Address of token0 to be deposited
+    /// @param _token1 Address of token1 to be deposited
+    /// @param amount0Desired Amount of token0 to be deposited into the position
+    /// @param amount1Desired Amount of token1 to be deposited into the position
+    function _transferTokensFromSender(address _token0, address _token1, uint256 amount0Desired, uint256 amount1Desired)
+        internal
+    {
+        /// @dev Handle native Tokens
+        if (msg.value > 0) {
+            if (_token0 == WETH9) {
+                TransferHelper.safeApprove(_token1, address(nft), amount1Desired);
+                TransferHelper.safeTransferFrom(_token1, msg.sender, address(this), amount1Desired);
+            } else {
+                TransferHelper.safeApprove(_token0, address(nft), amount0Desired);
+                TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), amount0Desired);
+            }
+        } else {
+            // NFT manager will send these tokens to the pool
+            TransferHelper.safeApprove(_token0, address(nft), amount0Desired);
+            TransferHelper.safeApprove(_token1, address(nft), amount1Desired);
+            TransferHelper.safeTransferFrom(_token0, msg.sender, address(this), amount0Desired);
+            TransferHelper.safeTransferFrom(_token1, msg.sender, address(this), amount1Desired);
+        }
+    }
 
-        if (amount0Surplus > 0) {
-            IERC20(token0).safeTransfer(msg.sender, amount0Surplus);
-        }
-        if (amount1Surplus > 0) {
-            IERC20(token1).safeTransfer(msg.sender, amount1Surplus);
-        }
+    /// @notice After increasing Position size, transfers any surplus tokens back to caller
+    /// @dev    Also handles native token refunds
+    /// @param _token0 Address of the token0 to be deposited
+    /// @param _token1 Address of the token1 to be deposited
+    function _refundSurplusTokens(address _token0, address _token1) internal {
+        uint256 balance = IERC20(_token0).balanceOf(address(this));
+        if (balance > 0) TransferHelper.safeTransfer(_token0, msg.sender, balance);
+
+        balance = IERC20(_token1).balanceOf(address(this));
+        if (balance > 0) TransferHelper.safeTransfer(_token1, msg.sender, balance);
+
+        if (address(this).balance > 0) TransferHelper.safeTransferETH(msg.sender, address(this).balance);
     }
 
     /// @inheritdoc ICLGauge
@@ -363,7 +407,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         pool.updateRewardsGrowthGlobal();
         uint256 nextPeriodFinish = timestamp + timeUntilNext;
 
-        IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
+        TransferHelper.safeTransferFrom(rewardToken, _sender, address(this), _amount);
         // rolling over stuck rewards from previous epoch (if any)
         _amount += pool.rollover();
 
@@ -398,14 +442,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             address _token1 = token1;
             if (_fees0 > VelodromeTimeLibrary.WEEK) {
                 fees0 = 0;
-                IERC20(_token0).safeIncreaseAllowance(feesVotingReward, _fees0);
+                TransferHelper.safeApprove(_token0, feesVotingReward, _fees0);
                 IReward(feesVotingReward).notifyRewardAmount(_token0, _fees0);
             } else {
                 fees0 = _fees0;
             }
             if (_fees1 > VelodromeTimeLibrary.WEEK) {
                 fees1 = 0;
-                IERC20(_token1).safeIncreaseAllowance(feesVotingReward, _fees1);
+                TransferHelper.safeApprove(_token1, feesVotingReward, _fees1);
                 IReward(feesVotingReward).notifyRewardAmount(_token1, _fees1);
             } else {
                 fees1 = _fees1;

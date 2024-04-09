@@ -29,7 +29,7 @@ contract LowFeeLargeLiquidityAroundCurrentPriceStableSwapPartiallyStakedWithUnst
         stakedPositions.push(Position({tickLower: -tickSpacing, tickUpper: tickSpacing, liquidity: liquidity / 2}));
         unstakedPositions.push(Position({tickLower: -tickSpacing, tickUpper: tickSpacing, liquidity: liquidity / 2}));
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
+        gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
 
         vm.stopPrank();
 

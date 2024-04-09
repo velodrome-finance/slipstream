@@ -57,6 +57,9 @@ contract IncreaseStakedLiquidityTest is LiquidityManagementBase {
         assertEq(aliceBalanceBefore0 - aliceBalanceAfter0, TOKEN_1);
         assertEq(aliceBalanceBefore1 - aliceBalanceAfter1, TOKEN_1);
 
+        assertEq(token0.allowance(address(gauge), address(nft)), 0);
+        assertEq(token1.allowance(address(gauge), address(nft)), 0);
+
         (,,,,,,, positionLiquidity,,,,) = nft.positions(tokenId);
 
         assertEq(pool.stakedLiquidity(), TOKEN_1 * 2);
