@@ -210,8 +210,8 @@ contract SugarHelper is ISugarHelper {
     {
         // fetch all bitmaps, starting at bitmap where the given `startTick` is located
         int24 tickSpacing = ICLPool(pool).tickSpacing();
-        int16 bitmapIndex = int16((startTick / tickSpacing) >> 8);
-        uint256 maxBitmaps = Math.min(MAX_BITMAPS, uint256(type(int16).max - bitmapIndex) + 1);
+        int16 startBitmapIndex = int16((startTick / tickSpacing) >> 8);
+        uint256 maxBitmaps = Math.min(MAX_BITMAPS, uint256(type(int16).max - startBitmapIndex) + 1);
 
         // get all `maxBitmaps` starting from the given tick's bitmap index
         uint256 bitmap;
@@ -219,7 +219,7 @@ contract SugarHelper is ISugarHelper {
         uint256[] memory bitmaps = new uint256[](maxBitmaps);
         for (uint256 j = 0; j < maxBitmaps; j++) {
             // calculate the number of populated ticks
-            bitmap = ICLPool(pool).tickBitmap(bitmapIndex++);
+            bitmap = ICLPool(pool).tickBitmap(startBitmapIndex + int16(j));
             numberOfPopulatedTicks += countSetBits(bitmap);
             bitmaps[j] = bitmap;
         }
@@ -231,7 +231,7 @@ contract SugarHelper is ISugarHelper {
         int24 tickBitmapIndex;
         for (uint256 j = 0; j < maxBitmaps; j++) {
             bitmap = bitmaps[j];
-            tickBitmapIndex = bitmapIndex + int16(j);
+            tickBitmapIndex = startBitmapIndex + int16(j);
             for (uint256 i = 0; i < 256; i++) {
                 if (bitmap & (1 << i) > 0) {
                     populatedTick = ((tickBitmapIndex << 8) + int24(i)) * tickSpacing;
