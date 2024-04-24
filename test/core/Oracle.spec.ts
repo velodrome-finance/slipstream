@@ -107,8 +107,8 @@ describe('Oracle', () => {
 
     it('grow after wrap', async () => {
       await oracle.grow(2)
-      await oracle.update({ advanceTimeBy: 17, liquidity: 1, tick: 1 }) // index is now 1
-      await oracle.update({ advanceTimeBy: 17, liquidity: 1, tick: 1 }) // index is now 0 again
+      await oracle.update({ advanceTimeBy: 2, liquidity: 1, tick: 1 }) // index is now 1
+      await oracle.update({ advanceTimeBy: 2, liquidity: 1, tick: 1 }) // index is now 0 again
       expect(await oracle.index()).to.eq(0)
       await oracle.grow(3)
       expect(await oracle.index()).to.eq(0)
@@ -143,70 +143,52 @@ describe('Oracle', () => {
     })
 
     it('single element array gets overwritten', async () => {
-      await oracle.update({ advanceTimeBy: 15, tick: 2, liquidity: 5 })
+      await oracle.update({ advanceTimeBy: 1, tick: 2, liquidity: 5 })
       expect(await oracle.index()).to.eq(0)
       checkObservationEquals(await oracle.observations(0), {
         initialized: true,
-        secondsPerLiquidityCumulativeX128: '5104235503814076951950619111476523171840',
+        secondsPerLiquidityCumulativeX128: '340282366920938463463374607431768211456',
         tickCumulative: 0,
-        blockTimestamp: 15,
+        blockTimestamp: 1,
       })
-      await oracle.update({ advanceTimeBy: 19, tick: -1, liquidity: 8 })
+      await oracle.update({ advanceTimeBy: 5, tick: -1, liquidity: 8 })
       expect(await oracle.index()).to.eq(0)
       checkObservationEquals(await oracle.observations(0), {
         initialized: true,
-        secondsPerLiquidityCumulativeX128: '6397308498113643113111442619717242375372',
-        tickCumulative: 38,
-        blockTimestamp: 34,
+        secondsPerLiquidityCumulativeX128: '680564733841876926926749214863536422912',
+        tickCumulative: 10,
+        blockTimestamp: 6,
       })
-      await oracle.update({ advanceTimeBy: 17, tick: 2, liquidity: 3 })
+      await oracle.update({ advanceTimeBy: 3, tick: 2, liquidity: 3 })
       expect(await oracle.index()).to.eq(0)
       checkObservationEquals(await oracle.observations(0), {
         initialized: true,
-        secondsPerLiquidityCumulativeX128: '7120408527820637347971113660509749824716',
-        tickCumulative: 21,
-        blockTimestamp: 51,
+        secondsPerLiquidityCumulativeX128: '808170621437228850725514692650449502208',
+        tickCumulative: 7,
+        blockTimestamp: 9,
       })
     })
 
     it('does nothing if time has not changed', async () => {
       await oracle.grow(2)
-      await oracle.update({ advanceTimeBy: 15, tick: 3, liquidity: 2 })
+      await oracle.update({ advanceTimeBy: 1, tick: 3, liquidity: 2 })
       expect(await oracle.index()).to.eq(1)
       await oracle.update({ advanceTimeBy: 0, tick: -5, liquidity: 9 })
       expect(await oracle.index()).to.eq(1)
     })
 
-    it('does nothing if time has not been at least 15 seconds', async () => {
-      await oracle.grow(2)
-      await oracle.update({ advanceTimeBy: 15, tick: 3, liquidity: 2 })
-      expect(await oracle.index()).to.eq(1)
-      await oracle.update({ advanceTimeBy: 14, tick: -5, liquidity: 9 })
-      expect(await oracle.index()).to.eq(1)
-    })
-
-    it('writes an index if time overflows u32 container', async () => {
+    it('writes an index if time has changed', async () => {
       await oracle.grow(3)
-      await oracle.update({ advanceTimeBy: 15, tick: 3, liquidity: 2 })
+      await oracle.update({ advanceTimeBy: 6, tick: 3, liquidity: 2 })
       expect(await oracle.index()).to.eq(1)
-      // uint32.max: 4294967295, 4294967280 + 15 = uint32.max
-      // this will hit uint32.max, in the observations.write() this will overflow
-      await oracle.update({ advanceTimeBy: 4294967280, tick: -5, liquidity: 9 })
-      expect(await oracle.index()).to.eq(2)
-    })
-
-    it('writes an index if time has increased by at least 15 seconds', async () => {
-      await oracle.grow(3)
-      await oracle.update({ advanceTimeBy: 15, tick: 3, liquidity: 2 })
-      expect(await oracle.index()).to.eq(1)
-      await oracle.update({ advanceTimeBy: 16, tick: -5, liquidity: 9 })
+      await oracle.update({ advanceTimeBy: 4, tick: -5, liquidity: 9 })
 
       expect(await oracle.index()).to.eq(2)
       checkObservationEquals(await oracle.observations(1), {
         tickCumulative: 0,
-        secondsPerLiquidityCumulativeX128: '5104235503814076951950619111476523171840',
+        secondsPerLiquidityCumulativeX128: '2041694201525630780780247644590609268736',
         initialized: true,
-        blockTimestamp: 15,
+        blockTimestamp: 6,
       })
     })
 
@@ -214,61 +196,61 @@ describe('Oracle', () => {
       await oracle.grow(2)
       await oracle.grow(4)
       expect(await oracle.cardinality()).to.eq(1)
-      await oracle.update({ advanceTimeBy: 17, tick: 5, liquidity: 6 })
+      await oracle.update({ advanceTimeBy: 3, tick: 5, liquidity: 6 })
       expect(await oracle.cardinality()).to.eq(4)
-      await oracle.update({ advanceTimeBy: 18, tick: 6, liquidity: 4 })
+      await oracle.update({ advanceTimeBy: 4, tick: 6, liquidity: 4 })
       expect(await oracle.cardinality()).to.eq(4)
       expect(await oracle.index()).to.eq(2)
       checkObservationEquals(await oracle.observations(2), {
-        secondsPerLiquidityCumulativeX128: '6805647338418769269267492148635364229120',
-        tickCumulative: 90,
+        secondsPerLiquidityCumulativeX128: '1247702012043441032699040227249816775338',
+        tickCumulative: 20,
         initialized: true,
-        blockTimestamp: 35,
+        blockTimestamp: 7,
       })
     })
 
     it('wraps around', async () => {
       await oracle.grow(3)
-      await oracle.update({ advanceTimeBy: 17, tick: 1, liquidity: 2 })
-      await oracle.update({ advanceTimeBy: 18, tick: 2, liquidity: 3 })
-      await oracle.update({ advanceTimeBy: 19, tick: 3, liquidity: 4 })
+      await oracle.update({ advanceTimeBy: 3, tick: 1, liquidity: 2 })
+      await oracle.update({ advanceTimeBy: 4, tick: 2, liquidity: 3 })
+      await oracle.update({ advanceTimeBy: 5, tick: 3, liquidity: 4 })
 
       expect(await oracle.index()).to.eq(0)
 
       checkObservationEquals(await oracle.observations(0), {
-        secondsPerLiquidityCumulativeX128: '11002463197110343651982445640293838837077',
-        tickCumulative: 56,
+        secondsPerLiquidityCumulativeX128: '2268549112806256423089164049545121409706',
+        tickCumulative: 14,
         initialized: true,
-        blockTimestamp: 54,
+        blockTimestamp: 12,
       })
     })
 
     it('accumulates liquidity', async () => {
       await oracle.grow(4)
 
-      await oracle.update({ advanceTimeBy: 17, tick: 3, liquidity: 2 })
-      await oracle.update({ advanceTimeBy: 18, tick: -7, liquidity: 6 })
-      await oracle.update({ advanceTimeBy: 19, tick: -2, liquidity: 4 })
+      await oracle.update({ advanceTimeBy: 3, tick: 3, liquidity: 2 })
+      await oracle.update({ advanceTimeBy: 4, tick: -7, liquidity: 6 })
+      await oracle.update({ advanceTimeBy: 5, tick: -2, liquidity: 4 })
 
       expect(await oracle.index()).to.eq(3)
 
       checkObservationEquals(await oracle.observations(1), {
         initialized: true,
         tickCumulative: 0,
-        secondsPerLiquidityCumulativeX128: '5784800237655953878877368326340059594752',
-        blockTimestamp: 17,
+        secondsPerLiquidityCumulativeX128: '1020847100762815390390123822295304634368',
+        blockTimestamp: 3,
       })
       checkObservationEquals(await oracle.observations(2), {
         initialized: true,
-        tickCumulative: 54,
-        secondsPerLiquidityCumulativeX128: '8847341539944400050047739793225973497856',
-        blockTimestamp: 35,
+        tickCumulative: 12,
+        secondsPerLiquidityCumulativeX128: '1701411834604692317316873037158841057280',
+        blockTimestamp: 7,
       })
       checkObservationEquals(await oracle.observations(3), {
         initialized: true,
-        tickCumulative: -79,
-        secondsPerLiquidityCumulativeX128: '9924902368527371851015092716759906167466',
-        blockTimestamp: 54,
+        tickCumulative: -23,
+        secondsPerLiquidityCumulativeX128: '1984980473705474370203018543351981233493',
+        blockTimestamp: 12,
       })
       checkObservationEquals(await oracle.observations(4), {
         initialized: false,
@@ -314,42 +296,42 @@ describe('Oracle', () => {
       it('interpolates correctly at max liquidity', async () => {
         await oracle.initialize({ liquidity: MaxUint128, tick: 0, time: 0 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 27, tick: 0, liquidity: 0 })
+        await oracle.update({ advanceTimeBy: 13, tick: 0, liquidity: 0 })
         let { secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(secondsPerLiquidityCumulativeX128).to.eq(27)
+        expect(secondsPerLiquidityCumulativeX128).to.eq(13)
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(6))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(21)
+        expect(secondsPerLiquidityCumulativeX128).to.eq(7)
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(12))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(15)
-        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(27))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(1)
+        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(13))
         expect(secondsPerLiquidityCumulativeX128).to.eq(0)
       })
 
       it('interpolates correctly at min liquidity', async () => {
         await oracle.initialize({ liquidity: 0, tick: 0, time: 0 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 27, tick: 0, liquidity: MaxUint128 })
+        await oracle.update({ advanceTimeBy: 13, tick: 0, liquidity: MaxUint128 })
         let { secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(27).shl(128))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(13).shl(128))
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(6))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(21).shl(128))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(7).shl(128))
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(12))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(15).shl(128))
-        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(27))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(1).shl(128))
+        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(13))
         expect(secondsPerLiquidityCumulativeX128).to.eq(0)
       })
 
       it('interpolates the same as 0 liquidity for 1 liquidity', async () => {
         await oracle.initialize({ liquidity: 1, tick: 0, time: 0 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 27, tick: 0, liquidity: MaxUint128 })
+        await oracle.update({ advanceTimeBy: 13, tick: 0, liquidity: MaxUint128 })
         let { secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(27).shl(128))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(13).shl(128))
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(6))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(21).shl(128))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(7).shl(128))
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(12))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(15).shl(128))
-        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(27))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(1).shl(128))
+        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(13))
         expect(secondsPerLiquidityCumulativeX128).to.eq(0)
       })
 
@@ -360,14 +342,14 @@ describe('Oracle', () => {
         await oracle.update({ advanceTimeBy: 2 ** 32 - 6, tick: 0, liquidity: 0 })
         let { secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
         expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(2 ** 32 - 6).shl(128))
-        await oracle.update({ advanceTimeBy: 27, tick: 0, liquidity: 0 })
+        await oracle.update({ advanceTimeBy: 13, tick: 0, liquidity: 0 })
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(0))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(21).shl(128))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(7).shl(128))
 
         // interpolation checks
         ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(3))
-        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(18).shl(128))
-        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(22))
+        expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(4).shl(128))
+        ;({ secondsPerLiquidityCumulativeX128 } = await observeSingle(8))
         expect(secondsPerLiquidityCumulativeX128).to.eq(BigNumber.from(2 ** 32 - 1).shl(128))
       })
 
@@ -411,28 +393,28 @@ describe('Oracle', () => {
       it('two observations in chronological order 0 seconds ago exact', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(tickCumulative).to.eq(-90)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('1225016520915378468468148586754365561241')
+        expect(tickCumulative).to.eq(-20)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('272225893536750770770699685945414569164')
       })
 
       it('two observations in chronological order 0 seconds ago counterfactual', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
         await oracle.advanceTime(7)
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(tickCumulative).to.eq(-83)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('2416004805138663090589959712765554301337')
+        expect(tickCumulative).to.eq(-13)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('1463214177760035392892510811956603309260')
       })
 
       it('two observations in chronological order seconds ago is exactly on first observation', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
         await oracle.advanceTime(7)
-        const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(25)
+        const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(11)
         expect(tickCumulative).to.eq(0)
         expect(secondsPerLiquidityCumulativeX128).to.eq(0)
       })
@@ -440,43 +422,43 @@ describe('Oracle', () => {
       it('two observations in chronological order seconds ago is between first and second', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
         await oracle.advanceTime(7)
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(9)
-        expect(tickCumulative).to.eq(-80)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('1088903574147003083082798743781658276658')
+        expect(tickCumulative).to.eq(-10)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('136112946768375385385349842972707284582')
       })
 
       it('two observations in reverse order 0 seconds ago exact', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
-        await oracle.update({ advanceTimeBy: 17, tick: -5, liquidity: 4 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 3, tick: -5, liquidity: 4 })
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(tickCumulative).to.eq(-73)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('4117416639743355407906832749924395358617')
+        expect(tickCumulative).to.eq(-17)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('782649443918158465965761597093066886348')
       })
 
       it('two observations in reverse order 0 seconds ago counterfactual', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
-        await oracle.update({ advanceTimeBy: 17, tick: -5, liquidity: 4 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 3, tick: -5, liquidity: 4 })
         await oracle.advanceTime(7)
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-        expect(tickCumulative).to.eq(-108)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('4712910781854997718967738312929989728665')
+        expect(tickCumulative).to.eq(-52)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('1378143586029800777026667160098661256396')
       })
 
       it('two observations in reverse order seconds ago is exactly on first observation', async () => {
         await oracle.initialize({ liquidity: 5, tick: -5, time: 5 })
         await oracle.grow(2)
-        await oracle.update({ advanceTimeBy: 18, tick: 1, liquidity: 2 })
-        await oracle.update({ advanceTimeBy: 17, tick: -5, liquidity: 4 })
+        await oracle.update({ advanceTimeBy: 4, tick: 1, liquidity: 2 })
+        await oracle.update({ advanceTimeBy: 3, tick: -5, liquidity: 4 })
         await oracle.advanceTime(7)
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(10)
-        expect(tickCumulative).to.eq(-76)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('3606993089361947712711770838776743041433')
+        expect(tickCumulative).to.eq(-20)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('272225893536750770770699685945414569164')
       })
 
       it('two observations in reverse order seconds ago is between first and second', async () => {
@@ -486,30 +468,30 @@ describe('Oracle', () => {
         await oracle.update({ advanceTimeBy: 3, tick: -5, liquidity: 4 })
         await oracle.advanceTime(7)
         const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(9)
-        expect(tickCumulative).to.eq(-25)
-        expect(secondsPerLiquidityCumulativeX128).to.eq('425352958651173079329218259289710264320')
+        expect(tickCumulative).to.eq(-19)
+        expect(secondsPerLiquidityCumulativeX128).to.eq('442367076997220002502386989661298674892')
       })
 
       it('can fetch multiple observations', async () => {
         await oracle.initialize({ time: 5, tick: 2, liquidity: BigNumber.from(2).pow(15) })
         await oracle.grow(4)
-        await oracle.update({ advanceTimeBy: 27, tick: 6, liquidity: BigNumber.from(2).pow(12) })
+        await oracle.update({ advanceTimeBy: 13, tick: 6, liquidity: BigNumber.from(2).pow(12) })
         await oracle.advanceTime(5)
 
-        const { tickCumulatives, secondsPerLiquidityCumulativeX128s } = await oracle.observe([0, 3, 8, 13, 27, 32])
+        const { tickCumulatives, secondsPerLiquidityCumulativeX128s } = await oracle.observe([0, 3, 8, 13, 15, 18])
         expect(tickCumulatives).to.have.lengthOf(6)
-        expect(tickCumulatives[0]).to.eq(84)
-        expect(tickCumulatives[1]).to.eq(66)
-        expect(tickCumulatives[2]).to.eq(48)
-        expect(tickCumulatives[3]).to.eq(38)
-        expect(tickCumulatives[4]).to.eq(10)
+        expect(tickCumulatives[0]).to.eq(56)
+        expect(tickCumulatives[1]).to.eq(38)
+        expect(tickCumulatives[2]).to.eq(20)
+        expect(tickCumulatives[3]).to.eq(10)
+        expect(tickCumulatives[4]).to.eq(6)
         expect(tickCumulatives[5]).to.eq(0)
         expect(secondsPerLiquidityCumulativeX128s).to.have.lengthOf(6)
-        expect(secondsPerLiquidityCumulativeX128s[0]).to.eq('695767779043666902223086508115492864')
-        expect(secondsPerLiquidityCumulativeX128s[1]).to.eq('446537529833995176053622684312928256')
-        expect(secondsPerLiquidityCumulativeX128s[2]).to.eq('249230249209671726169463823802564608')
-        expect(secondsPerLiquidityCumulativeX128s[3]).to.eq('197307280624323449884158860510363648')
-        expect(secondsPerLiquidityCumulativeX128s[4]).to.eq('51922968585348276285304963292200960')
+        expect(secondsPerLiquidityCumulativeX128s[0]).to.eq('550383467004691728624232610897330176')
+        expect(secondsPerLiquidityCumulativeX128s[1]).to.eq('301153217795020002454768787094765568')
+        expect(secondsPerLiquidityCumulativeX128s[2]).to.eq('103845937170696552570609926584401920')
+        expect(secondsPerLiquidityCumulativeX128s[3]).to.eq('51922968585348276285304963292200960')
+        expect(secondsPerLiquidityCumulativeX128s[4]).to.eq('31153781151208965771182977975320576')
         expect(secondsPerLiquidityCumulativeX128s[5]).to.eq(0)
       })
 
@@ -537,12 +519,12 @@ describe('Oracle', () => {
           const oracle = await oracleFixture()
           await oracle.initialize({ liquidity: 5, tick: -5, time: startingTime })
           await oracle.grow(5)
-          await oracle.update({ advanceTimeBy: 17, tick: 1, liquidity: 2 })
-          await oracle.update({ advanceTimeBy: 16, tick: -6, liquidity: 4 })
-          await oracle.update({ advanceTimeBy: 19, tick: -2, liquidity: 4 })
-          await oracle.update({ advanceTimeBy: 15, tick: -2, liquidity: 9 })
-          await oracle.update({ advanceTimeBy: 17, tick: 4, liquidity: 2 })
-          await oracle.update({ advanceTimeBy: 20, tick: 6, liquidity: 7 })
+          await oracle.update({ advanceTimeBy: 3, tick: 1, liquidity: 2 })
+          await oracle.update({ advanceTimeBy: 2, tick: -6, liquidity: 4 })
+          await oracle.update({ advanceTimeBy: 4, tick: -2, liquidity: 4 })
+          await oracle.update({ advanceTimeBy: 1, tick: -2, liquidity: 9 })
+          await oracle.update({ advanceTimeBy: 3, tick: 4, liquidity: 2 })
+          await oracle.update({ advanceTimeBy: 6, tick: 6, liquidity: 7 })
           return oracle
         }
         let oracle: OracleTest
@@ -565,51 +547,51 @@ describe('Oracle', () => {
         })
         it('latest observation same time as latest', async () => {
           const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-          expect(tickCumulative).to.eq(-167)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('10817198352897832710763497242914320588617')
+          expect(tickCumulative).to.eq(-21)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('2104079302127802832415199655953100107502')
         })
-        it('latest observation 20 seconds after latest', async () => {
-          await oracle.advanceTime(20)
-          const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(20)
-          expect(tickCumulative).to.eq(-167)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('10817198352897832710763497242914320588617')
+        it('latest observation 5 seconds after latest', async () => {
+          await oracle.advanceTime(5)
+          const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(5)
+          expect(tickCumulative).to.eq(-21)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('2104079302127802832415199655953100107502')
         })
-        it('current observation 20 seconds after latest', async () => {
-          await oracle.advanceTime(20)
+        it('current observation 5 seconds after latest', async () => {
+          await oracle.advanceTime(5)
           const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(0)
-          expect(tickCumulative).to.eq(-47)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('11789433686957656892087424692719372621348')
+          expect(tickCumulative).to.eq(9)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('2347138135642758877746181518404363115684')
         })
         it('between latest observation and just before latest observation at same time as latest', async () => {
           const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(3)
-          expect(tickCumulative).to.eq(-179)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('10306774802516425015568435331766668271433')
+          expect(tickCumulative).to.eq(-33)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('1593655751746395137220137744805447790318')
         })
         it('between latest observation and just before latest observation after the latest observation', async () => {
-          await oracle.advanceTime(20)
+          await oracle.advanceTime(5)
           const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(8)
-          expect(tickCumulative).to.eq(-95)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('11400539553333727219557853712797351808255')
+          expect(tickCumulative).to.eq(-33)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('1593655751746395137220137744805447790318')
         })
         it('older than oldest reverts', async () => {
-          await expect(observeSingle(105)).to.be.revertedWith('OLD')
+          await expect(observeSingle(15)).to.be.revertedWith('OLD')
           await oracle.advanceTime(5)
-          await expect(observeSingle(110)).to.be.revertedWith('OLD')
+          await expect(observeSingle(20)).to.be.revertedWith('OLD')
         })
         it('oldest observation', async () => {
           const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(14)
-          expect(tickCumulative).to.eq(-223)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('8435221784451263466519874990891943108425')
+          expect(tickCumulative).to.eq(-13)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('544451787073501541541399371890829138329')
         })
         it('oldest observation after some time', async () => {
-          await oracle.advanceTime(20)
-          const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(34)
-          expect(tickCumulative).to.eq(-223)
-          expect(secondsPerLiquidityCumulativeX128).to.eq('8435221784451263466519874990891943108425')
+          await oracle.advanceTime(6)
+          const { tickCumulative, secondsPerLiquidityCumulativeX128 } = await observeSingle(20)
+          expect(tickCumulative).to.eq(-13)
+          expect(secondsPerLiquidityCumulativeX128).to.eq('544451787073501541541399371890829138329')
         })
 
         it('fetch many values', async () => {
-          await oracle.advanceTime(20)
+          await oracle.advanceTime(6)
           const { tickCumulatives, secondsPerLiquidityCumulativeX128s } = await oracle.observe([
             20,
             17,
@@ -626,7 +608,7 @@ describe('Oracle', () => {
         })
 
         it('gas all of last 20 seconds', async () => {
-          await oracle.advanceTime(20)
+          await oracle.advanceTime(6)
           await snapshotGasCost(
             oracle.getGasCostOfObserve([20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
           )
@@ -636,7 +618,7 @@ describe('Oracle', () => {
           await snapshotGasCost(oracle.getGasCostOfObserve([0]))
         })
         it('gas latest transform', async () => {
-          await oracle.advanceTime(19)
+          await oracle.advanceTime(5)
           await snapshotGasCost(oracle.getGasCostOfObserve([0]))
         })
         it('gas oldest', async () => {
@@ -677,7 +659,7 @@ describe('Oracle', () => {
         const batch = Array(BATCH_SIZE)
           .fill(null)
           .map((_, j) => ({
-            advanceTimeBy: 17,
+            advanceTimeBy: 13,
             tick: -i - j,
             liquidity: i + j,
           }))
@@ -723,79 +705,79 @@ describe('Oracle', () => {
     }
 
     it('can observe into the ordered portion with exact seconds ago', async () => {
-      await checkObserve(100 * 17, {
-        secondsPerLiquidityCumulativeX128: '79069679574669582764625968588458803398317',
-        tickCumulative: '-36576887217',
+      await checkObserve(100 * 13, {
+        secondsPerLiquidityCumulativeX128: '60465049086512033878831623038233202591033',
+        tickCumulative: '-27970560813',
       })
     })
 
     it('can observe into the ordered portion with unexact seconds ago', async () => {
-      await checkObserve(100 * 17 + 5, {
-        secondsPerLiquidityCumulativeX128: '79069653637722806876758696463195271600990',
-        tickCumulative: '-36576559227',
+      await checkObserve(100 * 13 + 5, {
+        secondsPerLiquidityCumulativeX128: '60465023149565257990964350912969670793706',
+        tickCumulative: '-27970232823',
       })
     })
 
     it('can observe at exactly the latest observation', async () => {
       await checkObserve(0, {
-        secondsPerLiquidityCumulativeX128: '79078491354612917197387893183598633986685',
-        tickCumulative: '-36688489667',
+        secondsPerLiquidityCumulativeX128: '60471787506468701386237800669810720099776',
+        tickCumulative: '-28055903863',
       })
     })
 
     it('can observe at exactly the latest observation after some time passes', async () => {
-      await oracle.advanceTime(20)
+      await oracle.advanceTime(5)
       await checkObserve(5, {
-        secondsPerLiquidityCumulativeX128: '79078569045833541774275698943490131216828',
-        tickCumulative: '-36689475152',
+        secondsPerLiquidityCumulativeX128: '60471787506468701386237800669810720099776',
+        tickCumulative: '-28055903863',
       })
     })
 
     it('can observe after the latest observation counterfactual', async () => {
-      await oracle.advanceTime(20)
+      await oracle.advanceTime(5)
       await checkObserve(3, {
-        secondsPerLiquidityCumulativeX128: '79078579404662958384527406378142330847513',
-        tickCumulative: '-36689606550',
+        secondsPerLiquidityCumulativeX128: '60471797865298117996489508104462919730461',
+        tickCumulative: '-28056035261',
       })
     })
 
     it('can observe into the unordered portion of array at exact seconds ago of observation', async () => {
-      await checkObserve(200 * 17, {
-        secondsPerLiquidityCumulativeX128: '79060854351575972569822251286913844738178',
-        tickCumulative: '-36465454767',
+      await checkObserve(200 * 13, {
+        secondsPerLiquidityCumulativeX128: '60458300386499273141628780395875293027404',
+        tickCumulative: '-27885347763',
       })
     })
 
     it('can observe into the unordered portion of array at seconds ago between observations', async () => {
-      await checkObserve(200 * 17 + 5, {
-        secondsPerLiquidityCumulativeX128: '79060828375029595509571292221399826617914',
-        tickCumulative: '-36465127277',
+      await checkObserve(200 * 13 + 5, {
+        secondsPerLiquidityCumulativeX128: '60458274409952896081377821330361274907140',
+        tickCumulative: '-27885020273',
       })
     })
 
-    it('can observe the oldest observation 17*65534 seconds ago', async () => {
-      await checkObserve(17 * 65534, {
-        secondsPerLiquidityCumulativeX128: '44428004977301282912118530459922754996659',
-        tickCumulative: '-230010',
+    it('can observe the oldest observation 13*65534 seconds ago', async () => {
+      await checkObserve(13 * 65534, {
+        secondsPerLiquidityCumulativeX128: '33974356747348039873972993881117400879779',
+        tickCumulative: '-175890',
       })
     })
 
-    it('can observe the oldest observation 17*65534 + 5 seconds ago if time has elapsed', async () => {
+    it('can observe the oldest observation 13*65534 + 5 seconds ago if time has elapsed', async () => {
       await oracle.advanceTime(5)
-      await checkObserve(17 * 65534 + 5, {
-        secondsPerLiquidityCumulativeX128: '44428004977301282912118530459922754996659',
-        tickCumulative: '-230010',
+      await checkObserve(13 * 65534 + 5, {
+        secondsPerLiquidityCumulativeX128: '33974356747348039873972993881117400879779',
+        tickCumulative: '-175890',
       })
     })
 
     it('gas cost of observe(0)', async () => {
       await snapshotGasCost(oracle.getGasCostOfObserve([0]))
     })
-    it('gas cost of observe(200 * 17)', async () => {
-      await snapshotGasCost(oracle.getGasCostOfObserve([200 * 17]))
+    it('gas cost of observe(200 * 13)', async () => {
+      await snapshotGasCost(oracle.getGasCostOfObserve([200 + 13]))
     })
-    it('gas cost of observe(200 * 17 + 5)', async () => {
-      await snapshotGasCost(oracle.getGasCostOfObserve([200 * 17 + 5]))
+    it('gas cost of observe(200 * 13 + 5)', async () => {
+      await snapshotGasCost(oracle.getGasCostOfObserve([200 + 13 + 5]))
     })
     it('gas cost of observe(0) after 5 seconds', async () => {
       await oracle.advanceTime(5)
@@ -806,11 +788,11 @@ describe('Oracle', () => {
       await snapshotGasCost(oracle.getGasCostOfObserve([5]))
     })
     it('gas cost of observe(oldest)', async () => {
-      await snapshotGasCost(oracle.getGasCostOfObserve([65534 * 17]))
+      await snapshotGasCost(oracle.getGasCostOfObserve([65534 * 13]))
     })
     it('gas cost of observe(oldest) after 5 seconds', async () => {
       await oracle.advanceTime(5)
-      await snapshotGasCost(oracle.getGasCostOfObserve([65534 * 17 + 5]))
+      await snapshotGasCost(oracle.getGasCostOfObserve([65534 * 13 + 5]))
     })
   })
 })

@@ -139,9 +139,8 @@ The default unstaked liquidity fee is mutable.
 
 ### Oracle
 
-The oracle has been modified to provide a consistent experience across chains with different block times. Observations
-can only be written at most once every 15 seconds. When the observation timestamp overflows, a new observation will be
-written regardless of the time that has passed (i.e. may be written before 15 seconds has passed).
+The oracle behaves identically to the UniswapV3 oracle. An observation is written at most once per block and can be triggered
+by a swap that crosses ticks or the provisioning of liquidity.
 
 ### UniversalRouter
 

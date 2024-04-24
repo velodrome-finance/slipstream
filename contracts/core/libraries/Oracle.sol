@@ -84,8 +84,8 @@ library Oracle {
     ) internal returns (uint16 indexUpdated, uint16 cardinalityUpdated) {
         Observation memory last = self[index];
 
-        // early return if we've already written an observation within the last 15 seconds
-        if (last.blockTimestamp + 14 >= blockTimestamp) return (index, cardinality);
+        // early return if we've already written an observation this block
+        if (last.blockTimestamp == blockTimestamp) return (index, cardinality);
 
         // if the conditions are right, we can bump the cardinality
         if (cardinalityNext > cardinality && index == (cardinality - 1)) {

@@ -304,6 +304,20 @@ describe('CLPool gas tests', () => {
           await snapshotGasCost(pool.increaseObservationCardinalityNext(3))
         })
       })
+
+      describe('#snapshotCumulativesInside', () => {
+        it('tick inside', async () => {
+          await snapshotGasCost(pool.estimateGas.snapshotCumulativesInside(minTick, maxTick))
+        })
+        it('tick above', async () => {
+          await swapToHigherPrice(MAX_SQRT_RATIO.sub(1), wallet.address)
+          await snapshotGasCost(pool.estimateGas.snapshotCumulativesInside(minTick, maxTick))
+        })
+        it('tick below', async () => {
+          await swapToLowerPrice(MIN_SQRT_RATIO.add(1), wallet.address)
+          await snapshotGasCost(pool.estimateGas.snapshotCumulativesInside(minTick, maxTick))
+        })
+      })
     })
   }
 })
