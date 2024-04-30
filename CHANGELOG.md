@@ -95,7 +95,6 @@ in this repository.
 - Support standard functions on a SNX staking gauge (e.g. `deposit`, `earned`, `withdraw`, `notifyRewardAmount` etc).
 - Rewards accrue using `rewardGrowthInside` instead of a `rewardRate`. 
 - Residual rewards (emissions not distributed due to no liquidity) are rolled over into the following epoch.
-- Contains additional helper functions for improved UX (functions that allow staked position to be manipulated such as `increaseStakedLiquidity()`, `decreaseStakedLiquidity()`).
 - Gauges contain a new function `notifyRewardWithoutClaim()` that allows for a permissioned user to add rewards
 to a gauge. 
 - Gauges contain accounting that can roll forward unallocated emissions from prior epochs. 
