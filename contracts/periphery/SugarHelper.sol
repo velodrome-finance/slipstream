@@ -46,9 +46,17 @@ contract SugarHelper is ISugarHelper {
         return LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1);
     }
 
-    function estimateAmount0(uint256 amount1, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+    /// @notice Computes the amount of token0 for a given amount of token1 and price range
+    /// @param amount1 Amount of token1 to estimate liquidity
+    /// @param pool Address of the pool to be used
+    /// @param sqrtRatioX96 A sqrt price representing the current pool prices
+    /// @param tickLow Lower tick boundary
+    /// @param tickLow Upper tick boundary
+    /// @dev   If the given pool address is not the zero address, will fetch `sqrtRatioX96` from pool
+    /// @return amount0 Estimated amounnt of token0
+    function estimateAmount0(uint256 amount1, address pool, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
         external
-        pure
+        view
         override
         returns (uint256 amount0)
     {
@@ -61,15 +69,25 @@ contract SugarHelper is ISugarHelper {
             return 0;
         }
 
-        if (liquidity == 0) {
-            liquidity = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
+        // @dev If a pool is provided, fetch updated `sqrtPriceX96`
+        if (pool != address(0)) {
+            (sqrtRatioX96,,,,,) = ICLPool(pool).slot0();
         }
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
         amount0 = SqrtPriceMath.getAmount0Delta(sqrtRatioX96, sqrtRatioBX96, liquidity, false);
     }
 
-    function estimateAmount1(uint256 amount0, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+    /// @notice Computes the amount of token1 for a given amount of token0 and price range
+    /// @param amount0 Amount of token0 to estimate liquidity
+    /// @param pool Address of the pool to be used
+    /// @param sqrtRatioX96 A sqrt price representing the current pool prices
+    /// @param tickLow Lower tick boundary
+    /// @param tickLow Upper tick boundary
+    /// @dev   If the given pool address is not the zero address, will fetch `sqrtRatioX96` from pool
+    /// @return amount1 Estimated amounnt of token0
+    function estimateAmount1(uint256 amount0, address pool, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
         external
-        pure
+        view
         override
         returns (uint256 amount1)
     {
@@ -82,9 +100,11 @@ contract SugarHelper is ISugarHelper {
             return 0;
         }
 
-        if (liquidity == 0) {
-            liquidity = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
+        // @dev If a pool is provided, fetch updated `sqrtPriceX96`
+        if (pool != address(0)) {
+            (sqrtRatioX96,,,,,) = ICLPool(pool).slot0();
         }
+        uint128 liquidity = LiquidityAmounts.getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
         amount1 = SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioX96, liquidity, false);
     }
 

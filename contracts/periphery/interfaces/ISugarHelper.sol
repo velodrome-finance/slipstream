@@ -23,14 +23,14 @@ interface ISugarHelper {
         uint128 liquidity
     ) external pure returns (uint256 amount0, uint256 amount1);
 
-    function estimateAmount0(uint256 amount1, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+    function estimateAmount0(uint256 amount1, address pool, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
         external
-        pure
+        view
         returns (uint256 amount0);
 
-    function estimateAmount1(uint256 amount0, uint128 liquidity, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
+    function estimateAmount1(uint256 amount0, address pool, uint160 sqrtRatioX96, int24 tickLow, int24 tickHigh)
         external
-        pure
+        view
         returns (uint256 amount1);
 
     ///

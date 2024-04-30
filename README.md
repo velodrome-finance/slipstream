@@ -53,4 +53,4 @@ Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bount
 | QuoterV2               | [0xA2DEcF05c16537C702779083Fe067e308463CE45](https://optimistic.etherscan.io/address/0xA2DEcF05c16537C702779083Fe067e308463CE45#code) |
 | CustomSwapFeeModule               | [0xA9c319945f706dd1809819321a2e31C9A169e9c1](https://optimistic.etherscan.io/address/0xA9c319945f706dd1809819321a2e31C9A169e9c1#code) |
 | CustomUnstakedFeeModule               | [0x5A993209065ea74b50E23a378ddB7068189345D0](https://optimistic.etherscan.io/address/0x5A993209065ea74b50E23a378ddB7068189345D0#code) |
-| SugarHelper               | [0xDBd9122A41Aa982A31C7b33cbeCd9be714a6eCCd](https://optimistic.etherscan.io/address/0xDBd9122A41Aa982A31C7b33cbeCd9be714a6eCCd#code) |
+| SugarHelper               | [0xa4420A6F8A33cDF00ac57010A8834a101829285A](https://optimistic.etherscan.io/address/0xa4420A6F8A33cDF00ac57010A8834a101829285A#code) |
