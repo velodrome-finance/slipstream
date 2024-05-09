@@ -18,7 +18,7 @@ contract NonfungiblePositionManagerTest is BaseFixture {
                 sqrtPriceX96: encodePriceSqrt(1, 1)
             })
         );
-        gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.alice);
         token0.approve(address(gauge), type(uint256).max);

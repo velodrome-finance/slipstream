@@ -24,9 +24,7 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
         });
         vm.expectRevert(abi.encodePacked("NV"));
         vm.startPrank(users.charlie);
-        CLGauge(
-            payable(gaugeFactory.createGauge(forwarder, pool, address(feesVotingReward), address(rewardToken), true))
-        );
+        CLGauge(gaugeFactory.createGauge(forwarder, pool, address(feesVotingReward), address(rewardToken), true));
     }
 
     function test_CreateGauge() public {
@@ -36,32 +34,13 @@ contract CreateGaugeTest is CLGaugeFactoryTest {
             tickSpacing: TICK_SPACING_LOW,
             sqrtPriceX96: encodePriceSqrt(1, 1)
         });
-        CLGauge gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
+        CLGauge gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 
         assertEq(address(gauge.voter()), address(voter));
         assertEq(gauge.feesVotingReward(), address(feesVotingReward));
         assertEq(gauge.rewardToken(), address(rewardToken));
         assertEq(address(gauge.gaugeFactory()), address(gaugeFactory));
-        assertFalse(gauge.supportsPayable());
-        assertEq(gauge.isPool(), true);
-    }
-
-    function test_CreateGauge_WithPayableSupport() public {
-        pool = poolFactory.createPool({
-            tokenA: TEST_TOKEN_0,
-            tokenB: nft.WETH9(),
-            tickSpacing: TICK_SPACING_LOW,
-            sqrtPriceX96: encodePriceSqrt(1, 1)
-        });
-        CLGauge gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
-        feesVotingReward = voter.gaugeToFees(address(gauge));
-
-        assertEq(address(gauge.voter()), address(voter));
-        assertEq(gauge.feesVotingReward(), address(feesVotingReward));
-        assertEq(gauge.rewardToken(), address(rewardToken));
-        assertEq(address(gauge.gaugeFactory()), address(gaugeFactory));
-        assertTrue(gauge.supportsPayable());
         assertEq(gauge.isPool(), true);
     }
 }

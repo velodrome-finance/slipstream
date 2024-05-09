@@ -160,7 +160,7 @@ contract SetupCL {
             })
         );
 
-        gauge = CLGauge(payable(voter.gauges(address(pool))));
+        gauge = CLGauge(voter.gauges(address(pool)));
 
         hevm.prank(address(voter));
         rewardToken.approve(address(gauge), 1000000000e18);

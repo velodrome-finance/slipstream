@@ -49,9 +49,6 @@ interface ICLGauge {
     /// @notice Cached amount of fees generated from the Pool linked to the Gauge of token1
     function fees1() external view returns (uint256);
 
-    /// @notice Cached address of WETH9
-    function WETH9() external view returns (address);
-
     /// @notice Cached address of token0, corresponding to token0 of the pool
     function token0() external view returns (address);
 
@@ -69,9 +66,6 @@ interface ICLGauge {
 
     /// @notice To provide compatibility support with the old voter
     function isPool() external view returns (bool);
-
-    /// @notice Checks whether the gauge supports payments in Native tokens
-    function supportsPayable() external view returns (bool);
 
     /// @notice Returns the rewardGrowthInside of the position at the last user action (deposit, withdraw, getReward)
     /// @param tokenId The tokenId of the position

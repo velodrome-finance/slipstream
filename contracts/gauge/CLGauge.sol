@@ -4,11 +4,11 @@ pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {ICLGaugeFactory} from "contracts/gauge/interfaces/ICLGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
-import {TransferHelper} from "contracts/periphery/libraries/TransferHelper.sol";
 import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
@@ -20,6 +20,7 @@ import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 
 contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
+    using SafeERC20 for IERC20;
     using SafeCast for uint128;
 
     /// @inheritdoc ICLGauge
@@ -57,8 +58,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     /// @inheritdoc ICLGauge
     uint256 public override fees1;
     /// @inheritdoc ICLGauge
-    address public override WETH9;
-    /// @inheritdoc ICLGauge
     address public override token0;
     /// @inheritdoc ICLGauge
     address public override token1;
@@ -67,8 +66,6 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
     /// @inheritdoc ICLGauge
     bool public override isPool;
-    /// @inheritdoc ICLGauge
-    bool public override supportsPayable;
 
     /// @inheritdoc ICLGauge
     function initialize(
@@ -89,17 +86,10 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         rewardToken = _rewardToken;
         voter = IVoter(_voter);
         nft = INonfungiblePositionManager(_nft);
-        address _weth = nft.WETH9();
-        WETH9 = _weth;
         token0 = _token0;
         token1 = _token1;
         tickSpacing = _tickSpacing;
         isPool = _isPool;
-        supportsPayable = _token0 == _weth || _token1 == _weth;
-    }
-
-    receive() external payable {
-        require(msg.sender == address(nft), "NNFT");
     }
 
     // updates the claimable rewards and lastUpdateTime for tokenId
@@ -174,7 +164,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
         if (reward > 0) {
             delete rewards[tokenId];
-            TransferHelper.safeTransfer(rewardToken, owner, reward);
+            IERC20(rewardToken).safeTransfer(owner, reward);
             emit ClaimRewards(owner, reward);
         }
     }
@@ -292,7 +282,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         pool.updateRewardsGrowthGlobal();
         uint256 nextPeriodFinish = timestamp + timeUntilNext;
 
-        TransferHelper.safeTransferFrom(rewardToken, _sender, address(this), _amount);
+        IERC20(rewardToken).safeTransferFrom(_sender, address(this), _amount);
         // rolling over stuck rewards from previous epoch (if any)
         _amount += pool.rollover();
 
@@ -327,14 +317,14 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             address _token1 = token1;
             if (_fees0 > VelodromeTimeLibrary.WEEK) {
                 fees0 = 0;
-                TransferHelper.safeApprove(_token0, feesVotingReward, _fees0);
+                IERC20(_token0).safeIncreaseAllowance(feesVotingReward, _fees0);
                 IReward(feesVotingReward).notifyRewardAmount(_token0, _fees0);
             } else {
                 fees0 = _fees0;
             }
             if (_fees1 > VelodromeTimeLibrary.WEEK) {
                 fees1 = 0;
-                TransferHelper.safeApprove(_token1, feesVotingReward, _fees1);
+                IERC20(_token1).safeIncreaseAllowance(feesVotingReward, _fees1);
                 IReward(feesVotingReward).notifyRewardAmount(_token1, _fees1);
             } else {
                 fees1 = _fees1;

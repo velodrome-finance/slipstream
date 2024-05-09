@@ -34,7 +34,7 @@ contract MediumFee1to1Price0LiquidityAllLiquidityAroundCurrentPriceAllStakedTest
             Position({tickLower: tickSpacing, tickUpper: getMaxTick(tickSpacing), liquidity: liquidity})
         );
 
-        gauge = CLGauge(payable(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)})));
+        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.stopPrank();
 

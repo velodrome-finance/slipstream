@@ -187,7 +187,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         if (rewardToken.allowance(_voter, _gauge) < _amount) {
             rewardToken.approve(_gauge, _amount);
         }
-        CLGauge(payable(_gauge)).notifyRewardAmount(_amount);
+        CLGauge(_gauge).notifyRewardAmount(_amount);
         vm.stopPrank();
     }
 
