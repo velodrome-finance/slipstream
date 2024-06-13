@@ -142,6 +142,7 @@ library Tick {
     /// @param liquidityDelta A new amount of liquidity to be added (subtracted) when tick is crossed from left to right (right to left)
     /// @param feeGrowthGlobal0X128 The all-time global fee growth, per unit of liquidity, in token0
     /// @param feeGrowthGlobal1X128 The all-time global fee growth, per unit of liquidity, in token1
+    /// @param rewardGrowthGlobalX128 The all-time global reward growth, per unit of liquidity
     /// @param secondsPerLiquidityCumulativeX128 The all-time seconds per max(1, liquidity) of the pool
     /// @param tickCumulative The tick * time elapsed since the pool was first initialized
     /// @param time The current block timestamp cast to a uint32
@@ -155,6 +156,7 @@ library Tick {
         int128 liquidityDelta,
         uint256 feeGrowthGlobal0X128,
         uint256 feeGrowthGlobal1X128,
+        uint256 rewardGrowthGlobalX128,
         uint160 secondsPerLiquidityCumulativeX128,
         int56 tickCumulative,
         uint32 time,
@@ -175,6 +177,7 @@ library Tick {
             if (tick <= tickCurrent) {
                 info.feeGrowthOutside0X128 = feeGrowthGlobal0X128;
                 info.feeGrowthOutside1X128 = feeGrowthGlobal1X128;
+                info.rewardGrowthOutsideX128 = rewardGrowthGlobalX128;
                 info.secondsPerLiquidityOutsideX128 = secondsPerLiquidityCumulativeX128;
                 info.tickCumulativeOutside = tickCumulative;
                 info.secondsOutside = time;

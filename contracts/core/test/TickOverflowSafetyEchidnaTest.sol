@@ -18,6 +18,7 @@ contract TickOverflowSafetyEchidnaTest {
     // half the cap of fee growth has happened, this can overflow
     uint256 private feeGrowthGlobal0X128 = type(uint256).max / 2;
     uint256 private feeGrowthGlobal1X128 = type(uint256).max / 2;
+    uint256 private rewardGrowthGlobalX128 = type(uint256).max / 2;
     // how much total growth has happened, this cannot overflow
     uint256 private totalGrowth0 = 0;
     uint256 private totalGrowth1 = 0;
@@ -44,6 +45,7 @@ contract TickOverflowSafetyEchidnaTest {
             liquidityDelta,
             feeGrowthGlobal0X128,
             feeGrowthGlobal1X128,
+            rewardGrowthGlobalX128,
             0,
             0,
             uint32(block.timestamp),
@@ -56,6 +58,7 @@ contract TickOverflowSafetyEchidnaTest {
             liquidityDelta,
             feeGrowthGlobal0X128,
             feeGrowthGlobal1X128,
+            rewardGrowthGlobalX128,
             0,
             0,
             uint32(block.timestamp),

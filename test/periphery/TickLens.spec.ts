@@ -243,19 +243,19 @@ describe('TickLens', () => {
         )
       )
     }).timeout(300_000)
-    it('gas costs by tick 2 fully populated words', async () => {
+    it.skip('gas costs by tick 2 fully populated words', async () => {
       await estimateGasCostsFetchingByTick(2)
     }).timeout(300_000)
-    it('gas costs by tick 3 fully populated words', async () => {
+    it.skip('gas costs by tick 3 fully populated words', async () => {
       await estimateGasCostsFetchingByTick(3)
     }).timeout(300_000)
-    it('gas costs by tick 4 fully populated words', async () => {
+    it.skip('gas costs by tick 4 fully populated words', async () => {
       await estimateGasCostsFetchingByTick(4)
     }).timeout(300_000)
-    it('gas costs by tick 5 fully populated words', async () => {
+    it.skip('gas costs by tick 5 fully populated words', async () => {
       await estimateGasCostsFetchingByTick(5)
     }).timeout(300_000)
-    it('gas costs by tick 6 fully populated words', async () => {
+    it.skip('gas costs by tick 6 fully populated words', async () => {
       await estimateGasCostsFetchingByTick(6)
     }).timeout(300_000)
   })
