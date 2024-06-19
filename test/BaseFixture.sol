@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import {CLFactory} from "contracts/core/CLFactory.sol";
-import {CLPool} from "contracts/core/CLPool.sol";
+import {ICLPool, CLPool} from "contracts/core/CLPool.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
 import {
     INonfungiblePositionManager, NonfungiblePositionManager
@@ -27,6 +27,7 @@ import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {IMinter} from "contracts/core/interfaces/IMinter.sol";
+import {ILpMigrator, LpMigrator} from "contracts/periphery/LpMigrator.sol";
 
 abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     CLFactory public poolFactory;
@@ -35,6 +36,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
     NonfungiblePositionManager public nft;
     CLGaugeFactory public gaugeFactory;
     CLGauge public gaugeImplementation;
+    LpMigrator public lpMigrator;
 
     /// @dev mocks
     IFactoryRegistry public factoryRegistry;
@@ -98,6 +100,8 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             name: nftName,
             symbol: nftSymbol
         });
+
+        lpMigrator = new LpMigrator();
 
         // set nftmanager in the factories
         gaugeFactory.setNonfungiblePositionManager(address(nft));
@@ -204,6 +208,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         vm.label({account: address(gaugeFactory), newLabel: "Gauge Factory"});
         vm.label({account: address(customSwapFeeModule), newLabel: "Custom Swap FeeModule"});
         vm.label({account: address(customUnstakedFeeModule), newLabel: "Custom Unstaked Fee Module"});
+        vm.label({account: address(lpMigrator), newLabel: "Lp Migrator"});
     }
 
     function createUser(string memory name) internal returns (address payable user) {

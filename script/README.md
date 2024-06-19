@@ -23,6 +23,8 @@ For non-create transactions, `--gas-estimate-multiplier 200` must be used as gas
 ```
 forge script script/DeployCL.s.sol:DeployCL --broadcast --slow --rpc-url optimism --verify -vvvv 
 
+forge script script/DeployLpMigrator.s.sol:DeployLpMigrator --broadcast --slow --rpc-url optimism --verify -vvvv
+
 forge script script/DeployPools.s.sol:DeployPools --broadcast --slow --rpc-url optimism -vvvv
 
 forge script script/DeployPositionDescriptor.s.sol:DeployPositionDescriptor --broadcast --slow --rpc-url optimism -vvvv
