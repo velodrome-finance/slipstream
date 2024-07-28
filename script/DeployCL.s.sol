@@ -14,6 +14,7 @@ import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
+import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
 
 contract DeployCL is Script {
     using stdJson for string;
@@ -47,6 +48,7 @@ contract DeployCL is Script {
     CustomUnstakedFeeModule public unstakedFeeModule;
     MixedRouteQuoterV1 public mixedQuoter;
     QuoterV2 public quoter;
+    SwapRouter public swapRouter;
 
     function run() public {
         string memory root = vm.projectRoot();
@@ -105,6 +107,7 @@ contract DeployCL is Script {
 
         mixedQuoter = new MixedRouteQuoterV1({_factory: address(poolFactory), _factoryV2: factoryV2, _WETH9: weth});
         quoter = new QuoterV2({_factory: address(poolFactory), _WETH9: weth});
+        swapRouter = new SwapRouter({_factory: address(poolFactory), _WETH9: weth});
         vm.stopBroadcast();
 
         // write to file
@@ -120,6 +123,7 @@ contract DeployCL is Script {
         vm.writeJson(vm.serializeAddress("", "UnstakedFeeModule", address(unstakedFeeModule)), path);
         vm.writeJson(vm.serializeAddress("", "MixedQuoter", address(mixedQuoter)), path);
         vm.writeJson(vm.serializeAddress("", "Quoter", address(quoter)), path);
+        vm.writeJson(vm.serializeAddress("", "SwapRouter", address(swapRouter)), path);
     }
 
     function concat(string memory a, string memory b) internal pure returns (string memory) {
