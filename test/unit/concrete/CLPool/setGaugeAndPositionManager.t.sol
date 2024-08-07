@@ -22,23 +22,34 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
         );
 
         poolImplementation = new CLPool();
-        poolFactory = new CLFactory({_voter: address(voter), _poolImplementation: address(poolImplementation)});
-
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
+        poolFactory = new CLFactory({
+            _owner: users.owner,
+            _swapFeeManager: address(this),
+            _unstakedFeeManager: address(this),
+            _voter: address(voter),
+            _poolImplementation: address(poolImplementation)
+        });
 
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
             _WETH9: address(weth),
             _nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000 // 'ETH' as bytes32 string
         });
         nft = new NonfungiblePositionManager({
+            _owner: users.owner,
             _factory: address(poolFactory),
             _WETH9: address(weth),
             _tokenDescriptor: address(nftDescriptor),
             name: nftName,
             symbol: nftSymbol
         });
-        gaugeFactory.setNonfungiblePositionManager(address(nft));
+
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _notifyAdmin: users.owner,
+            _voter: address(voter),
+            _nft: address(nft),
+            _implementation: address(gaugeImplementation)
+        });
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),

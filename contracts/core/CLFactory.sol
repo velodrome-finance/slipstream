@@ -43,17 +43,23 @@ contract CLFactory is ICLFactory {
 
     int24[] private _tickSpacings;
 
-    constructor(address _voter, address _poolImplementation) {
-        owner = msg.sender;
-        swapFeeManager = msg.sender;
-        unstakedFeeManager = msg.sender;
+    constructor(
+        address _owner,
+        address _swapFeeManager,
+        address _unstakedFeeManager,
+        address _voter,
+        address _poolImplementation
+    ) {
+        owner = _owner;
+        swapFeeManager = _swapFeeManager;
+        unstakedFeeManager = _unstakedFeeManager;
         voter = IVoter(_voter);
         factoryRegistry = IVoter(_voter).factoryRegistry();
         poolImplementation = _poolImplementation;
         defaultUnstakedFee = 100_000;
-        emit OwnerChanged(address(0), msg.sender);
-        emit SwapFeeManagerChanged(address(0), msg.sender);
-        emit UnstakedFeeManagerChanged(address(0), msg.sender);
+        emit OwnerChanged(address(0), _owner);
+        emit SwapFeeManagerChanged(address(0), _swapFeeManager);
+        emit UnstakedFeeManagerChanged(address(0), _unstakedFeeManager);
         emit DefaultUnstakedFeeChanged(0, 100_000);
 
         enableTickSpacing(1, 100);

@@ -78,15 +78,17 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
 
         // deploy pool and associated contracts
         poolImplementation = new CLPool();
-        poolFactory = new CLFactory({_voter: address(voter), _poolImplementation: address(poolImplementation)});
+        poolFactory = new CLFactory({
+            _owner: users.owner,
+            _swapFeeManager: users.owner,
+            _unstakedFeeManager: users.owner,
+            _voter: address(voter),
+            _poolImplementation: address(poolImplementation)
+        });
         // backward compatibility with the original uniV3 fee structure and tick spacing
         poolFactory.enableTickSpacing(10, 500);
         poolFactory.enableTickSpacing(60, 3_000);
         // 200 tick spacing fee is manually overriden in tests as it is part of default settings
-
-        // deploy gauges and associated contracts
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
 
         // deploy nft manager and descriptor
         nftDescriptor = new NonfungibleTokenPositionDescriptor({
@@ -94,6 +96,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             _nativeCurrencyLabelBytes: 0x4554480000000000000000000000000000000000000000000000000000000000 // 'ETH' as bytes32 string
         });
         nft = new NonfungiblePositionManager({
+            _owner: users.owner,
             _factory: address(poolFactory),
             _WETH9: address(weth),
             _tokenDescriptor: address(nftDescriptor),
@@ -101,11 +104,17 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
             symbol: nftSymbol
         });
 
+        // deploy gauges and associated contracts
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _notifyAdmin: users.owner,
+            _voter: address(voter),
+            _nft: address(nft),
+            _implementation: address(gaugeImplementation)
+        });
+
         lpMigrator = new LpMigrator();
 
-        // set nftmanager in the factories
-        gaugeFactory.setNonfungiblePositionManager(address(nft));
-        gaugeFactory.setNotifyAdmin(users.owner);
         vm.stopPrank();
 
         // approve gauge in factory registry

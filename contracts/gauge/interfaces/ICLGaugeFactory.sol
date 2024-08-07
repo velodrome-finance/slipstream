@@ -16,11 +16,6 @@ interface ICLGaugeFactory {
     /// @notice Administrator that can call `notifyRewardWithoutClaim` on gauges
     function notifyAdmin() external view returns (address);
 
-    /// @notice Set Nonfungible Position Manager
-    /// @dev Callable once only on initialize
-    /// @param _nft The nonfungible position manager that will manage positions for this Factory
-    function setNonfungiblePositionManager(address _nft) external;
-
     /// @notice Set notifyAdmin value on gauge factory
     /// @param _admin New administrator that will be able to call `notifyRewardWithoutClaim` on gauges.
     function setNotifyAdmin(address _admin) external;

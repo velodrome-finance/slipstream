@@ -83,11 +83,15 @@ contract NonfungiblePositionManager is
         _;
     }
 
-    constructor(address _factory, address _WETH9, address _tokenDescriptor, string memory name, string memory symbol)
-        ERC721Permit(name, symbol, "1")
-        PeripheryImmutableState(_factory, _WETH9)
-    {
-        owner = msg.sender;
+    constructor(
+        address _owner,
+        address _factory,
+        address _WETH9,
+        address _tokenDescriptor,
+        string memory name,
+        string memory symbol
+    ) ERC721Permit(name, symbol, "1") PeripheryImmutableState(_factory, _WETH9) {
+        owner = _owner;
         tokenDescriptor = _tokenDescriptor;
     }
 

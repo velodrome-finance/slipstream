@@ -72,16 +72,19 @@ contract DeployCL is Script {
         vm.startBroadcast(deployerAddress);
         // deploy pool + factory
         poolImplementation = new CLPool();
-        poolFactory = new CLFactory({_voter: voter, _poolImplementation: address(poolImplementation)});
-
-        // deploy gauges
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({_voter: voter, _implementation: address(gaugeImplementation)});
+        poolFactory = new CLFactory({
+            _owner: deployerAddress,
+            _swapFeeManager: deployerAddress,
+            _unstakedFeeManager: deployerAddress,
+            _voter: voter,
+            _poolImplementation: address(poolImplementation)
+        });
 
         // deploy nft contracts
         nftDescriptor =
             new NonfungibleTokenPositionDescriptor({_WETH9: address(weth), _nativeCurrencyLabelBytes: bytes32("ETH")});
         nft = new NonfungiblePositionManager({
+            _owner: team,
             _factory: address(poolFactory),
             _WETH9: address(weth),
             _tokenDescriptor: address(nftDescriptor),
@@ -89,9 +92,14 @@ contract DeployCL is Script {
             symbol: nftSymbol
         });
 
-        // set nft manager in the factories
-        gaugeFactory.setNonfungiblePositionManager(address(nft));
-        gaugeFactory.setNotifyAdmin(notifyAdmin);
+        // deploy gauges
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _notifyAdmin: notifyAdmin,
+            _voter: voter,
+            _nft: address(nft),
+            _implementation: address(gaugeImplementation)
+        });
 
         // deploy fee modules
         swapFeeModule = new CustomSwapFeeModule({_factory: address(poolFactory)});
@@ -100,7 +108,6 @@ contract DeployCL is Script {
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: address(unstakedFeeModule)});
 
         // transfer permissions
-        nft.setOwner(team);
         poolFactory.setOwner(poolFactoryOwner);
         poolFactory.setSwapFeeManager(feeManager);
         poolFactory.setUnstakedFeeManager(feeManager);

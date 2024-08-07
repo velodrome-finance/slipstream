@@ -113,18 +113,21 @@ contract SetupCL {
 
         poolImplementation = new CLPool();
 
-        poolFactory = new CLFactory({_voter: address(voter), _poolImplementation: address(poolImplementation)});
+        poolFactory = new CLFactory({
+            _owner: address(this),
+            _swapFeeManager: address(this),
+            _unstakedFeeManager: address(this),
+            _voter: address(voter),
+            _poolImplementation: address(poolImplementation)
+        });
 
         poolFactory.enableTickSpacing(10, 500);
         poolFactory.enableTickSpacing(60, 3_000);
         // manually override fee in pool creation for tick spacing 200
 
-        // deploy gauges and associated contracts
-        gaugeImplementation = new CLGauge();
-        gaugeFactory = new CLGaugeFactory({_voter: address(voter), _implementation: address(gaugeImplementation)});
-
         // deploy nft manager
         nft = new NonfungiblePositionManager({
+            _owner: address(this),
             _factory: address(poolFactory),
             _WETH9: address(weth),
             _tokenDescriptor: address(100),
@@ -132,8 +135,14 @@ contract SetupCL {
             symbol: "CL-POS"
         });
 
-        // set nft manager in the factories
-        gaugeFactory.setNonfungiblePositionManager(address(nft));
+        // deploy gauges and associated contracts
+        gaugeImplementation = new CLGauge();
+        gaugeFactory = new CLGaugeFactory({
+            _notifyAdmin: address(this),
+            _voter: address(voter),
+            _nft: address(nft),
+            _implementation: address(gaugeImplementation)
+        });
 
         factoryRegistry.approve({
             poolFactory: address(poolFactory),

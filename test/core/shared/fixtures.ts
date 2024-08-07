@@ -77,14 +77,17 @@ export const poolFixture: Fixture<PoolFixture> = async function (): Promise<Pool
   )) as MockVoter
   const gaugeImplementation = (await GaugeImplementationFactory.deploy()) as CLGauge
   const gaugeFactory = (await GaugeFactoryFactory.deploy(
+    wallet.address,
     mockVoter.address,
+    '0x0000000000000000000000000000000000000001',
     gaugeImplementation.address
   )) as CLGaugeFactory
-  // nft position manager stub, unused in hardhat tests
-  await gaugeFactory.setNonfungiblePositionManager('0x0000000000000000000000000000000000000001')
 
   const mockTimePool = (await MockTimeCLPoolFactory.deploy()) as MockTimeCLPool
   const mockTimePoolDeployer = (await MockTimeCLPoolDeployerFactory.deploy(
+    wallet.address,
+    wallet.address,
+    wallet.address,
     mockVoter.address,
     mockTimePool.address
   )) as CLFactory
