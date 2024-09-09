@@ -97,17 +97,6 @@ When emissions are claimed (`getReward`) from a gauge:
 - The rewards owed to a user depend on the amount of rewards accumulated while their position was in the active tick, as well as the total amount of liquidity (both staked and unstaked) supplied in the active tick.
 - V2 gauges allow `getReward` to be called at any time even after the stake is withdrawn. This is not possible here as all rewards are collected on withdrawal.
 
-The gauge also ships with two helper functions that allow liquidity management of staked positions.
-Increase staked liquidity (`increaseStakedLiquidity`):
-- Callable by anyone (mimics `nft.increaseLiquidity()` permissions).
-- Requires permissions to transfer the tokens. Residual tokens refunded. 
-- Increases the liquidity supplied to a position staked in the gauge. 
-
-Decrease staked liquidity (`decreaseStakedLiquidity`):
-- Callable by the owner of an NFT that is staked in the gauge.
-- Decreases liquidity supplied to a position and collects the tokens. This is equivalent to a `nft.decreaseLiquidity()` and `nft.collect()` call.
-- It is possible to collect the entire position in this way.
-
 It is possible for a permissioned user to add rewards to a gauge (`notifyRewardAmountWithoutClaim`):
 - The permissioned user is an admin on the gauge factory corresponding to the gauge.
 - This adds rewards only (i.e. fees are not collected). 

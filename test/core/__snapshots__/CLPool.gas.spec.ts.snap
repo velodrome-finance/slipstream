@@ -24,7 +24,7 @@ exports[`CLPool gas tests fee is off #burn below current price entire position b
 
 exports[`CLPool gas tests fee is off #burn below current price partial position burn 1`] = `105851`;
 
-exports[`CLPool gas tests fee is off #collect close to worst case 1`] = `50991`;
+exports[`CLPool gas tests fee is off #collect close to worst case 1`] = `50969`;
 
 exports[`CLPool gas tests fee is off #increaseObservationCardinalityNext grow by 1 slot 1`] = `53713`;
 

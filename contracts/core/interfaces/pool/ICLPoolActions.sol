@@ -116,8 +116,7 @@ interface ICLPoolActions {
     /// @param stakedLiquidityDelta The amount by which to increase or decrease the staked liquidity
     /// @param tickLower The lower tick of the position for which to stake liquidity
     /// @param tickUpper The upper tick of the position for which to stake liquidity
-    /// @param positionUpdate If the nft and gauge position should be updated
-    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper, bool positionUpdate) external;
+    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper) external;
 
     /// @notice Swap token0 for token1, or token1 for token0
     /// @dev The caller of this method receives a callback in the form of ICLSwapCallback#uniswapV3SwapCallback

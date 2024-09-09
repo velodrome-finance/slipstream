@@ -191,7 +191,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         _stakes[msg.sender].add(tokenId);
 
         (,,,,,,, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
-        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper, true);
+        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper);
 
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
@@ -217,11 +217,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
         _getReward(tickLower, tickUpper, tokenId, msg.sender);
 
-        // update virtual liquidity in pool only if token has existing liquidity
-        // i.e. not all removed already via decreaseStakedLiquidity
-        if (liquidityToStake != 0) {
-            pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper, true);
-        }
+        pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper);
 
         _stakes[msg.sender].remove(tokenId);
         nft.safeTransferFrom(address(this), msg.sender, tokenId);

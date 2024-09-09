@@ -591,12 +591,7 @@ contract CLPool is ICLPool {
     }
 
     /// @inheritdoc ICLPoolActions
-    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper, bool positionUpdate)
-        external
-        override
-        lock
-        onlyGauge
-    {
+    function stake(int128 stakedLiquidityDelta, int24 tickLower, int24 tickUpper) external override lock onlyGauge {
         int24 tick = slot0.tick;
         // Increase staked liquidity in the current tick
         if (tick >= tickLower && tick < tickUpper) {
@@ -604,17 +599,15 @@ contract CLPool is ICLPool {
             stakedLiquidity = LiquidityMath.addDelta(stakedLiquidity, stakedLiquidityDelta);
         }
 
-        if (positionUpdate) {
-            Position.Info storage nftPosition = positions.get(nft, tickLower, tickUpper);
-            Position.Info storage gaugePosition = positions.get(gauge, tickLower, tickUpper);
+        Position.Info storage nftPosition = positions.get(nft, tickLower, tickUpper);
+        Position.Info storage gaugePosition = positions.get(gauge, tickLower, tickUpper);
 
-            (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
-                ticks.getFeeGrowthInside(tickLower, tickUpper, tick, feeGrowthGlobal0X128, feeGrowthGlobal1X128);
+        (uint256 feeGrowthInside0X128, uint256 feeGrowthInside1X128) =
+            ticks.getFeeGrowthInside(tickLower, tickUpper, tick, feeGrowthGlobal0X128, feeGrowthGlobal1X128);
 
-            // Assign the staked positions virtually to the gauge
-            nftPosition.update(-stakedLiquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, false);
-            gaugePosition.update(stakedLiquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, true);
-        }
+        // Assign the staked positions virtually to the gauge
+        nftPosition.update(-stakedLiquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, false);
+        gaugePosition.update(stakedLiquidityDelta, feeGrowthInside0X128, feeGrowthInside1X128, true);
 
         // Update tick locations where staked liquidity needs to be added or subtracted
         // Only update ticks if current tick is initialized

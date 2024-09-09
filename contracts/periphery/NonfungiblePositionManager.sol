@@ -232,8 +232,7 @@ contract NonfungiblePositionManager is
         ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
         address gauge = pool.gauge();
-        bool isStaked = ownerOf(params.tokenId) == gauge;
-        if (isStaked) require(msg.sender == gauge, "NG");
+        if (ownerOf(params.tokenId) == gauge) require(msg.sender == gauge, "NG");
 
         (liquidity, amount0, amount1) = addLiquidity(
             AddLiquidityParams({
@@ -245,28 +244,25 @@ contract NonfungiblePositionManager is
                 amount1Desired: params.amount1Desired,
                 amount0Min: params.amount0Min,
                 amount1Min: params.amount1Min,
-                recipient: isStaked ? gauge : address(this)
+                recipient: address(this)
             })
         );
 
-        bytes32 positionKey =
-            PositionKey.compute(isStaked ? gauge : address(this), position.tickLower, position.tickUpper);
+        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
 
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
 
-        if (!isStaked) {
-            position.tokensOwed0 += uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128, position.liquidity, FixedPoint128.Q128
-                )
-            );
-            position.tokensOwed1 += uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside1LastX128 - position.feeGrowthInside1LastX128, position.liquidity, FixedPoint128.Q128
-                )
-            );
-        }
+        position.tokensOwed0 += uint128(
+            FullMath.mulDiv(
+                feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128, position.liquidity, FixedPoint128.Q128
+            )
+        );
+        position.tokensOwed1 += uint128(
+            FullMath.mulDiv(
+                feeGrowthInside1LastX128 - position.feeGrowthInside1LastX128, position.liquidity, FixedPoint128.Q128
+            )
+        );
 
         position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
@@ -296,18 +292,11 @@ contract NonfungiblePositionManager is
         PoolAddress.PoolKey memory poolKey = _poolIdToPoolKey[position.poolId];
         ICLPool pool = ICLPool(PoolAddress.computeAddress(factory, poolKey));
 
-        address gauge = pool.gauge();
-        bool isStaked = ownerOf(params.tokenId) == gauge;
-        if (!isStaked) {
-            (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
-        } else {
-            (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity, gauge);
-        }
+        (amount0, amount1) = pool.burn(position.tickLower, position.tickUpper, params.liquidity);
 
         require(amount0 >= params.amount0Min && amount1 >= params.amount1Min, "PS");
 
-        bytes32 positionKey =
-            PositionKey.compute(isStaked ? gauge : address(this), position.tickLower, position.tickUpper);
+        bytes32 positionKey = PositionKey.compute(address(this), position.tickLower, position.tickUpper);
         // this is now updated to the current transaction
         (, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128,,) = pool.positions(positionKey);
 
@@ -317,18 +306,16 @@ contract NonfungiblePositionManager is
         position.tokensOwed0 += uint128(amount0);
         position.tokensOwed1 += uint128(amount1);
 
-        if (!isStaked) {
-            position.tokensOwed0 += uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128, positionLiquidity, FixedPoint128.Q128
-                )
-            );
-            position.tokensOwed1 += uint128(
-                FullMath.mulDiv(
-                    feeGrowthInside1LastX128 - position.feeGrowthInside1LastX128, positionLiquidity, FixedPoint128.Q128
-                )
-            );
-        }
+        position.tokensOwed0 += uint128(
+            FullMath.mulDiv(
+                feeGrowthInside0LastX128 - position.feeGrowthInside0LastX128, positionLiquidity, FixedPoint128.Q128
+            )
+        );
+        position.tokensOwed1 += uint128(
+            FullMath.mulDiv(
+                feeGrowthInside1LastX128 - position.feeGrowthInside1LastX128, positionLiquidity, FixedPoint128.Q128
+            )
+        );
 
         position.feeGrowthInside0LastX128 = feeGrowthInside0LastX128;
         position.feeGrowthInside1LastX128 = feeGrowthInside1LastX128;
