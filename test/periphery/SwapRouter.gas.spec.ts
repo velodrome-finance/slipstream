@@ -74,9 +74,9 @@ describe('SwapRouter gas tests', function () {
     await createPoolWETH9(tokens[0].address)
 
     const poolAddresses = await Promise.all([
-      factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
-      factory.getPool(tokens[1].address, tokens[2].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
-      factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
+      factory['getPool(address,address,int24)'](tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
+      factory['getPool(address,address,int24)'](tokens[1].address, tokens[2].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
+      factory['getPool(address,address,int24)'](weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
     ])
 
     const ICLPoolABI = artifacts.readArtifactSync('ICLPool').abi

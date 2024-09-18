@@ -169,7 +169,11 @@ describe('SwapRouter', function () {
 
       describe('single-pool', () => {
         it('0 -> 1', async () => {
-          const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+          const pool = await factory['getPool(address,address,int24)'](
+            tokens[0].address,
+            tokens[1].address,
+            TICK_SPACINGS[FeeAmount.MEDIUM]
+          )
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -188,7 +192,11 @@ describe('SwapRouter', function () {
         })
 
         it('1 -> 0', async () => {
-          const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+          const pool = await factory['getPool(address,address,int24)'](
+            tokens[1].address,
+            tokens[0].address,
+            TICK_SPACINGS[FeeAmount.MEDIUM]
+          )
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -297,7 +305,11 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              weth9.address,
+              tokens[0].address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -338,7 +350,11 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              tokens[0].address,
+              weth9.address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -419,7 +435,11 @@ describe('SwapRouter', function () {
       }
 
       it('0 -> 1', async () => {
-        const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+        const pool = await factory['getPool(address,address,int24)'](
+          tokens[0].address,
+          tokens[1].address,
+          TICK_SPACINGS[FeeAmount.MEDIUM]
+        )
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -438,7 +458,11 @@ describe('SwapRouter', function () {
       })
 
       it('1 -> 0', async () => {
-        const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+        const pool = await factory['getPool(address,address,int24)'](
+          tokens[1].address,
+          tokens[0].address,
+          TICK_SPACINGS[FeeAmount.MEDIUM]
+        )
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -463,7 +487,11 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              weth9.address,
+              tokens[0].address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -492,7 +520,11 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              tokens[0].address,
+              weth9.address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -550,7 +582,11 @@ describe('SwapRouter', function () {
 
       describe('single-pool', () => {
         it('0 -> 1', async () => {
-          const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+          const pool = await factory['getPool(address,address,int24)'](
+            tokens[0].address,
+            tokens[1].address,
+            TICK_SPACINGS[FeeAmount.MEDIUM]
+          )
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -569,7 +605,11 @@ describe('SwapRouter', function () {
         })
 
         it('1 -> 0', async () => {
-          const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+          const pool = await factory['getPool(address,address,int24)'](
+            tokens[1].address,
+            tokens[0].address,
+            TICK_SPACINGS[FeeAmount.MEDIUM]
+          )
 
           // get balances before
           const poolBefore = await getBalances(pool)
@@ -672,7 +712,11 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              weth9.address,
+              tokens[0].address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -713,7 +757,11 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              tokens[0].address,
+              weth9.address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -791,7 +839,11 @@ describe('SwapRouter', function () {
       }
 
       it('0 -> 1', async () => {
-        const pool = await factory.getPool(tokens[0].address, tokens[1].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+        const pool = await factory['getPool(address,address,int24)'](
+          tokens[0].address,
+          tokens[1].address,
+          TICK_SPACINGS[FeeAmount.MEDIUM]
+        )
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -810,7 +862,11 @@ describe('SwapRouter', function () {
       })
 
       it('1 -> 0', async () => {
-        const pool = await factory.getPool(tokens[1].address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+        const pool = await factory['getPool(address,address,int24)'](
+          tokens[1].address,
+          tokens[0].address,
+          TICK_SPACINGS[FeeAmount.MEDIUM]
+        )
 
         // get balances before
         const poolBefore = await getBalances(pool)
@@ -835,7 +891,11 @@ describe('SwapRouter', function () {
           })
 
           it('WETH9 -> 0', async () => {
-            const pool = await factory.getPool(weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              weth9.address,
+              tokens[0].address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
@@ -864,7 +924,11 @@ describe('SwapRouter', function () {
           })
 
           it('0 -> WETH9', async () => {
-            const pool = await factory.getPool(tokens[0].address, weth9.address, TICK_SPACINGS[FeeAmount.MEDIUM])
+            const pool = await factory['getPool(address,address,int24)'](
+              tokens[0].address,
+              weth9.address,
+              TICK_SPACINGS[FeeAmount.MEDIUM]
+            )
 
             // get balances before
             const poolBefore = await getBalances(pool)
