@@ -79,7 +79,7 @@ describe('SwapRouter gas tests', function () {
       factory['getPool(address,address,int24)'](weth9.address, tokens[0].address, TICK_SPACINGS[FeeAmount.MEDIUM]),
     ])
 
-    const ICLPoolABI = artifacts.readArtifactSync('ICLPool').abi
+    const ICLPoolABI = artifacts.readArtifactSync('contracts/core/interfaces/ICLPool.sol:ICLPool').abi
     const pools = poolAddresses.map((poolAddress) => new ethers.Contract(poolAddress, ICLPoolABI, wallet)) as [
       ICLPool,
       ICLPool,

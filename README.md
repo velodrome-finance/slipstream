@@ -30,11 +30,9 @@ echidna test/invariants/E2E_swap.sol --config test/invariants/E2E_swap.config.ya
 
 ## Licensing
 
-As this repository depends on the UniswapV3 `v3-core` and `v3-periphery` repository, the contracts in the 
-`contracts/core` and  `contracts/periphery` folders are licensed under `GPL-2.0-or-later` or alternative 
-licenses (as indicated in their SPDX headers).
+This project follows the [Apache Foundation](https://infra.apache.org/licensing-howto.html)
+guideline for licensing. See LICENSE and NOTICE files.
 
-Files in the `contracts/gauge` folder are licensed under the Business Source License 1.1 (`BUSL-1.1`).
 
 ## Bug Bounty
 Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bounty/velodromefinance/)).

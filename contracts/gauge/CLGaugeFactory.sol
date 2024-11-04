@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity =0.7.6;
 
-import "contracts/core/interfaces/ICLPool.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
+
 import "./interfaces/ICLGaugeFactory.sol";
 import "./CLGauge.sol";
-import "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract CLGaugeFactory is ICLGaugeFactory {
     /// @inheritdoc ICLGaugeFactory

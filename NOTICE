@@ -1,0 +1,58 @@
+This product bundles the CLGauge implementation which is available under the
+BUSL 1.1 license. For details, see
+* contracts/gauge/CLGauge.sol
+* contracts/gauge/CLGaugeFactory.sol
+* LICENSE
+
+This product bundles the Uniswap v3 core and periphery implementations which
+are available under the GNU General Public License v3.0. For details, see
+* contracts/core
+* contracts/periphery
+* lib/solidity-lib
+* contracts/core/LICENSE
+* contracts/periphery/LICENSE
+* lib/solidity-lib/LICENSE
+
+
+This product bundles the FullMath library which is available under the MIT
+license. For details, see
+* contracts/core/libraries/FullMath.sol
+* contracts/core/libraries/LICENSE_MIT
+
+
+This product bundles interfaces for external smart contracts which are
+available under the MIT License. For details, see
+* contracts/core/interfaces/fees
+* contracts/core/interfaces/IFactoryRegistry.sol
+* contracts/core/interfaces/IMinter.sol
+* contracts/core/interfaces/IPool.sol
+* contracts/core/interfaces/IPoolFactory.sol
+* contracts/core/interfaces/IVoter.sol
+* contracts/core/interfaces/IVotingEscrow.sol
+* contracts/gauge/interfaces/
+* contracts/periphery/lens/CLInterfaceMulticall.sol
+* LICENSE.MIT
+
+
+This product bundles the VelodromeTimeLibrary library which is available under
+the MIT License. For details, see
+* contracts/libraries/VelodromeTimeLibrary.sol
+* LICENSE.MIT
+
+
+This product bundles the TokenRatioSortOrder library which is available under
+the MIT License. For details, see
+* contracts/periphery/libraries/TokenRatioSortOrder.sol
+* LICENSE.MIT
+
+
+This product bundles the Base64 library which is available under
+the MIT License. For details, see
+* lib/base64
+
+
+This product bundles the OpenZeppelin library which is available under
+the MIT license. For details, see
+* contracts/libraries/EnumerableSet.sol
+* contracts/periphery/libraries/HexStrings.sol
+* lib/openzeppelin-contracts

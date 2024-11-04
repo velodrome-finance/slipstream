@@ -75,7 +75,7 @@ describe('PositionValue', async () => {
       [tokens[0].address, tokens[1].address],
       TICK_SPACINGS[FeeAmount.MEDIUM]
     )
-    const ICLPoolABI = artifacts.readArtifactSync('ICLPool').abi
+    const ICLPoolABI = artifacts.readArtifactSync('contracts/core/interfaces/ICLPool.sol:ICLPool').abi
     pool = new ethers.Contract(poolAddress, ICLPoolABI, wallets[0])
   })
 

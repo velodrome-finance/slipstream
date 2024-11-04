@@ -3,18 +3,17 @@ pragma solidity =0.7.6;
 pragma abicoder v2;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/ERC721Holder.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/SafeCast.sol";
 import {ICLGauge} from "contracts/gauge/interfaces/ICLGauge.sol";
 import {ICLGaugeFactory} from "contracts/gauge/interfaces/ICLGaugeFactory.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
-import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
-import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ICLPool} from "contracts/gauge/interfaces/ICLPool.sol";
+import {INonfungiblePositionManager} from "contracts/gauge/interfaces/INonfungiblePositionManager.sol";
 import {EnumerableSet} from "contracts/libraries/EnumerableSet.sol";
-import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
-import {FixedPoint128} from "contracts/core/libraries/FixedPoint128.sol";
 import {VelodromeTimeLibrary} from "contracts/libraries/VelodromeTimeLibrary.sol";
 import {IReward} from "contracts/gauge/interfaces/IReward.sol";
 
@@ -22,6 +21,10 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeERC20 for IERC20;
     using SafeCast for uint128;
+    using SafeCast for uint256;
+    using SafeCast for int256;
+
+    uint256 internal constant Q128 = 0x100000000000000000000000000000000;
 
     /// @inheritdoc ICLGauge
     INonfungiblePositionManager public override nft;
@@ -120,7 +123,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
             uint256 reward = rewardRate * timeDelta;
             if (reward > rewardReserve) reward = rewardReserve;
 
-            rewardGrowthGlobalX128 += FullMath.mulDiv(reward, FixedPoint128.Q128, pool.stakedLiquidity());
+            rewardGrowthGlobalX128 += FullMath.mulDiv(reward, Q128, pool.stakedLiquidity());
         }
 
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidity,,,,) = nft.positions(tokenId);
@@ -128,8 +131,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 rewardPerTokenInsideInitialX128 = rewardGrowthInside[tokenId];
         uint256 rewardPerTokenInsideX128 = pool.getRewardGrowthInside(tickLower, tickUpper, rewardGrowthGlobalX128);
 
-        uint256 claimable =
-            FullMath.mulDiv(rewardPerTokenInsideX128 - rewardPerTokenInsideInitialX128, liquidity, FixedPoint128.Q128);
+        uint256 claimable = FullMath.mulDiv(rewardPerTokenInsideX128 - rewardPerTokenInsideInitialX128, liquidity, Q128);
         return claimable;
     }
 
@@ -191,7 +193,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         _stakes[msg.sender].add(tokenId);
 
         (,,,,,,, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
-        pool.stake(liquidityToStake.toInt128(), tickLower, tickUpper);
+        pool.stake((uint256(liquidityToStake).toInt256()).toInt128(), tickLower, tickUpper);
 
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
@@ -217,7 +219,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         (,,,,, int24 tickLower, int24 tickUpper, uint128 liquidityToStake,,,,) = nft.positions(tokenId);
         _getReward(tickLower, tickUpper, tokenId, msg.sender);
 
-        pool.stake(-liquidityToStake.toInt128(), tickLower, tickUpper);
+        pool.stake(-(uint256(liquidityToStake).toInt256()).toInt128(), tickLower, tickUpper);
 
         _stakes[msg.sender].remove(tokenId);
         nft.safeTransferFrom(address(this), msg.sender, tokenId);

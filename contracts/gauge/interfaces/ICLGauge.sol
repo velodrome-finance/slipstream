@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.7.6;
 
-import {INonfungiblePositionManager} from "contracts/periphery/interfaces/INonfungiblePositionManager.sol";
 import {IVoter} from "contracts/core/interfaces/IVoter.sol";
-import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
+import {ICLPool} from "contracts/gauge/interfaces/ICLPool.sol";
 import {ICLGaugeFactory} from "contracts/gauge/interfaces/ICLGaugeFactory.sol";
+import {INonfungiblePositionManager} from "contracts/gauge/interfaces/INonfungiblePositionManager.sol";
 
 interface ICLGauge {
     event NotifyReward(address indexed from, uint256 amount);

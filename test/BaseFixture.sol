@@ -16,12 +16,12 @@ import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.s
 import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
 import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
 import {IERC20, ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/SafeCast.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {Constants} from "./utils/Constants.sol";
 import {Events} from "./utils/Events.sol";
 import {PoolUtils} from "./utils/PoolUtils.sol";
 import {Users} from "./utils/Users.sol";
-import {SafeCast} from "contracts/gauge/libraries/SafeCast.sol";
 import {TestCLCallee} from "contracts/core/test/TestCLCallee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
