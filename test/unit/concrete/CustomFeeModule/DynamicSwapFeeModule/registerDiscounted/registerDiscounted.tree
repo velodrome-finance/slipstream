@@ -1,0 +1,9 @@
+RegisterDiscountedTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When discount is higher than max discount cap
+    │   └── It should revert with "MDC"
+    └── When discount is less than or equal to max discount cap
+        ├── It should set discount for the _discountReceiver parameter
+        └── It should emit a {DiscountedRegistered} event

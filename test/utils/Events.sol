@@ -19,7 +19,15 @@ abstract contract Events {
     /// Custom Fee Module Events
     ///
 
-    event SetCustomFee(address indexed pool, uint24 indexed fee);
+    event CustomFeeSet(address indexed pool, uint24 indexed fee);
+    event FeeCapSet(address indexed pool, uint256 indexed feeCap);
+    event DiscountedRegistered(address indexed discountReceiver, uint24 indexed discount);
+    event DiscountedDeregistered(address indexed discountOver);
+    event SecondsAgoSet(uint32 indexed secondsAgo);
+    event ScalingFactorSet(address indexed pool, uint256 indexed scalingFactor);
+    event DefaultScalingFactorSet(uint256 indexed defaultScalingFactor);
+    event DefaultFeeCapSet(uint256 indexed defaultFeeCap);
+    event DynamicFeeReseted(address indexed pool);
 
     ///
     /// ERC20 Events

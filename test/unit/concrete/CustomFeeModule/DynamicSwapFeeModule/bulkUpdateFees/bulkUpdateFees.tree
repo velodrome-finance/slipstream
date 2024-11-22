@@ -1,0 +1,15 @@
+BulkUpdateFeesTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When pools array and fees array are not the same length
+    │   └── It should revert with "LMM"
+    └── When pools array and fees array are the same length
+        ├── When one of the fee is bigger than max fee
+        │   └── It should revert with "MBF"
+        └── When all the fees are smaller than max fee
+            ├── When the pool is invalid
+            │   └── It should revert
+            └── When the pool is valid
+                ├── It should update the fee for all pool
+                └── It should emit a {CustomFeeSet} event for all pools

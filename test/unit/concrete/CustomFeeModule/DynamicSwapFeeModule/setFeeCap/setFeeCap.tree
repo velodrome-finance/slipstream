@@ -1,0 +1,14 @@
+SetFeeCapTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When pool doesn't exist
+    │   └── It should revert
+    └── When pool exists
+        ├── When fee cap is 0
+        │   └── It should revert with "FC0"
+        ├── When fee cap is higher than max fee
+        │   └── It should revert with "MFC"
+        └── When fee cap is bigger than 0 and less than or equal to max fee cap
+            ├── It should set feeCap
+            └── It should emit a {FeeCapSet} event

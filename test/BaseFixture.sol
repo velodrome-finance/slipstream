@@ -2,6 +2,9 @@ pragma solidity ^0.7.6;
 pragma abicoder v2;
 
 import "forge-std/Test.sol";
+
+import {TestERC20CustomDecimals} from "./mocks/TestERC20CustomDecimals.sol";
+
 import {CLFactory} from "contracts/core/CLFactory.sol";
 import {ICLPool, CLPool} from "contracts/core/CLPool.sol";
 import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/NonfungibleTokenPositionDescriptor.sol";
@@ -26,6 +29,7 @@ import {TestCLCallee} from "contracts/core/test/TestCLCallee.sol";
 import {NFTManagerCallee} from "contracts/periphery/test/NFTManagerCallee.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
+import {DynamicSwapFeeModule} from "contracts/core/fees/DynamicSwapFeeModule.sol";
 import {IMinter} from "contracts/core/interfaces/IMinter.sol";
 import {ILpMigrator, LpMigrator} from "contracts/periphery/LpMigrator.sol";
 
@@ -58,6 +62,7 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
 
     CustomSwapFeeModule public customSwapFeeModule;
     CustomUnstakedFeeModule public customUnstakedFeeModule;
+    DynamicSwapFeeModule public dynamicSwapFeeModule;
 
     string public nftName = "Slipstream Position NFT v1";
     string public nftSymbol = "CL-POS";
@@ -146,10 +151,10 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         clCallee = new TestCLCallee();
         nftCallee = new NFTManagerCallee(address(token0), address(token1), address(nft));
 
-        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 100});
-        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 100});
-        deal({token: address(token0), to: users.charlie, give: TOKEN_1 * 100});
-        deal({token: address(token1), to: users.charlie, give: TOKEN_1 * 100});
+        deal({token: address(token0), to: users.alice, give: TOKEN_1 * 1000});
+        deal({token: address(token1), to: users.alice, give: TOKEN_1 * 1000});
+        deal({token: address(token0), to: users.charlie, give: TOKEN_1 * 1000});
+        deal({token: address(token1), to: users.charlie, give: TOKEN_1 * 1000});
 
         vm.startPrank(users.alice);
         token0.approve(address(nft), type(uint256).max);

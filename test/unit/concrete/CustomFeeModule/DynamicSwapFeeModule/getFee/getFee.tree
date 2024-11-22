@@ -1,0 +1,53 @@
+GetFeeTest
+├── When base fee is zero fee indicator
+│   └── It should return zero
+└── When base fee is not zero fee indicator
+    ├── When scaling factor is not set on the pool
+    │   ├── When observation cardinality is insufficient
+    │   │   ├── When tx origin is not discounted
+    │   │   │   ├── It should return 0 for dynamic fee
+    │   │   │   ├── It shouldn't apply discount
+    │   │   │   └── It should return the correct total fee amount
+    │   │   └── When tx origin is discounted
+    │   │       ├── It should return 0 for dynamic fee
+    │   │       ├── It should apply discount
+    │   │       └── It should return the correct total fee amount
+    │   └── When observation cardinality is sufficient
+    │       ├── When total fee is less than fee cap
+    │       │   ├── When tx origin is not discounted_
+    │       │   │   ├── It should calculate the correct dynamic fee with the default scaling factor and fee cap
+    │       │   │   ├── It shouldn't apply discount
+    │       │   │   └── It should return the correct total fee amount
+    │       │   └── When tx origin is discounted_
+    │       │       ├── It should calculate the correct dynamic fee with the default scaling factor and fee cap
+    │       │       ├── It should apply discount on the total fee
+    │       │       └── It should return the correct total fee amount
+    │       └── When total fee is more than fee cap
+    │           ├── When tx origin is not discounted__
+    │           │   ├── It should calculate the correct dynamic fee
+    │           │   ├── It shouldn't apply discount
+    │           │   └── It should return the correct total fee amount
+    │           └── When tx origin is discounted__
+    │               ├── It should calculate the correct dynamic fee
+    │               ├── It should apply discount on the total fee
+    │               └── It should return the correct total fee amount
+    └── When scaling factor is set on the pool
+        └── When observation cardinality is sufficient_
+            ├── When total fee is less than fee cap_
+            │   ├── When tx origin is not discounted___
+            │   │   ├── It should calculate the correct dynamic fee with the pool scaling factor and fee cap
+            │   │   ├── It shouldn't apply discount
+            │   │   └── It should return the correct total fee amount
+            │   └── When tx origin is discounted___
+            │       ├── It should calculate the correct dynamic fee with the pool scaling factor and fee cap
+            │       ├── It should apply discount on the total fee
+            │       └── It should return the correct total fee amount
+            └── When total fee is more than fee cap_
+                ├── When tx origin is not discounted____
+                │   ├── It should calculate the correct dynamic fee
+                │   ├── It shouldn't apply discount
+                │   └── It should return the correct total fee amount
+                └── When tx origin is discounted____
+                    ├── It should calculate the correct dynamic fee
+                    ├── It should apply discount on the total fee
+                    └── It should return the correct total fee amount

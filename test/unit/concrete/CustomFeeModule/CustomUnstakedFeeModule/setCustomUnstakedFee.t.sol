@@ -13,7 +13,7 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
     function test_RevertIf_NotManager() public {
         vm.expectRevert();
         vm.startPrank({msgSender: users.charlie});
-        customUnstakedFeeModule.setCustomFee({pool: address(1), fee: 5_000});
+        customUnstakedFeeModule.setCustomFee({_pool: address(1), _fee: 5_000});
     }
 
     function test_RevertIf_FeeTooHigh() public {
@@ -26,12 +26,12 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         });
 
         vm.expectRevert();
-        customUnstakedFeeModule.setCustomFee({pool: pool, fee: 500_001});
+        customUnstakedFeeModule.setCustomFee({_pool: pool, _fee: 500_001});
     }
 
     function test_RevertIf_NotPool() public {
         vm.expectRevert();
-        customUnstakedFeeModule.setCustomFee({pool: address(1), fee: 5_000});
+        customUnstakedFeeModule.setCustomFee({_pool: address(1), _fee: 5_000});
     }
 
     function test_SetCustomFee() public {
@@ -45,8 +45,8 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
         voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)});
 
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
-        emit SetCustomFee({pool: pool, fee: 5_000});
-        customUnstakedFeeModule.setCustomFee({pool: pool, fee: 5_000});
+        emit CustomFeeSet({pool: pool, fee: 5_000});
+        customUnstakedFeeModule.setCustomFee({_pool: pool, _fee: 5_000});
 
         assertEqUint(customUnstakedFeeModule.customFee(pool), 5_000);
         assertEqUint(customUnstakedFeeModule.getFee(pool), 5_000);
@@ -54,8 +54,8 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
         // revert to default fee
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
-        emit SetCustomFee({pool: pool, fee: 0});
-        customUnstakedFeeModule.setCustomFee({pool: pool, fee: 0});
+        emit CustomFeeSet({pool: pool, fee: 0});
+        customUnstakedFeeModule.setCustomFee({_pool: pool, _fee: 0});
 
         assertEqUint(customUnstakedFeeModule.customFee(pool), 0);
         assertEqUint(customUnstakedFeeModule.getFee(pool), 100_000);
@@ -63,8 +63,8 @@ contract SetCustomUnstakedFeeTest is CustomUnstakedFeeModuleTest {
 
         // zero fee
         vm.expectEmit(true, true, false, false, address(customUnstakedFeeModule));
-        emit SetCustomFee({pool: pool, fee: 420});
-        customUnstakedFeeModule.setCustomFee({pool: pool, fee: 420});
+        emit CustomFeeSet({pool: pool, fee: 420});
+        customUnstakedFeeModule.setCustomFee({_pool: pool, _fee: 420});
 
         assertEqUint(customUnstakedFeeModule.customFee(pool), 420);
         assertEqUint(customUnstakedFeeModule.getFee(pool), 0);

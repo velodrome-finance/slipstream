@@ -1,0 +1,15 @@
+SetScalingFactorTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When pool doesn't exist
+    │   └── It should revert
+    └── When pool exists
+        ├── When fee cap is set to 0
+        │   └── It should revert with "ISF"
+        └── When fee cap is not 0
+            ├── When scaling factor is higher than max scaling factor cap
+            │   └── It should revert with "ISF"
+            └── When scaling factor is less than max scaling factor cap
+                ├── It should set scaling factor
+                └── It should emit a {ScalingFactorSet} event

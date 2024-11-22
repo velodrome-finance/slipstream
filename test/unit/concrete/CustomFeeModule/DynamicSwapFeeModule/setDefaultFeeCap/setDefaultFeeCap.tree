@@ -1,0 +1,9 @@
+SetDefaultFeeCapTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When default fee cap is higher than max fee cap
+    │   └── It should revert with "MFC"
+    └── When default fee cap is less than or equal to max fee cap
+        ├── It should set defaultFeeCap
+        └── It should emit a {DefaultFeeCapSet} event

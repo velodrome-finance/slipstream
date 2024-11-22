@@ -1,0 +1,9 @@
+SetDefaultScalingFactorTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When default scaling factor is higher than max scaling factor cap
+    │   └── It should revert with "ISF"
+    └── When default scaling factor is less than max scaling factor cap
+        ├── It should set default scaling factor
+        └── It should emit a {DefaultScalingFactorSet} event

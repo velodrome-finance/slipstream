@@ -1,0 +1,9 @@
+ResetDynamicFeeTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When the pool doesn't exist
+    │   └── It should revert
+    └── When the pool exists
+        ├── It should set the fee cap and the scaling factor to 0
+        └── It should emit a {DynamicFeeReseted} event

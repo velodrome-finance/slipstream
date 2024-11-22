@@ -1,0 +1,6 @@
+DeregisterDiscountedTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── It should set the discount to 0 for the _discountOver param
+    └── It should emit a {DiscountedDeregistered} event

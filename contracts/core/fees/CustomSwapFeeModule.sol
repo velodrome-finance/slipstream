@@ -20,19 +20,19 @@ contract CustomSwapFeeModule is ICustomFeeModule {
     }
 
     /// @inheritdoc ICustomFeeModule
-    function setCustomFee(address pool, uint24 fee) external override {
+    function setCustomFee(address _pool, uint24 _fee) external override {
         require(msg.sender == factory.swapFeeManager());
-        require(fee <= MAX_FEE || fee == ZERO_FEE_INDICATOR);
-        require(factory.isPair(pool));
+        require(_fee <= MAX_FEE || _fee == ZERO_FEE_INDICATOR);
+        require(factory.isPair(_pool));
 
-        customFee[pool] = fee;
-        emit SetCustomFee(pool, fee);
+        customFee[_pool] = _fee;
+        emit CustomFeeSet(_pool, _fee);
     }
 
     /// @inheritdoc IFeeModule
-    function getFee(address pool) external view override returns (uint24) {
-        uint24 fee = customFee[pool];
-        int24 tickSpacing = ICLPool(pool).tickSpacing();
+    function getFee(address _pool) external view override returns (uint24) {
+        uint24 fee = customFee[_pool];
+        int24 tickSpacing = ICLPool(_pool).tickSpacing();
         return fee == ZERO_FEE_INDICATOR ? 0 : fee != 0 ? fee : factory.tickSpacingToFee(tickSpacing);
     }
 }
