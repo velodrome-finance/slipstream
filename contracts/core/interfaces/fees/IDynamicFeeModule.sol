@@ -6,7 +6,7 @@ import "./ICustomFeeModule.sol";
 interface IDynamicFeeModule is ICustomFeeModule {
     event ScalingFactorSet(address indexed pool, uint256 indexed scalingFactor);
     event FeeCapSet(address indexed pool, uint256 indexed feeCap);
-    event DynamicFeeReseted(address indexed pool);
+    event DynamicFeeReset(address indexed pool);
     event DefaultScalingFactorSet(uint256 indexed defaultScalingFactor);
     event DefaultFeeCapSet(uint256 indexed defaultFeeCap);
     event DiscountedRegistered(address indexed discountReceiver, uint24 indexed discount);
@@ -60,7 +60,7 @@ interface IDynamicFeeModule is ICustomFeeModule {
     /// @notice Resets the dynamic fee for a given pool
     /// @dev Must be called by the current fee manager
     /// @dev Pool must exist
-    /// @param _pool The address of the pool for which the dynamic fee is being reseted
+    /// @param _pool The address of the pool for which the dynamic fee is being reset
     function resetDynamicFee(address _pool) external;
 
     /// @notice Sets the new secondsAgo

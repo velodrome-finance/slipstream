@@ -113,7 +113,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
 
         delete dynamicFeeConfig[_pool].feeCap;
         delete dynamicFeeConfig[_pool].scalingFactor;
-        emit DynamicFeeReseted({pool: _pool});
+        emit DynamicFeeReset({pool: _pool});
     }
 
     /// @inheritdoc IDynamicFeeModule

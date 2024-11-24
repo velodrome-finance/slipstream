@@ -33,9 +33,9 @@ contract ResetDynamicFeeTest is DynamicSwapFeeModuleTest {
 
     function test_WhenThePoolExists() external whenCallerIsFeeManager {
         // It should set the fee cap and the scaling factor to 0
-        // It should emit a {DynamicFeeReseted} event
+        // It should emit a {DynamicFeeReset} event
         vm.expectEmit(true, false, false, false, address(dynamicSwapFeeModule));
-        emit DynamicFeeReseted({pool: pool});
+        emit DynamicFeeReset({pool: pool});
         dynamicSwapFeeModule.resetDynamicFee({_pool: pool});
 
         (uint24 baseFee, uint24 feeCap, uint64 scalingFactor) = dynamicSwapFeeModule.dynamicFeeConfig(pool);
