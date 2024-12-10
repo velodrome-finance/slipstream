@@ -47,10 +47,16 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         address[] memory _pools,
         uint24[] memory _fees
     ) {
+        require(_defaultScalingFactor <= MAX_SCALING_FACTOR, "ISF");
+        require(_defaultFeeCap <= MAX_FEE_CAP, "MFC");
+
         factory = ICLFactory(_factory);
         defaultScalingFactor = _defaultScalingFactor;
         defaultFeeCap = _defaultFeeCap;
         _bulkUpdateFees(ICLFactory(_factory), _pools, _fees);
+
+        emit DefaultScalingFactorSet({defaultScalingFactor: _defaultScalingFactor});
+        emit DefaultFeeCapSet({defaultFeeCap: _defaultFeeCap});
     }
 
     modifier onlySwapFeeManager() {

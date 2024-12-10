@@ -47,4 +47,42 @@ contract DynamicSwapFeeModuleTest is BaseFixture {
         assertEqUint(dynamicSwapFeeModule.customFee(pool), 1000);
         assertEq(address(dynamicSwapFeeModule.factory()), address(poolFactory));
     }
+
+    function test_RevertIf_DefaultFeeCapIsHigherThanMaxFeeCap() public {
+        vm.expectRevert(bytes("MFC"));
+        new DynamicSwapFeeModule({
+            _factory: address(poolFactory),
+            _defaultScalingFactor: 1000,
+            _defaultFeeCap: 50_001,
+            _pools: pools,
+            _fees: fees
+        });
+    }
+
+    function test_RevertIf_DefaultScalingFactorIsHigherThanMaxScalingFactorCap() public {
+        vm.expectRevert(bytes("ISF"));
+        new DynamicSwapFeeModule({
+            _factory: address(poolFactory),
+            _defaultScalingFactor: 1e18 + 1,
+            _defaultFeeCap: 20_000,
+            _pools: pools,
+            _fees: fees
+        });
+    }
+
+    function test_DeployEmitsEvents() public {
+        vm.expectEmit(true, true, false, false);
+        emit CustomFeeSet({pool: pool, fee: 1000});
+        vm.expectEmit(true, false, false, false);
+        emit DefaultScalingFactorSet({defaultScalingFactor: 1e18});
+        vm.expectEmit(true, false, false, false);
+        emit DefaultFeeCapSet({defaultFeeCap: 50_000});
+        new DynamicSwapFeeModule({
+            _factory: address(poolFactory),
+            _defaultScalingFactor: 1e18,
+            _defaultFeeCap: 50_000,
+            _pools: pools,
+            _fees: fees
+        });
+    }
 }
