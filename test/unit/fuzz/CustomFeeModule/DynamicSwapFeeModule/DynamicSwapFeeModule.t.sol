@@ -23,7 +23,7 @@ contract DynamicSwapFeeModuleFuzzTest is BaseFixture {
 
         dynamicSwapFeeModule = new DynamicSwapFeeModule({
             _factory: address(poolFactory),
-            _defaultScalingFactor: 1000,
+            _defaultScalingFactor: 100,
             _defaultFeeCap: 20_000,
             _pools: pools,
             _fees: fees
@@ -40,7 +40,7 @@ contract DynamicSwapFeeModuleFuzzTest is BaseFixture {
         assertEq(dynamicSwapFeeModule.MAX_DISCOUNT(), 500_000);
         assertEq(dynamicSwapFeeModule.MAX_FEE_CAP(), 50_000);
         assertEq(dynamicSwapFeeModule.MAX_SCALING_FACTOR(), 1e18);
-        assertEq(dynamicSwapFeeModule.defaultScalingFactor(), 1000);
+        assertEq(dynamicSwapFeeModule.defaultScalingFactor(), 100);
         assertEq(dynamicSwapFeeModule.defaultFeeCap(), 20_000);
         assertEqUint(dynamicSwapFeeModule.MIN_SECONDS_AGO(), 2);
         assertEqUint(dynamicSwapFeeModule.MAX_SECONDS_AGO(), 65535 * 2);

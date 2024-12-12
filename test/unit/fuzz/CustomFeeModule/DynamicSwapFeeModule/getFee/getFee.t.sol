@@ -211,12 +211,13 @@ contract GetFeeFuzzTest is DynamicSwapFeeModuleFuzzTest {
 
     /// HELPERS
 
-    function getDefaultExpectedDynamicFee(int24 currentTick, int24 twAvgTick) internal pure returns (uint256) {
-        // K * [1 - (tick / TWAVG(ticks))]
-        int256 scaledK = int256(1000) * 1e18;
-        int256 dynamicfee = (scaledK - scaledK * currentTick / twAvgTick) / 1e18;
+    function getDefaultExpectedDynamicFee(int24 _currentTick, int24 _twAvgTick) internal pure returns (uint256) {
+        uint24 absCurrentTick = _currentTick < 0 ? uint24(-_currentTick) : uint24(_currentTick);
+        uint24 absTwAvgTick = _twAvgTick < 0 ? uint24(-_twAvgTick) : uint24(_twAvgTick);
 
-        return dynamicfee < 0 ? uint256(-dynamicfee) : uint256(dynamicfee);
+        uint24 tickDelta = absCurrentTick > absTwAvgTick ? absCurrentTick - absTwAvgTick : absTwAvgTick - absCurrentTick;
+
+        return tickDelta * 100;
     }
 
     function getTwAvgTick() public view returns (int24) {

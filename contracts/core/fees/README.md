@@ -8,7 +8,7 @@ The formula is as follows:
 
 $f = min(f_{base} + f_{dynamic}, f_{cap})$
 
-$f_{dynamic} = \vert K * [1 - \frac{tick}{TWAVG(tick)}] \vert$
+$f_{dynamic} = K \times \vert t-TWAVG(tick) \space \vert$
 
 where:
 - $f_{base}$ is the base fee for the pool, paid on all swaps

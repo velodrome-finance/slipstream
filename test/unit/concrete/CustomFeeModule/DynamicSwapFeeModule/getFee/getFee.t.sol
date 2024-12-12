@@ -101,7 +101,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         int24 twAvgTick = getTwAvgTick();
 
         uint256 expectedDynamicFee =
-            getExpectedDynamicFee({_scalingFactor: 1_000, _currentTick: currentTick, _twAvgTick: twAvgTick});
+            getExpectedDynamicFee({_scalingFactor: 100, _currentTick: currentTick, _twAvgTick: twAvgTick}); // 4700
 
         assertEqUint(dynamicSwapFeeModule.getFee(pool), 10_000 + expectedDynamicFee);
     }
@@ -124,7 +124,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         int24 twAvgTick = getTwAvgTick();
 
         uint256 expectedDynamicFee =
-            getExpectedDynamicFee({_scalingFactor: 1_000, _currentTick: currentTick, _twAvgTick: twAvgTick});
+            getExpectedDynamicFee({_scalingFactor: 100, _currentTick: currentTick, _twAvgTick: twAvgTick}); // 4700
 
         vm.prank({msgSender: users.alice, txOrigin: users.alice});
         uint24 fee = dynamicSwapFeeModule.getFee(pool);
@@ -175,7 +175,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
     modifier whenScalingFactorIsSetOnThePool() {
         vm.startPrank(users.feeManager);
         dynamicSwapFeeModule.setFeeCap({_pool: pool, _feeCap: 30_000});
-        dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: 2_000});
+        dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: 200});
         vm.stopPrank();
         _;
     }
@@ -204,7 +204,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         int24 twAvgTick = getTwAvgTick();
 
         uint256 expectedDynamicFee =
-            getExpectedDynamicFee({_scalingFactor: 2_000, _currentTick: currentTick, _twAvgTick: twAvgTick});
+            getExpectedDynamicFee({_scalingFactor: 200, _currentTick: currentTick, _twAvgTick: twAvgTick}); // 9400
 
         assertEqUint(dynamicSwapFeeModule.getFee(pool), 10_000 + expectedDynamicFee);
     }
@@ -227,7 +227,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         int24 twAvgTick = getTwAvgTick();
 
         uint256 expectedDynamicFee =
-            getExpectedDynamicFee({_scalingFactor: 2_000, _currentTick: currentTick, _twAvgTick: twAvgTick});
+            getExpectedDynamicFee({_scalingFactor: 200, _currentTick: currentTick, _twAvgTick: twAvgTick}); // 9400
 
         vm.prank({msgSender: users.alice, txOrigin: users.alice});
         uint24 fee = dynamicSwapFeeModule.getFee(pool);
@@ -297,16 +297,17 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         vm.stopPrank();
     }
 
-    function getExpectedDynamicFee(int256 _scalingFactor, int24 _currentTick, int24 _twAvgTick)
+    function getExpectedDynamicFee(uint256 _scalingFactor, int24 _currentTick, int24 _twAvgTick)
         internal
         pure
         returns (uint256)
     {
-        // K * [1 - (tick / TWAVG(ticks))]
-        int256 scaledK = int256(_scalingFactor) * 1e18;
-        int256 dynamicfee = (scaledK - scaledK * _currentTick / _twAvgTick) / 1e18;
+        uint24 absCurrentTick = _currentTick < 0 ? uint24(-_currentTick) : uint24(_currentTick);
+        uint24 absTwAvgTick = _twAvgTick < 0 ? uint24(-_twAvgTick) : uint24(_twAvgTick);
 
-        return dynamicfee < 0 ? uint256(-dynamicfee) : uint256(dynamicfee);
+        uint24 tickDelta = absCurrentTick > absTwAvgTick ? absCurrentTick - absTwAvgTick : absTwAvgTick - absCurrentTick;
+
+        return tickDelta * _scalingFactor;
     }
 
     function getTwAvgTick() public view returns (int24) {

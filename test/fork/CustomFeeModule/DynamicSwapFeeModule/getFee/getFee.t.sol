@@ -63,7 +63,7 @@ contract GetFeeForkTest is DynamicSwapFeeModuleForkTest {
     modifier whenScalingFactorIsSetOnThePool() {
         vm.startPrank(poolFactory.swapFeeManager());
         dynamicSwapFeeModule.setFeeCap({_pool: pool, _feeCap: 30_000});
-        dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: 2000});
+        dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: 200});
         vm.stopPrank();
         _;
     }
@@ -71,7 +71,7 @@ contract GetFeeForkTest is DynamicSwapFeeModuleForkTest {
     function testGasFork_WhenTxOriginIsNotDiscounted() external whenScalingFactorIsSetOnThePool {
         vm.startPrank({msgSender: users.alice, txOrigin: users.alice});
 
-        clCallee.swapExact0For1(address(pool), USDC_1 * 800_000, users.alice, MIN_SQRT_RATIO + 1);
+        clCallee.swapExact0For1(address(pool), USDC_1 * 300_000, users.alice, MIN_SQRT_RATIO + 1);
         skip(20 minutes);
 
         (, int24 currentTick,,,,) = ICLPool(pool).slot0();
@@ -90,12 +90,13 @@ contract GetFeeForkTest is DynamicSwapFeeModuleForkTest {
 
     /// HELPERS
 
-    function getPoolExpectedDynamicFee(int24 currentTick, int24 twAvgTick) internal pure returns (uint256) {
-        // K * [1 - (tick / TWAVG(ticks))]
-        int256 scaledK = int256(2000) * 1e18;
-        int256 dynamicfee = (scaledK - scaledK * currentTick / twAvgTick) / 1e18;
+    function getPoolExpectedDynamicFee(int24 _currentTick, int24 _twAvgTick) internal pure returns (uint256) {
+        uint24 absCurrentTick = _currentTick < 0 ? uint24(-_currentTick) : uint24(_currentTick);
+        uint24 absTwAvgTick = _twAvgTick < 0 ? uint24(-_twAvgTick) : uint24(_twAvgTick);
 
-        return dynamicfee < 0 ? uint256(-dynamicfee) : uint256(dynamicfee);
+        uint24 tickDelta = absCurrentTick > absTwAvgTick ? absCurrentTick - absTwAvgTick : absTwAvgTick - absCurrentTick;
+
+        return tickDelta * 200;
     }
 
     function getTwAvgTick() public view returns (int24) {

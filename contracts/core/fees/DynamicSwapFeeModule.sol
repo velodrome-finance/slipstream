@@ -24,8 +24,6 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
     uint256 public constant MAX_SCALING_FACTOR = 1e18;
     uint256 public constant MAX_FEE_CAP = 50_000; // 5%
 
-    int256 public constant PRECISION = 1e18;
-
     /// @inheritdoc IDynamicFeeModule
     uint256 public override defaultScalingFactor; // default K
     /// @inheritdoc IDynamicFeeModule
@@ -191,13 +189,10 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         } catch {
             return 0;
         }
-        if (twAvgTick == 0) return 0;
 
-        // K * [1 - (tick / TWAVG(ticks))]
-        int256 scaledK = int256(_scalingFactor) * PRECISION;
-        int256 dynamicfee = (scaledK - scaledK * currentTick / twAvgTick) / PRECISION;
-
-        return dynamicfee < 0 ? uint256(-dynamicfee) : uint256(dynamicfee);
+        int24 tickDelta = currentTick - twAvgTick;
+        uint24 absTickDelta = tickDelta < 0 ? uint24(-tickDelta) : uint24(tickDelta);
+        return absTickDelta * _scalingFactor;
     }
 
     function _bulkUpdateFees(ICLFactory _factory, address[] memory _pools, uint24[] memory _fees) internal {
