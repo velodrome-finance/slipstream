@@ -175,7 +175,10 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
     modifier whenScalingFactorIsSetOnThePool() {
         vm.startPrank(users.feeManager);
         dynamicSwapFeeModule.setFeeCap({_pool: pool, _feeCap: 30_000});
-        dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: 200});
+        dynamicSwapFeeModule.setScalingFactor({
+            _pool: pool,
+            _scalingFactor: uint64(200 * dynamicSwapFeeModule.SCALING_PRECISION())
+        });
         vm.stopPrank();
         _;
     }
@@ -297,6 +300,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         vm.stopPrank();
     }
 
+    /// @dev We exclude the scaling factor from the calculation
     function getExpectedDynamicFee(uint256 _scalingFactor, int24 _currentTick, int24 _twAvgTick)
         internal
         pure

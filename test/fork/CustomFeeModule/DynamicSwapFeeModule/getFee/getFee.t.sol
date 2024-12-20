@@ -63,7 +63,10 @@ contract GetFeeForkTest is DynamicSwapFeeModuleForkTest {
     modifier whenScalingFactorIsSetOnThePool() {
         vm.startPrank(poolFactory.swapFeeManager());
         dynamicSwapFeeModule.setFeeCap({_pool: pool, _feeCap: 30_000});
-        dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: 200});
+        dynamicSwapFeeModule.setScalingFactor({
+            _pool: pool,
+            _scalingFactor: uint64(200 * dynamicSwapFeeModule.SCALING_PRECISION())
+        });
         vm.stopPrank();
         _;
     }

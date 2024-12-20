@@ -210,7 +210,7 @@ contract GetFeeFuzzTest is DynamicSwapFeeModuleFuzzTest {
     }
 
     /// HELPERS
-
+    /// @dev We exclude the scaling factor from the calculation
     function getDefaultExpectedDynamicFee(int24 _currentTick, int24 _twAvgTick) internal pure returns (uint256) {
         uint24 absCurrentTick = _currentTick < 0 ? uint24(-_currentTick) : uint24(_currentTick);
         uint24 absTwAvgTick = _twAvgTick < 0 ? uint24(-_twAvgTick) : uint24(_twAvgTick);

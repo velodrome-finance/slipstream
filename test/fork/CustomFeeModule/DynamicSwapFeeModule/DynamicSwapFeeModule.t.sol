@@ -17,7 +17,7 @@ abstract contract DynamicSwapFeeModuleForkTest is BaseForkFixture {
 
         dynamicSwapFeeModule = new DynamicSwapFeeModule({
             _factory: address(poolFactory),
-            _defaultScalingFactor: 100,
+            _defaultScalingFactor: 100 * 1e6,
             _defaultFeeCap: 20_000,
             _pools: pools,
             _fees: fees
