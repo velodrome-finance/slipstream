@@ -229,4 +229,9 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         user = payable(makeAddr({name: name}));
         vm.deal({account: user, newBalance: TOKEN_1 * 1_000});
     }
+
+    function resetPrank(address msgSender) internal {
+        vm.stopPrank();
+        vm.startPrank(msgSender);
+    }
 }

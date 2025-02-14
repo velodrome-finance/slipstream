@@ -56,7 +56,7 @@ jobs:
         - name: Install Foundry
           uses: foundry-rs/foundry-toolchain@v1
           with:
-            version: stable
+            version: v1.0.0
 
         - name: Format
           run: forge fmt --check

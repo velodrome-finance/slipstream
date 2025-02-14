@@ -10,8 +10,8 @@ contract SetDefaultFeeCapTest is DynamicSwapFeeModuleTest {
 
     function test_WhenCallerIsNotFeeManager() external {
         // It should revert with "NFM"
+        resetPrank({msgSender: users.charlie});
         vm.expectRevert(bytes("NFM"));
-        vm.startPrank({msgSender: users.charlie});
         dynamicSwapFeeModule.setDefaultFeeCap({_defaultFeeCap: 1});
     }
 

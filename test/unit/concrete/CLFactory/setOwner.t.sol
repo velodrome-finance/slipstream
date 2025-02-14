@@ -11,8 +11,8 @@ contract SetOwnerTest is CLFactoryTest {
     }
 
     function test_RevertIf_NotOwner() public {
+        resetPrank({msgSender: users.charlie});
         vm.expectRevert();
-        vm.startPrank({msgSender: users.charlie});
         poolFactory.setOwner({_owner: users.charlie});
     }
 

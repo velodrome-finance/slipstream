@@ -11,8 +11,8 @@ contract SetUnstakedFeeModule is CLFactoryTest {
     }
 
     function test_RevertIf_NotFeeManager() public {
+        resetPrank({msgSender: users.charlie});
         vm.expectRevert();
-        vm.startPrank({msgSender: users.charlie});
         poolFactory.setUnstakedFeeModule({_unstakedFeeModule: users.charlie});
     }
 
