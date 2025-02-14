@@ -12,12 +12,12 @@ jobs:
 
       steps:
         - name: Check out github repository
-          uses: actions/checkout@v2
+          uses: actions/checkout@v4
           with:
             fetch-depth: 1
   
         - name: Setup node.js
-          uses: actions/setup-node@v1
+          uses: actions/setup-node@v4
           with:
             node-version: '18.x'
   
@@ -26,7 +26,7 @@ jobs:
           run: echo "::set-output name=dir::$(yarn cache dir)"
   
         - name: Restore yarn cache
-          uses: actions/cache@v2
+          uses: actions/cache@v4
           id: yarn-cache
           with:
             path: |
@@ -48,7 +48,7 @@ jobs:
       runs-on: ubuntu-latest
       
       steps:
-        - uses: actions/checkout@v2
+        - uses: actions/checkout@v4
           with:
             submodules: recursive
 
@@ -56,7 +56,7 @@ jobs:
         - name: Install Foundry
           uses: foundry-rs/foundry-toolchain@v1
           with:
-            version: nightly
+            version: stable
 
         - name: Format
           run: forge fmt --check

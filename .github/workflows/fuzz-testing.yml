@@ -27,15 +27,15 @@ jobs:
           - FullMathEchidnaTest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: 14
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
 
@@ -45,7 +45,7 @@ jobs:
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
-          version: nightly
+          version: stable
 
       - name: Install pip3
         run: |
@@ -57,7 +57,7 @@ jobs:
 
       - name: Install echidna
         run: |
-          sudo wget -O /tmp/echidna.tar.gz https://github.com/crytic/echidna/releases/download/v2.2.0/echidna-2.2.0-Ubuntu-22.04.tar.gz
+          sudo wget -O /tmp/echidna.tar.gz https://github.com/crytic/echidna/releases/download/v2.2.6/echidna-2.2.6-x86_64-linux.tar.gz
           sudo tar -xf /tmp/echidna.tar.gz -C /usr/bin
           sudo chmod +x /usr/bin/echidna
 
