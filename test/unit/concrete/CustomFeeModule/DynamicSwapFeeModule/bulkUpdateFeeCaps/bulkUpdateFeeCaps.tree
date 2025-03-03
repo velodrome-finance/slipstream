@@ -1,0 +1,17 @@
+BulkUpdateFeeCapsTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When pools array and fee caps array are not the same length
+    │   └── It should revert with "LMM"
+    └── When pools array and fee caps array are the same length
+        ├── When one of the pools is invalid
+        │   └── It should revert
+        └── When all pools are valid
+            ├── When one of the fee cap is 0
+            │   └── It should revert with "FC0"
+            ├── When one of the fee cap is bigger than max fee cap
+            │   └── It should revert with "MFC"
+            └── When all the fee caps are within range
+                ├── It should update the fee cap for all the pools
+                └── It should emit a {FeeCapSet} event for all the pools

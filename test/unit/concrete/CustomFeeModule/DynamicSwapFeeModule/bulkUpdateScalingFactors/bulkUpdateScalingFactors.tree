@@ -1,0 +1,18 @@
+BulkUpdateScalingFactorsTest
+├── When caller is not Fee Manager
+│   └── It should revert with "NFM"
+└── When caller is Fee Manager
+    ├── When pools array and scaling factors array are not the same length
+    │   └── It should revert with "LMM"
+    └── When pools array and scaling factors array are the same length
+        ├── When one of the pools is invalid
+        │   └── It should revert
+        └── When all pools are valid
+            ├── When one of the pools fee cap is not set
+            │   └── It should revert with "ISF"
+            └── When all the pools have a set fee cap
+                ├── When one of scaling factor is bigger than max scaling factor
+                │   └── It should revert with "ISF"
+                └── When all the scaling factors are below max scaling factor
+                    ├── It should update the scaling factor for all the pools
+                    └── It should emit a {ScalingFactorSet} event for all the pools

@@ -52,7 +52,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         factory = ICLFactory(_factory);
         defaultScalingFactor = _defaultScalingFactor;
         defaultFeeCap = _defaultFeeCap;
-        _bulkUpdateFees(ICLFactory(_factory), _pools, _fees);
+        _bulkUpdateFees({_factory: ICLFactory(_factory), _pools: _pools, _fees: _fees});
 
         emit DefaultScalingFactorSet({defaultScalingFactor: _defaultScalingFactor});
         emit DefaultFeeCapSet({defaultFeeCap: _defaultFeeCap});
@@ -71,7 +71,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
     /// @inheritdoc ICustomFeeModule
     function setCustomFee(address _pool, uint24 _fee) external override onlySwapFeeManager {
         require(_fee <= MAX_BASE_FEE || _fee == ZERO_FEE_INDICATOR, "MBF");
-        require(factory.isPair(_pool));
+        require(factory.isPair({pool: _pool}));
 
         dynamicFeeConfig[_pool].baseFee = _fee;
         emit CustomFeeSet({pool: _pool, fee: _fee});
@@ -95,7 +95,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
 
     /// @inheritdoc IDynamicFeeModule
     function setScalingFactor(address _pool, uint64 _scalingFactor) external override onlySwapFeeManager {
-        require(factory.isPair(_pool));
+        require(factory.isPair({pool: _pool}));
         require(dynamicFeeConfig[_pool].feeCap != 0 && _scalingFactor <= MAX_SCALING_FACTOR, "ISF");
 
         dynamicFeeConfig[_pool].scalingFactor = _scalingFactor;
@@ -104,7 +104,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
 
     /// @inheritdoc IDynamicFeeModule
     function setFeeCap(address _pool, uint24 _feeCap) external override onlySwapFeeManager {
-        require(factory.isPair(_pool));
+        require(factory.isPair({pool: _pool}));
         require(_feeCap > 0, "FC0");
         require(_feeCap <= MAX_FEE_CAP, "MFC");
 
@@ -114,7 +114,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
 
     /// @inheritdoc IDynamicFeeModule
     function resetDynamicFee(address _pool) external override onlySwapFeeManager {
-        require(factory.isPair(_pool));
+        require(factory.isPair({pool: _pool}));
 
         delete dynamicFeeConfig[_pool].feeCap;
         delete dynamicFeeConfig[_pool].scalingFactor;
@@ -145,7 +145,52 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
 
     /// @inheritdoc IDynamicFeeModule
     function bulkUpdateFees(address[] calldata _pools, uint24[] calldata _fees) external override onlySwapFeeManager {
-        _bulkUpdateFees(factory, _pools, _fees);
+        _bulkUpdateFees({_factory: factory, _pools: _pools, _fees: _fees});
+    }
+
+    /// @inheritdoc IDynamicFeeModule
+    function bulkUpdateFeeCaps(address[] calldata _pools, uint24[] calldata _feeCaps)
+        external
+        override
+        onlySwapFeeManager
+    {
+        uint256 poolsLength = _pools.length;
+        require(poolsLength == _feeCaps.length, "LMM");
+
+        address pool;
+        uint24 feeCap;
+        for (uint256 i = 0; i < poolsLength; i++) {
+            pool = _pools[i];
+            require(factory.isPair({pool: pool}));
+            feeCap = _feeCaps[i];
+            require(feeCap > 0, "FC0");
+            require(feeCap <= MAX_FEE_CAP, "MFC");
+
+            dynamicFeeConfig[pool].feeCap = feeCap;
+            emit FeeCapSet({pool: pool, feeCap: feeCap});
+        }
+    }
+
+    /// @inheritdoc IDynamicFeeModule
+    function bulkUpdateScalingFactors(address[] calldata _pools, uint64[] calldata _scalingFactors)
+        external
+        override
+        onlySwapFeeManager
+    {
+        uint256 poolsLength = _pools.length;
+        require(poolsLength == _scalingFactors.length, "LMM");
+
+        address pool;
+        uint64 scalingFactor;
+        for (uint256 i = 0; i < poolsLength; i++) {
+            pool = _pools[i];
+            require(factory.isPair({pool: pool}));
+            scalingFactor = _scalingFactors[i];
+            require(dynamicFeeConfig[pool].feeCap != 0 && scalingFactor <= MAX_SCALING_FACTOR, "ISF");
+
+            dynamicFeeConfig[pool].scalingFactor = scalingFactor;
+            emit ScalingFactorSet({pool: pool, scalingFactor: scalingFactor});
+        }
     }
 
     /// @inheritdoc IFeeModule
@@ -162,7 +207,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
             scalingFactor = defaultScalingFactor;
             feeCap = defaultFeeCap;
         }
-        uint256 totalFee = baseFee + _getDynamicFee(_pool, scalingFactor);
+        uint256 totalFee = baseFee + _getDynamicFee({_pool: _pool, _scalingFactor: scalingFactor});
         totalFee = totalFee < feeCap ? totalFee : feeCap;
 
         // apply discount if any
@@ -185,7 +230,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         // sa[1] = 0; default is 0
 
         int24 twAvgTick;
-        try ICLPool(_pool).observe(sa) returns (int56[] memory tickCumulatives, uint160[] memory) {
+        try ICLPool(_pool).observe({secondsAgos: sa}) returns (int56[] memory tickCumulatives, uint160[] memory) {
             twAvgTick = int24((tickCumulatives[1] - tickCumulatives[0]) / _secondsAgo);
         } catch {
             return 0;
@@ -206,7 +251,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
             fee = _fees[i];
             require(fee <= MAX_BASE_FEE || fee == ZERO_FEE_INDICATOR, "MBF");
             pool = _pools[i];
-            require(_factory.isPair(pool));
+            require(_factory.isPair({pool: pool}));
             dynamicFeeConfig[pool].baseFee = fee;
             emit CustomFeeSet({pool: pool, fee: fee});
         }

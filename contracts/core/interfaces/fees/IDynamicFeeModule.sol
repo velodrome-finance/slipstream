@@ -84,4 +84,17 @@ interface IDynamicFeeModule is ICustomFeeModule {
     /// @param _pools The pool addresses which are going to be updated (must be a valid pool)
     /// @param _fees The fees to be set on the pools
     function bulkUpdateFees(address[] calldata _pools, uint24[] calldata _fees) external;
+
+    /// @notice Bulk updates the feeCaps for the passed in pools
+    /// @dev Must be called by the current fee manager
+    /// @param _pools The pool addresses which are going to be updated (must be a valid pool)
+    /// @param _feeCaps The feeCaps to be set on the pools
+    function bulkUpdateFeeCaps(address[] calldata _pools, uint24[] calldata _feeCaps) external;
+
+    /// @notice Bulk updates the scaling factor for the passed in pools
+    /// @dev Must be called by the current fee manager
+    /// @dev Must set feeCap first
+    /// @param _pools The pool addresses which are going to be updated (must be a valid pool)
+    /// @param _scalingFactors The scaling factors to be set on the pools
+    function bulkUpdateScalingFactors(address[] calldata _pools, uint64[] calldata _scalingFactors) external;
 }
