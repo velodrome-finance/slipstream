@@ -13,6 +13,7 @@ import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV1} from "contracts/periphery/lens/MixedRouteQuoterV1.sol";
+import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
 import {QuoterV2} from "contracts/periphery/lens/QuoterV2.sol";
 import {SwapRouter} from "contracts/periphery/SwapRouter.sol";
 
@@ -47,6 +48,7 @@ contract DeployCL is Script {
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
     MixedRouteQuoterV1 public mixedQuoter;
+    MixedRouteQuoterV2 public mixedQuoterV2;
     QuoterV2 public quoter;
     SwapRouter public swapRouter;
 
@@ -115,6 +117,7 @@ contract DeployCL is Script {
         mixedQuoter = new MixedRouteQuoterV1({_factory: address(poolFactory), _factoryV2: factoryV2, _WETH9: weth});
         quoter = new QuoterV2({_factory: address(poolFactory), _WETH9: weth});
         swapRouter = new SwapRouter({_factory: address(poolFactory), _WETH9: weth});
+        mixedQuoterV2 = new MixedRouteQuoterV2({_factory: address(poolFactory), _factoryV2: factoryV2, _WETH9: weth});
         vm.stopBroadcast();
 
         // write to file
@@ -129,6 +132,7 @@ contract DeployCL is Script {
         vm.writeJson(vm.serializeAddress("", "SwapFeeModule", address(swapFeeModule)), path);
         vm.writeJson(vm.serializeAddress("", "UnstakedFeeModule", address(unstakedFeeModule)), path);
         vm.writeJson(vm.serializeAddress("", "MixedQuoter", address(mixedQuoter)), path);
+        vm.writeJson(vm.serializeAddress("", "MixedQuoterV2", address(mixedQuoterV2)), path);
         vm.writeJson(vm.serializeAddress("", "Quoter", address(quoter)), path);
         vm.writeJson(vm.serializeAddress("", "SwapRouter", address(swapRouter)), path);
     }

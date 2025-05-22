@@ -13,6 +13,7 @@ import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
+import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
 
 contract DeployCLForkTest is Test {
     using stdJson for string;
@@ -32,6 +33,7 @@ contract DeployCLForkTest is Test {
     address public poolFactoryOwner;
     address public feeManager;
     address public notifyAdmin;
+    address public factoryV2;
     string public nftName;
     string public nftSymbol;
 
@@ -44,6 +46,7 @@ contract DeployCLForkTest is Test {
     CLGaugeFactory public gaugeFactory;
     CustomSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
+    MixedRouteQuoterV2 public mixedQuoterV2;
 
     function setUp() public {
         vm.createSelectFork({urlOrAlias: "optimism", blockNumber: 109241151});
@@ -58,6 +61,7 @@ contract DeployCLForkTest is Test {
         weth = abi.decode(vm.parseJson(jsonConstants, ".WETH"), (address));
         voter = abi.decode(vm.parseJson(jsonConstants, ".Voter"), (address));
         factoryRegistry = abi.decode(vm.parseJson(jsonConstants, ".FactoryRegistry"), (address));
+        factoryV2 = abi.decode(vm.parseJson(jsonConstants, ".factoryV2"), (address));
         poolFactoryOwner = abi.decode(vm.parseJson(jsonConstants, ".poolFactoryOwner"), (address));
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
         notifyAdmin = abi.decode(vm.parseJson(jsonConstants, ".notifyAdmin"), (address));
@@ -79,6 +83,7 @@ contract DeployCLForkTest is Test {
         gaugeFactory = deployCL.gaugeFactory();
         swapFeeModule = deployCL.swapFeeModule();
         unstakedFeeModule = deployCL.unstakedFeeModule();
+        mixedQuoterV2 = deployCL.mixedQuoterV2();
 
         assertTrue(address(poolImplementation) != address(0));
         assertTrue(address(poolFactory) != address(0));
@@ -122,6 +127,12 @@ contract DeployCLForkTest is Test {
         assertTrue(address(unstakedFeeModule) != address(0));
         assertEq(unstakedFeeModule.MAX_FEE(), 500_000); // 50%, using pip denomination
         assertEq(address(unstakedFeeModule.factory()), address(poolFactory));
+
+        // Check MixedRouteQuoterV2
+        assertTrue(address(mixedQuoterV2) != address(0));
+        assertEq(address(mixedQuoterV2.factory()), address(poolFactory));
+        assertEq(address(mixedQuoterV2.factoryV2()), factoryV2);
+        assertEq(mixedQuoterV2.WETH9(), weth);
     }
 
     function concat(string memory a, string memory b) internal pure returns (string memory) {

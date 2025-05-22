@@ -35,7 +35,7 @@ jobs:
       - name: Install Bulloak
         # Install Bulloak if it is not already installed
         # Note if we change the version number, we will need to --force to update cache
-        run: (cargo install bulloak@0.8.0 || true)
+        run: (cargo install bulloak@0.8.1 || true)
         id: install-bulloak
 
       - name: Run Bulloak checks
