@@ -12,11 +12,13 @@ interface IDynamicFeeModule is ICustomFeeModule {
     event DiscountedRegistered(address indexed discountReceiver, uint24 indexed discount);
     event DiscountedDeregistered(address indexed discountOver);
     event SecondsAgoSet(uint32 indexed secondsAgo);
+    event InitialFeeSet(address indexed pool, uint24 indexed initialFee);
+    event InitialFeeDisabled(address indexed pool);
 
     /// @notice Returns the dynamic fee config for the pool
     /// @param _pool The pool address
-    /// @return The baseFee, feeCap and scalingFactor set for the pool
-    function dynamicFeeConfig(address _pool) external view returns (uint24, uint24, uint64);
+    /// @return The baseFee, feeCap, scalingFactor, initialFeeEnabled and initialFee set for the pool
+    function dynamicFeeConfig(address _pool) external view returns (uint24, uint24, uint64, bool, uint24);
 
     /// @notice The current default scaling factor
     function defaultScalingFactor() external view returns (uint256);
@@ -97,4 +99,17 @@ interface IDynamicFeeModule is ICustomFeeModule {
     /// @param _pools The pool addresses which are going to be updated (must be a valid pool)
     /// @param _scalingFactors The scaling factors to be set on the pools
     function bulkUpdateScalingFactors(address[] calldata _pools, uint64[] calldata _scalingFactors) external;
+
+    /// @notice Sets a custom initial fee for a given pool and enables it
+    /// @dev Must be called by the current fee manager
+    /// @dev Pool must exist
+    /// @param _pool The pool address
+    /// @param _fee The initial fee to set (0 = use baseFee, ZERO_FEE_INDICATOR = explicit 0 fee)
+    function setInitialFee(address _pool, uint24 _fee) external;
+
+    /// @notice Disables the initial fee for a given pool
+    /// @dev Must be called by the current fee manager
+    /// @dev Pool must exist
+    /// @param _pool The pool address
+    function disableInitialFee(address _pool) external;
 }

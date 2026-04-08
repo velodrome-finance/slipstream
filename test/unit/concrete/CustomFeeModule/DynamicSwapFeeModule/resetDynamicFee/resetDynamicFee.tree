@@ -6,4 +6,6 @@ ResetDynamicFeeTest
     │   └── It should revert
     └── When the pool exists
         ├── It should set the fee cap and the scaling factor to 0
+        ├── It should disable the initial fee
+        ├── It should set the initial fee to 0
         └── It should emit a {DynamicFeeReset} event

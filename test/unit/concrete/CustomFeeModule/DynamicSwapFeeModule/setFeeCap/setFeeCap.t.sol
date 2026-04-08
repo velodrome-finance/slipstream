@@ -54,7 +54,7 @@ contract SetFeeCapTest is DynamicSwapFeeModuleTest {
         emit FeeCapSet({pool: pool, feeCap: 50_000});
         dynamicSwapFeeModule.setFeeCap({_pool: pool, _feeCap: 50_000});
 
-        (, uint24 feeCap,) = dynamicSwapFeeModule.dynamicFeeConfig(pool);
+        (, uint24 feeCap,,,) = dynamicSwapFeeModule.dynamicFeeConfig(pool);
         assertEqUint(feeCap, 50_000);
     }
 }

@@ -10,6 +10,8 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         uint24 baseFee;
         uint24 feeCap;
         uint64 scalingFactor; // K
+        bool initialFeeEnabled;
+        uint24 initialFee; // 0 = use baseFee; non-zero = override; ZERO_FEE_INDICATOR = explicit 0 fee
     }
 
     uint32 public constant MIN_SECONDS_AGO = 2; // it must be set to the block time
@@ -30,7 +32,7 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
     /// @inheritdoc IDynamicFeeModule
     uint256 public override defaultFeeCap;
     /// @inheritdoc IDynamicFeeModule
-    uint32 public override secondsAgo = 3600; // 1 hour
+    uint32 public override secondsAgo = 600; // 10 minutes
 
     /// @inheritdoc IFeeModule
     ICLFactory public immutable override factory;
@@ -118,6 +120,8 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
 
         delete dynamicFeeConfig[_pool].feeCap;
         delete dynamicFeeConfig[_pool].scalingFactor;
+        delete dynamicFeeConfig[_pool].initialFeeEnabled;
+        delete dynamicFeeConfig[_pool].initialFee;
         emit DynamicFeeReset({pool: _pool});
     }
 
@@ -203,6 +207,19 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         if (baseFee == ZERO_FEE_INDICATOR) return 0;
         baseFee = baseFee != 0 ? baseFee : factory.tickSpacingToFee(ICLPool(_pool).tickSpacing());
 
+        // initial fee: cheap fee until the first observation is written in the block (per-pool opt-in)
+        if (dfc.initialFeeEnabled) {
+            (,, uint16 observationIndex,,,) = ICLPool(_pool).slot0();
+            (uint32 lastObsTimestamp,,,) = ICLPool(_pool).observations(observationIndex);
+
+            if (lastObsTimestamp != uint32(block.timestamp)) {
+                uint256 _initialFee = dfc.initialFee;
+                if (_initialFee == 0) return uint24(baseFee);
+                if (_initialFee == ZERO_FEE_INDICATOR) return 0;
+                return uint24(_initialFee);
+            }
+        }
+
         if (scalingFactor == 0) {
             scalingFactor = defaultScalingFactor;
             feeCap = defaultFeeCap;
@@ -217,6 +234,25 @@ contract DynamicSwapFeeModule is IDynamicFeeModule {
         }
 
         return uint24(totalFee);
+    }
+
+    /// @inheritdoc IDynamicFeeModule
+    function setInitialFee(address _pool, uint24 _fee) external override onlySwapFeeManager {
+        require(factory.isPair({pool: _pool}));
+        require(_fee <= MAX_FEE_CAP || _fee == ZERO_FEE_INDICATOR, "MIF");
+
+        dynamicFeeConfig[_pool].initialFeeEnabled = true;
+        dynamicFeeConfig[_pool].initialFee = _fee;
+        emit InitialFeeSet({pool: _pool, initialFee: _fee});
+    }
+
+    /// @inheritdoc IDynamicFeeModule
+    function disableInitialFee(address _pool) external override onlySwapFeeManager {
+        require(factory.isPair({pool: _pool}));
+
+        dynamicFeeConfig[_pool].initialFeeEnabled = false;
+        delete dynamicFeeConfig[_pool].initialFee;
+        emit InitialFeeDisabled({pool: _pool});
     }
 
     function _getDynamicFee(address _pool, uint256 _scalingFactor) internal view returns (uint256) {

@@ -135,11 +135,11 @@ contract BulkUpdateScalingFactorsTest is DynamicSwapFeeModuleTest {
 
         dynamicSwapFeeModule.bulkUpdateScalingFactors({_pools: _pools, _scalingFactors: _scalingFactors});
 
-        (,, uint64 scalingFactor) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[0]);
+        (,, uint64 scalingFactor,,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[0]);
         assertEqUint(scalingFactor, scalingFactor1);
-        (,, scalingFactor) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[1]);
+        (,, scalingFactor,,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[1]);
         assertEqUint(scalingFactor, scalingFactor2);
-        (,, scalingFactor) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[2]);
+        (,, scalingFactor,,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[2]);
         assertEqUint(scalingFactor, scalingFactor3);
     }
 }

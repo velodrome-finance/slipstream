@@ -28,6 +28,8 @@ abstract contract Events {
     event DefaultScalingFactorSet(uint256 indexed defaultScalingFactor);
     event DefaultFeeCapSet(uint256 indexed defaultFeeCap);
     event DynamicFeeReset(address indexed pool);
+    event InitialFeeSet(address indexed pool, uint24 indexed initialFee);
+    event InitialFeeDisabled(address indexed pool);
 
     ///
     /// ERC20 Events

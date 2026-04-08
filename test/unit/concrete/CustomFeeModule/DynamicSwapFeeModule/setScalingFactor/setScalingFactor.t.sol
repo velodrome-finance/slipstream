@@ -68,7 +68,7 @@ contract SetScalingFactorTest is DynamicSwapFeeModuleTest {
         emit ScalingFactorSet({pool: pool, scalingFactor: newScalingFactor});
         dynamicSwapFeeModule.setScalingFactor({_pool: pool, _scalingFactor: newScalingFactor});
 
-        (,, uint64 K) = dynamicSwapFeeModule.dynamicFeeConfig(pool);
+        (,, uint64 K,,) = dynamicSwapFeeModule.dynamicFeeConfig(pool);
         assertEqUint(K, newScalingFactor);
     }
 }

@@ -127,11 +127,11 @@ contract BulkUpdateFeeCapsTest is DynamicSwapFeeModuleTest {
 
         dynamicSwapFeeModule.bulkUpdateFeeCaps({_pools: _pools, _feeCaps: _feeCaps});
 
-        (, uint24 feeCap,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[0]);
+        (, uint24 feeCap,,,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[0]);
         assertEqUint(feeCap, feeCap1);
-        (, feeCap,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[1]);
+        (, feeCap,,,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[1]);
         assertEqUint(feeCap, feeCap2);
-        (, feeCap,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[2]);
+        (, feeCap,,,) = dynamicSwapFeeModule.dynamicFeeConfig(_pools[2]);
         assertEqUint(feeCap, feeCap3);
     }
 }

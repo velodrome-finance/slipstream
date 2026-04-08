@@ -39,6 +39,88 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
         _;
     }
 
+    modifier whenInitialFeeIsEnabled() {
+        vm.prank(users.feeManager);
+        dynamicSwapFeeModule.setInitialFee({_pool: pool, _fee: 0});
+        _;
+    }
+
+    modifier whenNoSwapHasOccurredThisBlock() {
+        // Advance to a fresh block so the setUp mint's oracle observation is
+        // in the past. No swap has occurred in this new block yet.
+        vm.roll(block.number + 1);
+        skip(2 seconds);
+        _;
+    }
+
+    modifier whenInitialFeeOverrideIsZeroFeeIndicator() {
+        vm.prank(users.feeManager);
+        dynamicSwapFeeModule.setInitialFee({_pool: pool, _fee: 420});
+        _;
+    }
+
+    modifier whenInitialFeeOverrideIsSet() {
+        vm.prank(users.feeManager);
+        dynamicSwapFeeModule.setInitialFee({_pool: pool, _fee: 500});
+        _;
+    }
+
+    function test_WhenInitialFeeOverrideIs0()
+        external
+        whenBaseFeeIsNotZeroFeeIndicator
+        whenInitialFeeIsEnabled
+        whenNoSwapHasOccurredThisBlock
+    {
+        // It should return base fee
+        assertEqUint(dynamicSwapFeeModule.getFee(pool), 10_000);
+
+        // It should not apply discount
+        vm.prank(users.feeManager);
+        dynamicSwapFeeModule.registerDiscounted({_discountReceiver: users.alice, _discount: 500_000});
+
+        vm.prank({msgSender: users.alice, txOrigin: users.alice});
+        uint24 fee = dynamicSwapFeeModule.getFee(pool);
+        // baseFee is 10_000, discount would halve it — should remain 10_000
+        assertEqUint(fee, 10_000);
+    }
+
+    function test_WhenInitialFeeOverrideIsZeroFeeIndicator()
+        external
+        whenBaseFeeIsNotZeroFeeIndicator
+        whenInitialFeeOverrideIsZeroFeeIndicator
+        whenNoSwapHasOccurredThisBlock
+    {
+        // It should return 0
+        assertEqUint(dynamicSwapFeeModule.getFee(pool), 0);
+    }
+
+    function test_WhenInitialFeeOverrideIsNonZero()
+        external
+        whenBaseFeeIsNotZeroFeeIndicator
+        whenInitialFeeOverrideIsSet
+        whenNoSwapHasOccurredThisBlock
+    {
+        // It should return initial fee
+        assertEqUint(dynamicSwapFeeModule.getFee(pool), 500);
+    }
+
+    function test_WhenASwapHasAlreadyOccurredThisBlock()
+        external
+        whenBaseFeeIsNotZeroFeeIndicator
+        whenInitialFeeIsEnabled
+    {
+        // perform a swap this block to consume the initial fee slot
+        vm.prank({msgSender: users.alice, txOrigin: users.alice});
+        clCallee.swapExact1For0(address(pool), 1e18, users.alice, MAX_SQRT_RATIO - 1);
+
+        // It should return the normal dynamic fee
+        assertEqUint(dynamicSwapFeeModule.getFee(pool), 10_000);
+    }
+
+    modifier whenInitialFeeIsNotEnabled() {
+        _;
+    }
+
     modifier whenScalingFactorIsNotSetOnThePool() {
         _;
     }
@@ -315,7 +397,7 @@ contract GetFeeTest is DynamicSwapFeeModuleTest {
     }
 
     function getTwAvgTick() public view returns (int24) {
-        uint32 _twapDuration = 3600;
+        uint32 _twapDuration = 600;
         uint32[] memory secondsAgo = new uint32[](2);
         secondsAgo[0] = _twapDuration;
         secondsAgo[1] = 0;

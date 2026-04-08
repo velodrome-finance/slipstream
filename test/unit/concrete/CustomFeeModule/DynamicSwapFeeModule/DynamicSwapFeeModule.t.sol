@@ -46,6 +46,7 @@ contract DynamicSwapFeeModuleTest is BaseFixture {
         assertEqUint(dynamicSwapFeeModule.MAX_SECONDS_AGO(), 65535 * 2);
         assertEqUint(dynamicSwapFeeModule.customFee(pool), 1000);
         assertEq(address(dynamicSwapFeeModule.factory()), address(poolFactory));
+        assertEqUint(dynamicSwapFeeModule.secondsAgo(), 600);
     }
 
     function test_RevertIf_DefaultFeeCapIsHigherThanMaxFeeCap() public {

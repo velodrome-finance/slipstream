@@ -1,0 +1,13 @@
+SetInitialFeeTest
+├── when caller is not fee manager
+│   └── it should revert with "NFM"
+└── when caller is fee manager
+    ├── when pool does not exist
+    │   └── it should revert
+    └── when pool exists
+        ├── when fee exceeds MAX_FEE_CAP and is not ZERO_FEE_INDICATOR
+        │   └── it should revert with "MIF"
+        └── when fee is valid
+            ├── it should set initialFeeEnabled to true
+            ├── it should set initialFee
+            └── it should emit an {InitialFeeSet} event

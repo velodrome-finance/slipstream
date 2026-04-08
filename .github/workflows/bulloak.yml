@@ -33,9 +33,11 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install Bulloak
-        # Install Bulloak if it is not already installed
-        # Note if we change the version number, we will need to --force to update cache
-        run: (cargo install bulloak@0.8.1 || true)
+        run: |
+          BULLOAK_VERSION="0.9.2"
+          if ! bulloak --version 2>/dev/null | grep -q "$BULLOAK_VERSION"; then
+            cargo install bulloak@$BULLOAK_VERSION --force
+          fi
         id: install-bulloak
 
       - name: Run Bulloak checks

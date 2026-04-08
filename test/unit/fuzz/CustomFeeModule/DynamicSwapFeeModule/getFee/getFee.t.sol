@@ -221,7 +221,7 @@ contract GetFeeFuzzTest is DynamicSwapFeeModuleFuzzTest {
     }
 
     function getTwAvgTick() public view returns (int24) {
-        uint32 _twapDuration = 3600;
+        uint32 _twapDuration = 600;
         uint32[] memory secondsAgo = new uint32[](2);
         secondsAgo[0] = _twapDuration;
         secondsAgo[1] = 0;
