@@ -1,0 +1,9 @@
+SetPenaltyRateConcreteUnitTest
+├── When the caller is not the gauge stake manager
+│   └── It should revert with {NA}
+└── When the caller is the gauge stake manager
+    ├── When the penalty rate exceeds the maximum
+    │   └── It should revert with {MR}
+    └── When the penalty rate does not exceed the maximum
+        ├── It should set the penalty rate
+        └── It should emit a {SetPenaltyRate} event

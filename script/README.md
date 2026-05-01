@@ -17,9 +17,6 @@ forge test
 
 Command:
 
-As of 2024, gas estimation for foundry on L2s continues to be inaccurate. You will need `--legacy --with-gas-price 2500000` if you wish to not overpay L2 gas.
-For non-create transactions, `--gas-estimate-multiplier 200` must be used as gas estimation is incorrect for these as well.
-
 ```
 forge script script/DeployCL.s.sol:DeployCL --broadcast --slow --rpc-url optimism --verify -vvvv 
 

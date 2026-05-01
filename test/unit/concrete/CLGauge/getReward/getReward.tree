@@ -1,0 +1,26 @@
+GetRewardConcreteUnitTest
+├── When the caller is not the token owner
+│   └── It should revert with {NA}
+└── When the caller is the token owner
+    ├── When there are no accrued rewards
+    │   └── It should not transfer any tokens
+    └── When there are accrued rewards
+        ├── When penalty rate is zero
+        │   ├── It should transfer full rewards to owner
+        │   └── It should emit a {ClaimRewards} event
+        └── When penalty rate is greater than zero
+            ├── When called within min stake time
+            │   ├── When penalty rounds down to zero
+            │   │   └── It should transfer full rewards to owner
+            │   └── When penalty does not round down to zero
+            │       ├── When there are no remaining rewards after penalty
+            │       │   ├── It should transfer penalty to minter
+            │       │   └── It should emit a {EarlyWithdrawPenalty} event
+            │       └── When there are remaining rewards after penalty
+            │           ├── It should transfer penalty to minter
+            │           ├── It should emit a {EarlyWithdrawPenalty} event
+            │           ├── It should transfer remaining rewards to owner
+            │           └── It should emit a {ClaimRewards} event
+            └── When called after min stake time
+                ├── It should transfer full rewards to owner
+                └── It should emit a {ClaimRewards} event

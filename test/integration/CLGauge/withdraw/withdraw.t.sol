@@ -1,33 +1,19 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "../CLGauge.t.sol";
 
-contract WithdrawTest is CLGaugeTest {
+contract WithdrawIntegrationConcreteTest is CLGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
-
-    CLPool public pool;
-    CLGauge public gauge;
 
     event MetadataUpdate(uint256 _tokenId);
 
     function setUp() public override {
         super.setUp();
 
-        pool = CLPool(
-            poolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
-
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.alice);
     }

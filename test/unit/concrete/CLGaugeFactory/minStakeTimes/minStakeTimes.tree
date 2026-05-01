@@ -1,0 +1,5 @@
+MinStakeTimesConcreteUnitTest
+├── When no per pool override is set
+│   └── It should return the default min stake time
+└── When a per pool override is set
+    └── It should return the per pool min stake time

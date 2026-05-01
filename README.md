@@ -53,3 +53,22 @@ Velodrome has a live bug bounty hosted on ([Immunefi](https://immunefi.com/bount
 | CustomUnstakedFeeModule               | [0xC565F7ba9c56b157Da983c4Db30e13F5f06C59D9](https://optimistic.etherscan.io/address/0xC565F7ba9c56b157Da983c4Db30e13F5f06C59D9#code) |
 | Swap Router               | [0x0792a633F0c19c351081CF4B211F68F79bCc9676](http://optimistic.etherscan.io/address/0x0792a633F0c19c351081CF4B211F68F79bCc9676#code) |
 | LpMigrator                | [0x3Fdb481B25b24824A2339a4A1AbD0B0BC7534e71](http://optimistic.etherscan.io/address/0x3Fdb481B25b24824A2339a4A1AbD0B0BC7534e71#code) |
+
+## Gauges V2
+
+| Name               | Address                                                                                                                               |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------ |
+| DynamicSwapFeeModule               | [0xbf571c205f45d29a99a9B5f0485E131D7E943f1c](https://optimistic.etherscan.io/address/0xbf571c205f45d29a99a9B5f0485E131D7E943f1c#code) |
+| GaugeFactory               | [0x9b23957290d8e4709fb1E1512EDc29E17C17DC99](https://optimistic.etherscan.io/address/0x9b23957290d8e4709fb1E1512EDc29E17C17DC99#code) |
+| GaugeImplementation               | [0xb5f7bd1C65437F789b62CBE98eF16cd9f1fc4b26](https://optimistic.etherscan.io/address/0xb5f7bd1C65437F789b62CBE98eF16cd9f1fc4b26#code) |
+| LpMigrator               | [0xeE03E08107755BC34412E78377B971ECc7153590](https://optimistic.etherscan.io/address/0xeE03E08107755BC34412E78377B971ECc7153590#code) |
+| MixedQuoter               | [0x21fcc0C421Ae0a5F6919535EcF000688a0413b92](https://optimistic.etherscan.io/address/0x21fcc0C421Ae0a5F6919535EcF000688a0413b92#code) |
+| MixedQuoterV2               | [0xE5Db7C27a2C3DAcC1678a080aA3B4cC75F36329C](https://optimistic.etherscan.io/address/0xE5Db7C27a2C3DAcC1678a080aA3B4cC75F36329C#code) |
+| MixedQuoterV3               | [0xAf6EBdf4c70061C5961994Ae9c9956fBc2bCC32E](https://optimistic.etherscan.io/address/0xAf6EBdf4c70061C5961994Ae9c9956fBc2bCC32E#code) |
+| NonfungiblePositionManager               | [0xf7f8ccce99Ca2896eC75D3A399D152dB96808399](https://optimistic.etherscan.io/address/0xf7f8ccce99Ca2896eC75D3A399D152dB96808399#code) |
+| NonfungibleTokenPositionDescriptor               | [0xe5e47ac4b5389cf4A2df66315d57F4f62Ae80f9f](https://optimistic.etherscan.io/address/0xe5e47ac4b5389cf4A2df66315d57F4f62Ae80f9f#code) |
+| PoolFactory               | [0xe13Dd1fbA721Aa81a1826D9523AC9BC7d260c879](https://optimistic.etherscan.io/address/0xe13Dd1fbA721Aa81a1826D9523AC9BC7d260c879#code) |
+| PoolImplementation               | [0x11B234946F28A3905710922138C65FBbe7496b4C](https://optimistic.etherscan.io/address/0x11B234946F28A3905710922138C65FBbe7496b4C#code) |
+| Quoter               | [0xAd432b2ca49965266133F2bd4c17dc1Ec12f5DEB](https://optimistic.etherscan.io/address/0xAd432b2ca49965266133F2bd4c17dc1Ec12f5DEB#code) |
+| SwapRouter               | [0xbA3aEe516399388C779463183d00bB579f5041Ca](https://optimistic.etherscan.io/address/0xbA3aEe516399388C779463183d00bB579f5041Ca#code) |
+| UnstakedFeeModule               | [0x2B2A6209f813b360E0D8a006c73477D56e7a7f16](https://optimistic.etherscan.io/address/0x2B2A6209f813b360E0D8a006c73477D56e7a7f16#code) |

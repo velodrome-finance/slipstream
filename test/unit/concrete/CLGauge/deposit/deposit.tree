@@ -1,0 +1,14 @@
+DepositConcreteUnitTest
+├── When the caller is not the token owner
+│   └── It should revert with {NA}
+└── When the caller is the token owner
+    ├── When the gauge is not alive
+    │   └── It should revert with {GK}
+    └── When the gauge is alive
+        ├── When the position does not match the pool
+        │   └── It should revert with {PM}
+        └── When the position matches the pool
+            ├── It should collect accumulated fees
+            ├── It should stake liquidity in the pool
+            ├── It should set the deposit timestamp
+            └── It should emit a {Deposit} event

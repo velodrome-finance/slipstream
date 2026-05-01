@@ -43,4 +43,5 @@ abstract contract Events {
     event Withdraw(address indexed user, uint256 indexed tokenId, uint128 indexed liquidityToStake);
     event NotifyReward(address indexed from, uint256 amount);
     event ClaimRewards(address indexed from, uint256 amount);
+    event EarlyWithdrawPenalty(address indexed from, uint256 indexed tokenId, uint256 penalty);
 }

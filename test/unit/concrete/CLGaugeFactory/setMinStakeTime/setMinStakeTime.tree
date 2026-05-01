@@ -1,0 +1,12 @@
+SetMinStakeTimeConcreteUnitTest
+├── When the caller is not the gauge stake manager
+│   └── It should revert with {NA}
+└── When the caller is the gauge stake manager
+    ├── When the pool is the zero address
+    │   └── It should revert with {ZA}
+    └── When the pool is not the zero address
+        ├── When the min stake time exceeds the maximum
+        │   └── It should revert with {MS}
+        └── When the min stake time does not exceed the maximum
+            ├── It should set the per-pool min stake time
+            └── It should emit a {SetPoolMinStakeTime} event

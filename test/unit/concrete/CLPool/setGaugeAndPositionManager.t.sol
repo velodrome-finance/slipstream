@@ -17,7 +17,8 @@ contract SetGaugeAndPositionManagerTest is CLPoolTest {
             new MockVoter({
                 _rewardToken: address(rewardToken),
                 _factoryRegistry: address(factoryRegistry),
-                _ve: address(escrow)
+                _ve: address(escrow),
+                _minter: address(0)
             })
         );
 

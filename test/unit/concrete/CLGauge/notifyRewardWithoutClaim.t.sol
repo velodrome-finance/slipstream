@@ -6,22 +6,11 @@ import {FullMath} from "contracts/core/libraries/FullMath.sol";
 import {ICLPool} from "contracts/core/interfaces/ICLPool.sol";
 
 contract NotifyRewardWithoutClaimTest is CLGaugeTest {
-    CLPool public pool;
-    CLGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
 
-        pool = CLPool(
-            poolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 
         skipToNextEpoch(0);

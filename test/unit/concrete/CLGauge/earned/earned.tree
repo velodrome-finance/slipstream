@@ -1,0 +1,14 @@
+EarnedConcreteUnitTest
+├── When the caller is not the token owner
+│   └── It should revert with {NA}
+└── When the caller is the token owner
+    ├── When there are no claimable rewards
+    │   └── It should return zero
+    └── When there are claimable rewards
+        ├── When penalty rate is zero
+        │   └── It should return full rewards
+        └── When penalty rate is greater than zero
+            ├── When called within min stake time
+            │   └── It should return rewards minus penalty
+            └── When called after min stake time
+                └── It should return full rewards

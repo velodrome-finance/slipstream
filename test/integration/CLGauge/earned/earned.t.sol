@@ -1,24 +1,11 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "../CLGauge.t.sol";
 
-contract EarnedTest is CLGaugeTest {
-    CLPool public pool;
-    CLGauge public gauge;
-
+contract EarnedIntegrationConcreteTest is CLGaugeTest {
     function setUp() public override {
         super.setUp();
-
-        pool = CLPool(
-            poolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.bob);
         deal({token: address(token0), to: users.bob, give: TOKEN_1 * 10});

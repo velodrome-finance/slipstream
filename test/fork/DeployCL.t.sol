@@ -11,7 +11,7 @@ import {NonfungibleTokenPositionDescriptor} from "contracts/periphery/Nonfungibl
 import {NonfungiblePositionManager} from "contracts/periphery/NonfungiblePositionManager.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
-import {CustomSwapFeeModule} from "contracts/core/fees/CustomSwapFeeModule.sol";
+import {DynamicSwapFeeModule} from "contracts/core/fees/DynamicSwapFeeModule.sol";
 import {CustomUnstakedFeeModule} from "contracts/core/fees/CustomUnstakedFeeModule.sol";
 import {MixedRouteQuoterV2} from "contracts/periphery/lens/MixedRouteQuoterV2.sol";
 
@@ -21,8 +21,7 @@ contract DeployCLForkTest is Test {
     DeployCL public deployCL;
 
     string public constantsFilename = vm.envString("CONSTANTS_FILENAME");
-    uint256 public deployPrivateKey = vm.envUint("PRIVATE_KEY_DEPLOY");
-    address public deployerAddress = vm.rememberKey(deployPrivateKey);
+    address public deployerAddress = 0x4994DacdB9C57A811aFfbF878D92E00EF2E5C4C2;
     string public jsonConstants;
 
     // loaded variables
@@ -34,6 +33,9 @@ contract DeployCLForkTest is Test {
     address public feeManager;
     address public notifyAdmin;
     address public factoryV2;
+    address public gaugeStakeManager;
+    uint256 public minStakeTime;
+    uint256 public penaltyRate;
     string public nftName;
     string public nftSymbol;
 
@@ -44,7 +46,7 @@ contract DeployCLForkTest is Test {
     NonfungiblePositionManager public nft;
     CLGauge public gaugeImplementation;
     CLGaugeFactory public gaugeFactory;
-    CustomSwapFeeModule public swapFeeModule;
+    DynamicSwapFeeModule public swapFeeModule;
     CustomUnstakedFeeModule public unstakedFeeModule;
     MixedRouteQuoterV2 public mixedQuoterV2;
 
@@ -65,6 +67,9 @@ contract DeployCLForkTest is Test {
         poolFactoryOwner = abi.decode(vm.parseJson(jsonConstants, ".poolFactoryOwner"), (address));
         feeManager = abi.decode(vm.parseJson(jsonConstants, ".feeManager"), (address));
         notifyAdmin = abi.decode(vm.parseJson(jsonConstants, ".notifyAdmin"), (address));
+        gaugeStakeManager = abi.decode(vm.parseJson(jsonConstants, ".gaugeStakeManager"), (address));
+        minStakeTime = abi.decode(vm.parseJson(jsonConstants, ".minStakeTime"), (uint256));
+        penaltyRate = abi.decode(vm.parseJson(jsonConstants, ".penaltyRate"), (uint256));
         nftName = abi.decode(vm.parseJson(jsonConstants, ".nftName"), (string));
         nftSymbol = abi.decode(vm.parseJson(jsonConstants, ".nftSymbol"), (string));
 
@@ -119,9 +124,13 @@ contract DeployCLForkTest is Test {
         assertEq(gaugeFactory.implementation(), address(gaugeImplementation));
         assertEq(gaugeFactory.nft(), address(nft));
         assertEq(gaugeFactory.notifyAdmin(), notifyAdmin);
+        assertEq(gaugeFactory.gaugeStakeManager(), gaugeStakeManager);
+        assertEq(gaugeFactory.defaultMinStakeTime(), minStakeTime);
+        assertEq(gaugeFactory.penaltyRate(), penaltyRate);
+        assertTrue(gaugeFactory.gaugeStakeManager() != address(deployCL.deployerAddress()));
 
         assertTrue(address(swapFeeModule) != address(0));
-        assertEq(swapFeeModule.MAX_FEE(), 30_000); // 3%, using pip denomination
+        assertEq(swapFeeModule.MAX_BASE_FEE(), 30_000); // 3%, using pip denomination
         assertEq(address(swapFeeModule.factory()), address(poolFactory));
 
         assertTrue(address(unstakedFeeModule) != address(0));

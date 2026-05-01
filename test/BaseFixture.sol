@@ -15,6 +15,7 @@ import {CLGaugeFactory} from "contracts/gauge/CLGaugeFactory.sol";
 import {CLGauge} from "contracts/gauge/CLGauge.sol";
 import {MockWETH} from "contracts/test/MockWETH.sol";
 import {IVoter, MockVoter} from "contracts/test/MockVoter.sol";
+import {MockMinter} from "contracts/test/MockMinter.sol";
 import {IVotingEscrow, MockVotingEscrow} from "contracts/test/MockVotingEscrow.sol";
 import {IFactoryRegistry, MockFactoryRegistry} from "contracts/test/MockFactoryRegistry.sol";
 import {IVotingRewardsFactory, MockVotingRewardsFactory} from "contracts/test/MockVotingRewardsFactory.sol";
@@ -178,11 +179,13 @@ abstract contract BaseFixture is Test, Constants, Events, PoolUtils {
         votingRewardsFactory = IVotingRewardsFactory(new MockVotingRewardsFactory());
         weth = IERC20(address(new MockWETH()));
         escrow = IVotingEscrow(new MockVotingEscrow(users.owner));
+        minter = IMinter(new MockMinter());
         voter = IVoter(
             new MockVoter({
                 _rewardToken: address(rewardToken),
                 _factoryRegistry: address(factoryRegistry),
-                _ve: address(escrow)
+                _ve: address(escrow),
+                _minter: address(minter)
             })
         );
     }

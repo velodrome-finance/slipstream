@@ -5,26 +5,14 @@ import "./CLGauge.t.sol";
 import {FullMath} from "contracts/core/libraries/FullMath.sol";
 
 contract NotifyRewardAmountTest is CLGaugeTest {
-    CLPool public pool;
-    CLGauge public gauge;
     address public feesVotingReward;
 
     function setUp() public override {
         super.setUp();
 
-        pool = CLPool(
-            poolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-
         vm.prank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
 
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
         feesVotingReward = voter.gaugeToFees(address(gauge));
 
         skipToNextEpoch(0);

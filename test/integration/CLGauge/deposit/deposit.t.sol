@@ -1,27 +1,14 @@
 pragma solidity ^0.7.6;
 pragma abicoder v2;
 
-import "./CLGauge.t.sol";
+import "../CLGauge.t.sol";
 
-contract DepositTest is CLGaugeTest {
+contract DepositIntegrationConcreteTest is CLGaugeTest {
     using stdStorage for StdStorage;
     using SafeCast for uint128;
 
-    CLPool public pool;
-    CLGauge public gauge;
-
     function setUp() public override {
         super.setUp();
-
-        pool = CLPool(
-            poolFactory.createPool({
-                tokenA: address(token0),
-                tokenB: address(token1),
-                tickSpacing: TICK_SPACING_60,
-                sqrtPriceX96: encodePriceSqrt(1, 1)
-            })
-        );
-        gauge = CLGauge(voter.createGauge({_poolFactory: address(poolFactory), _pool: address(pool)}));
 
         vm.startPrank(users.feeManager);
         customUnstakedFeeModule.setCustomFee(address(pool), 420);
@@ -164,7 +151,7 @@ contract DepositTest is CLGaugeTest {
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
         nft.approve(address(gauge), tokenId);
-        vm.expectEmit(true, true, true, false, address(gauge));
+        vm.expectEmit(address(gauge));
         emit Deposit({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.deposit({tokenId: tokenId});
 
@@ -185,6 +172,7 @@ contract DepositTest is CLGaugeTest {
         assertEq(stakedLiquidityNet, -1 * liquidity.toInt128());
         assertEq(gauge.rewards(tokenId), 0);
         assertEq(gauge.lastUpdateTime(tokenId), 1);
+        assertEq(gauge.depositTimestamp(tokenId), block.timestamp);
 
         (uint128 gaugeLiquidity,,,,) =
             pool.positions(keccak256(abi.encodePacked(address(gauge), -TICK_SPACING_60, TICK_SPACING_60)));
@@ -213,7 +201,7 @@ contract DepositTest is CLGaugeTest {
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
         nft.approve(address(gauge), tokenId);
-        vm.expectEmit(true, true, true, false, address(gauge));
+        vm.expectEmit(address(gauge));
         emit Deposit({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.deposit({tokenId: tokenId});
 
@@ -262,7 +250,7 @@ contract DepositTest is CLGaugeTest {
         (uint256 tokenId, uint128 liquidity,,) = nft.mint(params);
 
         nft.approve(address(gauge), tokenId);
-        vm.expectEmit(true, true, true, false, address(gauge));
+        vm.expectEmit(address(gauge));
         emit Deposit({user: users.alice, tokenId: tokenId, liquidityToStake: liquidity});
         gauge.deposit({tokenId: tokenId});
 
@@ -324,5 +312,28 @@ contract DepositTest is CLGaugeTest {
             keccak256(abi.encodePacked(address(nft), getMinTick(TICK_SPACING_60), getMaxTick(TICK_SPACING_60)))
         );
         assertEqUint(nftLiquidity, 0);
+    }
+
+    function test_DepositTimestampResetsOnRedeposit() public {
+        // It should reset depositTimestamp on re-deposit, preventing penalty bypass
+        uint256 tokenId = nftCallee.mintNewFullRangePositionForUserWith60TickSpacing(TOKEN_1, TOKEN_1, users.alice);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit({tokenId: tokenId});
+
+        uint256 firstDepositTimestamp = block.timestamp;
+        assertEq(gauge.depositTimestamp(tokenId), firstDepositTimestamp);
+
+        // withdraw, then re-deposit after some time
+        gauge.withdraw({tokenId: tokenId});
+        assertEq(gauge.depositTimestamp(tokenId), 0);
+
+        skip(1 days);
+
+        nft.approve(address(gauge), tokenId);
+        gauge.deposit({tokenId: tokenId});
+
+        assertEq(gauge.depositTimestamp(tokenId), block.timestamp);
+        assertNotEq(gauge.depositTimestamp(tokenId), firstDepositTimestamp);
     }
 }

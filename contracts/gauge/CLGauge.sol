@@ -25,6 +25,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     using SafeCast for int256;
 
     uint256 internal constant Q128 = 0x100000000000000000000000000000000;
+    uint256 private constant MAX_BPS = 10_000;
 
     /// @inheritdoc ICLGauge
     INonfungiblePositionManager public override nft;
@@ -34,6 +35,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     ICLPool public override pool;
     /// @inheritdoc ICLGauge
     ICLGaugeFactory public override gaugeFactory;
+    /// @inheritdoc ICLGauge
+    address public override minter;
 
     /// @inheritdoc ICLGauge
     address public override feesVotingReward;
@@ -55,6 +58,8 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     mapping(uint256 => uint256) public override rewards;
     /// @inheritdoc ICLGauge
     mapping(uint256 => uint256) public override lastUpdateTime;
+    /// @inheritdoc ICLGauge
+    mapping(uint256 => uint256) public override depositTimestamp;
 
     /// @inheritdoc ICLGauge
     uint256 public override fees0;
@@ -84,6 +89,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     ) external override {
         require(address(pool) == address(0), "AI");
         gaugeFactory = ICLGaugeFactory(msg.sender);
+        minter = gaugeFactory.minter();
         pool = ICLPool(_pool);
         feesVotingReward = _feesVotingReward;
         rewardToken = _rewardToken;
@@ -108,7 +114,11 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
     function earned(address account, uint256 tokenId) external view override returns (uint256) {
         require(_stakes[account].contains(tokenId), "NA");
 
-        return _earned(tokenId);
+        uint256 claimable = rewards[tokenId] + _earned(tokenId);
+        if (claimable > 0) {
+            claimable -= _applyPenalty(claimable, tokenId);
+        }
+        return claimable;
     }
 
     function _earned(uint256 tokenId) internal view returns (uint256) {
@@ -166,8 +176,24 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
 
         if (reward > 0) {
             delete rewards[tokenId];
-            IERC20(rewardToken).safeTransfer(owner, reward);
-            emit ClaimRewards(owner, reward);
+            uint256 penalty = _applyPenalty(reward, tokenId);
+            if (penalty > 0) {
+                reward -= penalty;
+                IERC20(rewardToken).safeTransfer(minter, penalty);
+                emit EarlyWithdrawPenalty(owner, tokenId, penalty);
+            }
+            if (reward > 0) {
+                IERC20(rewardToken).safeTransfer(owner, reward);
+                emit ClaimRewards(owner, reward);
+            }
+        }
+    }
+
+    function _applyPenalty(uint256 reward, uint256 tokenId) internal view returns (uint256 penalty) {
+        uint256 _penaltyRate = gaugeFactory.penaltyRate();
+        if (_penaltyRate > 0 && block.timestamp < depositTimestamp[tokenId] + gaugeFactory.minStakeTimes(address(pool)))
+        {
+            penalty = reward * _penaltyRate / MAX_BPS;
         }
     }
 
@@ -198,6 +224,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         uint256 rewardGrowth = pool.getRewardGrowthInside(tickLower, tickUpper, 0);
         rewardGrowthInside[tokenId] = rewardGrowth;
         lastUpdateTime[tokenId] = block.timestamp;
+        depositTimestamp[tokenId] = block.timestamp;
 
         emit Deposit(msg.sender, tokenId, liquidityToStake);
     }
@@ -222,6 +249,7 @@ contract CLGauge is ICLGauge, ERC721Holder, ReentrancyGuard {
         pool.stake(-(uint256(liquidityToStake).toInt256()).toInt128(), tickLower, tickUpper);
 
         _stakes[msg.sender].remove(tokenId);
+        delete depositTimestamp[tokenId];
         nft.safeTransferFrom(address(this), msg.sender, tokenId);
 
         emit Withdraw(msg.sender, tokenId, liquidityToStake);
