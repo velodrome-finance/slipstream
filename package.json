@@ -21,7 +21,7 @@
     "contracts/core/libraries",
     "contracts/periphery/base",
     "contracts/periphery/interfaces",
-    "contracts/peripherylibraries",
+    "contracts/periphery/libraries",
     "artifacts/contracts/core/CLFactory.sol/CLFactory.json",
     "artifacts/contracts/core/CLPool.sol/CLPool.json",
     "artifacts/contracts/core/interfaces/**/*.json",
